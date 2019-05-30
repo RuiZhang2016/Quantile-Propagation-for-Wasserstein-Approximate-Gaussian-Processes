@@ -18,7 +18,6 @@ def Fr(x,m,v,mu,sigma):
     OT2 = owens_t(k,(h+rho*k)/k/np.sqrt(1-rho**2))
     return A*(0.5*norm.cdf(h)+0.5*norm.cdf(k)-OT1-OT2+eta)
 
-def pr(x,m,v,mu,sigma):
 
 def Fr_MC(x,m,v,mu,sigma):
     Z = norm.cdf((mu - m) / v / np.sqrt(1 + sigma ** 2 / v ** 2))
