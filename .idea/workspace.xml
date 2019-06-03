@@ -2,79 +2,177 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="f5ee25a8-0652-4b2d-84a2-b3ba6acce111" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/core/__init__.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/WGPC.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/WGPC.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/qp.py" beforeDir="false" afterPath="$PROJECT_DIR$/qp.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Demo/Airline/airlinedata.mat" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Demo/Airline/demo_Airline.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Demo/Classification/classification_data.npz" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Demo/Classification/demo_GPC.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Demo/Classification/demo_GPC_FITC.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Demo/Clustering/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Demo/Clustering/demo_clustering.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Demo/Clustering/pyGP_extension.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Demo/GraphData/demo_GraphKernel.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Demo/GraphData/graphData/MUTAG.mat" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Demo/GraphData/graphData/MUTAG.npz" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Demo/GraphData/graphData/toNumpyMatrix.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Demo/Housing/demo_Housing.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Demo/Housing/housing.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Demo/Housing/housing_README.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Demo/JHUI/demo_Validation.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Demo/JHUI/ionosphere.data.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Demo/JHUI/ionosphere.names.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Demo/JHUI/ionosphere_README.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Demo/MaunaLoa/demo_MaunaLoa.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Demo/MaunaLoa/mauna.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Demo/MaunaLoa/mauna_README.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Demo/Regression/demo_GPR.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Demo/Regression/demo_GPR_FITC.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Demo/Regression/regression_data.npz" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Demo/USPS/demo_GPMC.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Demo/USPS/demo_NodeKernel.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Demo/USPS/loadBinaryUSPS.m" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Demo/USPS/loadBinaryUSPS.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Demo/USPS/usps_README.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Demo/USPS/usps_all.mat" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Demo/USPS/usps_resampled.mat" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Demo/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Demo/generate_data_for_Rasmussen_examples.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/qp.py" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/test/test_qp.py" beforeDir="false" afterPath="$PROJECT_DIR$/test/test_qp.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
-    <option name="TRACKING_ENABLED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="CoverageDataManager">
-    <SUITE FILE_PATH="coverage/WGPC$demo_GPC.coverage" NAME="demo_GPC Coverage Results" MODIFIED="1559205353796" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Demo/Classification" />
+    <SUITE FILE_PATH="coverage/WGPC$demo_GPC.coverage" NAME="demo_GPC Coverage Results" MODIFIED="1559544101598" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/pyGPs/pyGPs/Demo/Classification" />
+    <SUITE FILE_PATH="coverage/WGPC$__init__.coverage" NAME="__init__ Coverage Results" MODIFIED="1559542818829" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/core" />
     <SUITE FILE_PATH="coverage/WGPC$Unittests_for_test_qp_TestQp_test_Fr.coverage" NAME="Unittests for test_qp.TestQp.test_Fr Coverage Results" MODIFIED="1559026561166" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/test" />
-    <SUITE FILE_PATH="coverage/WGPC$qp.coverage" NAME="qp Coverage Results" MODIFIED="1559294560653" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/WGPC$Unittests_in_test_qp_py.coverage" NAME="Unittests in test_qp.py Coverage Results" MODIFIED="1559294066058" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/test" />
-    <SUITE FILE_PATH="coverage/WGPC$test_qp.coverage" NAME="test_qp Coverage Results" MODIFIED="1559294058852" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/test" />
+    <SUITE FILE_PATH="coverage/WGPC$qp.coverage" NAME="qp Coverage Results" MODIFIED="1559530213944" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/WGPC$Unittests_in_test_qp_py.coverage" NAME="Unittests in test_qp.py Coverage Results" MODIFIED="1559543927253" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/test" />
+    <SUITE FILE_PATH="coverage/WGPC$test_qp.coverage" NAME="test_qp Coverage Results" MODIFIED="1559543088496" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/test" />
+    <SUITE FILE_PATH="coverage/WGPC$qp__1_.coverage" NAME="qp (1) Coverage Results" MODIFIED="1559544456059" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/core" />
   </component>
   <component name="FUSProjectUsageTrigger">
     <session id="-1474876133">
       <usages-collector id="statistics.lifecycle.project">
         <counts>
-          <entry key="project.closed" value="6" />
+          <entry key="project.closed" value="9" />
+          <entry key="project.open.time.0" value="1" />
           <entry key="project.open.time.1" value="1" />
-          <entry key="project.open.time.5" value="2" />
-          <entry key="project.open.time.6" value="1" />
+          <entry key="project.open.time.5" value="4" />
+          <entry key="project.open.time.6" value="2" />
           <entry key="project.open.time.7" value="2" />
-          <entry key="project.opened" value="6" />
+          <entry key="project.opened" value="10" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.open">
         <counts>
-          <entry key="py" value="17" />
+          <entry key="py" value="30" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.open">
         <counts>
-          <entry key="Python" value="17" />
+          <entry key="Python" value="30" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.edit">
         <counts>
-          <entry key="py" value="3536" />
+          <entry key="Python Console" value="31" />
+          <entry key="dummy" value="9" />
+          <entry key="py" value="4056" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
         <counts>
-          <entry key="Python" value="3536" />
+          <entry key="PLAIN_TEXT" value="9" />
+          <entry key="Python" value="4087" />
         </counts>
       </usages-collector>
     </session>
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="test_qp.py" pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/test/test_qp.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="145">
-              <caret line="42" column="65" selection-start-line="42" selection-start-column="65" selection-end-line="42" selection-end-column="65" />
+            <state relative-caret-position="150">
+              <caret line="17" column="27" selection-start-line="17" selection-start-column="27" selection-end-line="17" selection-end-column="27" />
               <folding>
                 <element signature="e#0#29#0" expanded="true" />
+                <marker date="1559543927241" expanded="true" signature="2041:2046" ph="..." />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="qp.py" pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/qp.py">
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/pyGPs/pyGPs/Demo/Classification/demo_GPC.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="209">
-              <caret line="61" column="111" selection-start-line="61" selection-start-column="111" selection-end-line="61" selection-end-column="111" />
+            <state relative-caret-position="315">
+              <caret line="48" column="15" selection-start-line="48" selection-start-column="15" selection-end-line="48" selection-end-column="15" />
+              <folding>
+                <element signature="e#0#37#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/pyGPs/pyGPs/Core/gp.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="-990">
+              <caret lean-forward="true" />
+              <folding>
+                <element signature="e#0#31#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/pyGPs/pyGPs/Core/inf.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="365">
+              <caret line="853" column="43" lean-forward="true" selection-start-line="853" selection-start-column="43" selection-end-line="853" selection-end-column="43" />
+              <folding>
+                <element signature="e#0#31#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/pyGPs/pyGPs/Core/lik.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="339">
+              <caret line="303" column="45" selection-start-line="303" selection-start-column="45" selection-end-line="303" selection-end-column="45" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/core/quantile.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="331">
+              <caret line="73" column="8" selection-start-line="73" selection-start-column="8" selection-end-line="73" selection-end-column="8" />
+              <folding>
+                <element signature="e#0#10#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/core/__init__.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="165">
+              <caret line="11" column="12" selection-start-line="11" selection-start-column="12" selection-end-line="11" selection-end-column="12" />
             </state>
           </provider>
         </entry>
@@ -93,6 +191,7 @@
       <find>EP</find>
       <find>setOptimizer</find>
       <find>method</find>
+      <find>pyGPs</find>
     </findStrings>
     <replaceStrings>
       <replace />
@@ -106,8 +205,13 @@
       <list>
         <option value="$PROJECT_DIR$/test_intractable_integral.py" />
         <option value="$PROJECT_DIR$/Demo/Classification/demo_GPC.py" />
-        <option value="$PROJECT_DIR$/test/test_qp.py" />
         <option value="$PROJECT_DIR$/qp.py" />
+        <option value="$PROJECT_DIR$/core/__init__.py" />
+        <option value="$PROJECT_DIR$/core/quantile.py" />
+        <option value="$PROJECT_DIR$/test/test_qp.py" />
+        <option value="$PROJECT_DIR$/core/qp.py" />
+        <option value="$PROJECT_DIR$/pyGPs/pyGPs/Core/inf.py" />
+        <option value="$PROJECT_DIR$/pyGPs/pyGPs/Core/lik.py" />
       </list>
     </option>
   </component>
@@ -117,10 +221,11 @@
     <detection-done>true</detection-done>
     <sorting>DEFINITION_ORDER</sorting>
   </component>
-  <component name="ProjectFrameBounds">
-    <option name="y" value="23" />
-    <option name="width" value="1920" />
-    <option name="height" value="984" />
+  <component name="ProjectFrameBounds" extendedState="6">
+    <option name="x" value="1147" />
+    <option name="y" value="122" />
+    <option name="width" value="1853" />
+    <option name="height" value="1055" />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectView">
@@ -128,6 +233,7 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
+      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -135,11 +241,38 @@
               <item name="WGPC" type="b2602c69:ProjectViewProjectNode" />
               <item name="WGPC" type="462c0819:PsiDirectoryNode" />
             </path>
+            <path>
+              <item name="WGPC" type="b2602c69:ProjectViewProjectNode" />
+              <item name="WGPC" type="462c0819:PsiDirectoryNode" />
+              <item name="core" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="WGPC" type="b2602c69:ProjectViewProjectNode" />
+              <item name="WGPC" type="462c0819:PsiDirectoryNode" />
+              <item name="pyGPs" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="WGPC" type="b2602c69:ProjectViewProjectNode" />
+              <item name="WGPC" type="462c0819:PsiDirectoryNode" />
+              <item name="pyGPs" type="462c0819:PsiDirectoryNode" />
+              <item name="pyGPs" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="WGPC" type="b2602c69:ProjectViewProjectNode" />
+              <item name="WGPC" type="462c0819:PsiDirectoryNode" />
+              <item name="pyGPs" type="462c0819:PsiDirectoryNode" />
+              <item name="pyGPs" type="462c0819:PsiDirectoryNode" />
+              <item name="Core" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="WGPC" type="b2602c69:ProjectViewProjectNode" />
+              <item name="WGPC" type="462c0819:PsiDirectoryNode" />
+              <item name="test" type="462c0819:PsiDirectoryNode" />
+            </path>
           </expand>
           <select />
         </subPane>
       </pane>
-      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -148,6 +281,12 @@
     <property name="nodejs_interpreter_path.stuck_in_default_project" value="undefined stuck path" />
     <property name="nodejs_npm_path_reset_for_default_project" value="true" />
     <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
+  </component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/core" />
+      <recent name="$PROJECT_DIR$" />
+    </key>
   </component>
   <component name="RunDashboard">
     <option name="ruleStates">
@@ -161,7 +300,29 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Python.qp">
+  <component name="RunManager" selected="Python.qp (1)">
+    <configuration name="__init__" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <module name="WGPC" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/core" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/core/__init__.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
     <configuration name="demo_GPC" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="WGPC" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -170,18 +331,21 @@
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
       <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/Demo/Classification" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/pyGPs/pyGPs/Demo/Classification" />
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/Demo/Classification/demo_GPC.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/pyGPs/pyGPs/Demo/Classification/demo_GPC.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
       <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
     </configuration>
-    <configuration name="qp" type="PythonConfigurationType" factoryName="Python" temporary="true">
+    <configuration name="qp (1)" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="WGPC" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -189,16 +353,19 @@
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
       <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/core" />
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/qp.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/core/qp.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
       <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
     </configuration>
     <configuration name="test_qp" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="WGPC" />
@@ -218,20 +385,9 @@
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
       <option name="MODULE_MODE" value="false" />
-    </configuration>
-    <configuration name="Unittests for test_qp.TestQp.test_Fr" type="tests" factoryName="Unittests" temporary="true" nameIsGenerated="true">
-      <module name="WGPC" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/test" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-      <option name="_new_additionalArguments" value="&quot;&quot;" />
-      <option name="_new_target" value="&quot;test_qp.TestQp.test_Fr&quot;" />
-      <option name="_new_targetType" value="&quot;PYTHON&quot;" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
     </configuration>
     <configuration name="Unittests in test_qp.py" type="tests" factoryName="Unittests" temporary="true" nameIsGenerated="true">
       <module name="WGPC" />
@@ -246,21 +402,22 @@
       <option name="_new_additionalArguments" value="&quot;&quot;" />
       <option name="_new_target" value="&quot;$PROJECT_DIR$/test/test_qp.py&quot;" />
       <option name="_new_targetType" value="&quot;PATH&quot;" />
+      <method v="2" />
     </configuration>
     <list>
-      <item itemvalue="Python.qp" />
       <item itemvalue="Python tests.Unittests in test_qp.py" />
-      <item itemvalue="Python tests.Unittests for test_qp.TestQp.test_Fr" />
-      <item itemvalue="Python.demo_GPC" />
       <item itemvalue="Python.test_qp" />
+      <item itemvalue="Python.__init__" />
+      <item itemvalue="Python.demo_GPC" />
+      <item itemvalue="Python.qp (1)" />
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.qp" />
+        <item itemvalue="Python.qp (1)" />
+        <item itemvalue="Python.demo_GPC" />
         <item itemvalue="Python tests.Unittests in test_qp.py" />
         <item itemvalue="Python.test_qp" />
-        <item itemvalue="Python tests.Unittests for test_qp.TestQp.test_Fr" />
-        <item itemvalue="Python.demo_GPC" />
+        <item itemvalue="Python.__init__" />
       </list>
     </recent_temporary>
   </component>
@@ -278,15 +435,6 @@
     <servers />
   </component>
   <component name="TestHistory">
-    <history-entry file="Unittests_in_test_qp_py - 2019.05.31 at 23h 06m 50s.xml">
-      <configuration name="Unittests in test_qp.py" configurationId="tests" />
-    </history-entry>
-    <history-entry file="Unittests_in_test_qp_py - 2019.05.31 at 23h 08m 27s.xml">
-      <configuration name="Unittests in test_qp.py" configurationId="tests" />
-    </history-entry>
-    <history-entry file="Unittests_in_test_qp_py - 2019.05.31 at 23h 11m 12s.xml">
-      <configuration name="Unittests in test_qp.py" configurationId="tests" />
-    </history-entry>
     <history-entry file="Unittests_in_test_qp_py - 2019.05.31 at 23h 11m 52s.xml">
       <configuration name="Unittests in test_qp.py" configurationId="tests" />
     </history-entry>
@@ -308,55 +456,63 @@
     <history-entry file="Unittests_in_test_qp_py - 2019.05.31 at 23h 52m 10s.xml">
       <configuration name="Unittests in test_qp.py" configurationId="tests" />
     </history-entry>
+    <history-entry file="Unittests_in_test_qp_py - 2019.06.03 at 16h 26m 28s.xml">
+      <configuration name="Unittests in test_qp.py" configurationId="tests" />
+    </history-entry>
+    <history-entry file="Unittests_in_test_qp_py - 2019.06.03 at 16h 28m 01s.xml">
+      <configuration name="Unittests in test_qp.py" configurationId="tests" />
+    </history-entry>
+    <history-entry file="Unittests_in_test_qp_py - 2019.06.03 at 16h 39m 32s.xml">
+      <configuration name="Unittests in test_qp.py" configurationId="tests" />
+    </history-entry>
   </component>
   <component name="ToolWindowManager">
-    <frame x="0" y="23" width="1920" height="984" extended-state="6" />
-    <editor active="true" />
+    <frame x="1147" y="122" width="1853" height="1055" extended-state="6" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.25855714" />
-      <window_info anchor="bottom" id="TODO" order="6" />
-      <window_info anchor="bottom" id="Event Log" order="10" side_tool="true" />
-      <window_info active="true" anchor="bottom" id="Run" order="2" visible="true" weight="0.32694477" />
-      <window_info anchor="bottom" id="Version Control" order="8" />
-      <window_info anchor="bottom" id="Python Console" order="12" weight="0.32919955" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.26452684" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
-      <window_info anchor="bottom" id="Terminal" order="11" weight="0.32919955" />
-      <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
       <window_info id="Favorites" order="2" side_tool="true" />
-      <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
-      <window_info anchor="bottom" id="Docker" order="7" show_stripe_button="false" />
+      <window_info anchor="bottom" id="Message" order="0" />
+      <window_info anchor="bottom" id="Find" order="1" />
+      <window_info anchor="bottom" id="Run" order="2" visible="true" weight="0.3264865" />
+      <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
+      <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
+      <window_info anchor="bottom" id="TODO" order="6" />
+      <window_info anchor="bottom" id="Docker" order="7" show_stripe_button="false" />
+      <window_info anchor="bottom" id="Version Control" order="8" />
+      <window_info anchor="bottom" id="Database Changes" order="9" show_stripe_button="false" />
+      <window_info anchor="bottom" id="Event Log" order="10" side_tool="true" />
+      <window_info anchor="bottom" id="Terminal" order="11" weight="0.32864866" />
+      <window_info anchor="bottom" id="Python Console" order="12" weight="0.32864866" />
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
+      <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
+      <window_info anchor="right" id="SciView" order="3" visible="true" weight="0.27559492" />
       <window_info anchor="right" id="Database" order="4" />
-      <window_info anchor="bottom" id="Message" order="0" />
-      <window_info anchor="bottom" id="Database Changes" order="9" show_stripe_button="false" />
-      <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
-      <window_info active="true" anchor="right" id="SciView" order="3" visible="true" weight="0.39236304" />
-      <window_info anchor="bottom" id="Find" order="1" />
     </layout>
     <layout-to-restore>
-      <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
-      <window_info anchor="bottom" id="Docker" order="7" show_stripe_button="false" />
-      <window_info anchor="bottom" id="Version Control" order="8" />
-      <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
       <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.25750396" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
-      <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
-      <window_info anchor="bottom" id="TODO" order="6" />
-      <window_info anchor="bottom" id="Database Changes" order="9" show_stripe_button="false" />
-      <window_info active="true" anchor="bottom" id="Run" order="2" visible="true" weight="0.32807216" />
-      <window_info anchor="bottom" id="Python Console" order="12" />
-      <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
-      <window_info anchor="right" id="Database" order="4" />
-      <window_info anchor="bottom" id="Message" order="0" />
-      <window_info anchor="bottom" id="Event Log" order="10" side_tool="true" />
-      <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
-      <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
-      <window_info anchor="right" id="SciView" order="3" visible="true" weight="0.32982844" />
-      <window_info anchor="bottom" id="Find" order="1" />
-      <window_info anchor="bottom" id="Terminal" order="11" />
       <window_info id="Favorites" order="2" side_tool="true" />
+      <window_info anchor="bottom" id="Message" order="0" />
+      <window_info anchor="bottom" id="Find" order="1" />
+      <window_info active="true" anchor="bottom" id="Run" order="2" visible="true" weight="0.32807216" />
+      <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
+      <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
+      <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
+      <window_info anchor="bottom" id="TODO" order="6" />
+      <window_info anchor="bottom" id="Docker" order="7" show_stripe_button="false" />
+      <window_info anchor="bottom" id="Version Control" order="8" />
+      <window_info anchor="bottom" id="Database Changes" order="9" show_stripe_button="false" />
+      <window_info anchor="bottom" id="Event Log" order="10" side_tool="true" />
+      <window_info anchor="bottom" id="Terminal" order="11" />
+      <window_info anchor="bottom" id="Python Console" order="12" />
+      <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
+      <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
+      <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
+      <window_info anchor="right" id="SciView" order="3" visible="true" weight="0.32982844" />
+      <window_info anchor="right" id="Database" order="4" />
     </layout-to-restore>
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -366,33 +522,6 @@
     <option name="myLimit" value="2678400000" />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/Demo/Classification/demo_GPC.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="780">
-          <caret line="67" column="12" selection-start-line="67" selection-start-column="12" selection-end-line="67" selection-end-column="12" />
-          <folding>
-            <element signature="e#0#37#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/test/test_qp.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="255">
-          <caret line="20" column="35" selection-start-line="20" selection-start-column="35" selection-end-line="20" selection-end-column="35" />
-          <folding>
-            <element signature="e#0#29#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/qp.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="990">
-          <caret line="66" column="4" selection-start-line="66" selection-start-column="4" selection-end-line="66" selection-end-column="26" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$USER_HOME$/anaconda3/lib/python3.6/site-packages/pyGPs/Core/inf.py" />
     <entry file="file://$USER_HOME$/anaconda3/lib/python3.6/site-packages/pyGPs/Core/gp.py" />
     <entry file="file://$USER_HOME$/anaconda3/lib/python3.6/site-packages/pyGPs/Core/cov.py" />
@@ -405,32 +534,97 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/../pyGPs/pyGPs/__init__.py" />
     <entry file="file://$PROJECT_DIR$/../pyGPs/pyGPs/Optimization/minimize.py" />
-    <entry file="file://$PROJECT_DIR$/../pyGPs/pyGPs/Core/gp.py" />
     <entry file="file://$PROJECT_DIR$/../pyGPs/pyGPs/Core/opt.py" />
-    <entry file="file://$PROJECT_DIR$/Demo/Classification/demo_GPC.py">
+    <entry file="file://$PROJECT_DIR$/qp.py" />
+    <entry file="file://$PROJECT_DIR$/../pyGPs/pyGPs/Core/inf.py" />
+    <entry file="file://$PROJECT_DIR$/Demo/Classification/demo_GPC.py" />
+    <entry file="file://$PROJECT_DIR$/../pyGPs/pyGPs/Core/gp.py" />
+    <entry file="file://$PROJECT_DIR$/test/test_qp.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="510">
-          <caret line="67" column="12" selection-start-line="67" selection-start-column="12" selection-end-line="67" selection-end-column="12" />
+        <state relative-caret-position="150">
+          <caret line="17" column="27" selection-start-line="17" selection-start-column="27" selection-end-line="17" selection-end-column="27" />
+          <folding>
+            <element signature="e#0#29#0" expanded="true" />
+            <marker date="1559543927241" expanded="true" signature="2041:2046" ph="..." />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/__init__.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="165">
+          <caret line="11" column="12" selection-start-line="11" selection-start-column="12" selection-end-line="11" selection-end-column="12" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/pyGPs/pyGPs/Demo/Classification/demo_GPC.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="315">
+          <caret line="48" column="15" selection-start-line="48" selection-start-column="15" selection-end-line="48" selection-end-column="15" />
           <folding>
             <element signature="e#0#37#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/test/test_qp.py">
+    <entry file="file://$PROJECT_DIR$/pyGPs/pyGPs/__init__.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="145">
-          <caret line="42" column="65" selection-start-line="42" selection-start-column="65" selection-end-line="42" selection-end-column="65" />
+        <state>
+          <caret column="1" selection-start-column="1" selection-end-line="5" selection-end-column="22" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/qp.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="82">
+          <caret line="43" lean-forward="true" selection-start-line="43" selection-end-line="43" />
           <folding>
-            <element signature="e#0#29#0" expanded="true" />
+            <element signature="e#0#31#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/qp.py">
+    <entry file="file://$PROJECT_DIR$/core/quantile.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="209">
-          <caret line="61" column="111" selection-start-line="61" selection-start-column="111" selection-end-line="61" selection-end-column="111" />
+        <state relative-caret-position="331">
+          <caret line="73" column="8" selection-start-line="73" selection-start-column="8" selection-end-line="73" selection-end-column="8" />
+          <folding>
+            <element signature="e#0#10#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$USER_HOME$/anaconda3/lib/python3.6/site-packages/past/utils/__init__.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="308">
+          <caret line="84" column="4" selection-start-line="84" selection-start-column="4" selection-end-line="84" selection-end-column="4" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/pyGPs/pyGPs/Core/gp.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-990">
+          <caret lean-forward="true" />
+          <folding>
+            <element signature="e#0#31#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/pyGPs/pyGPs/Core/inf.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="365">
+          <caret line="853" column="43" lean-forward="true" selection-start-line="853" selection-start-column="43" selection-end-line="853" selection-end-column="43" />
+          <folding>
+            <element signature="e#0#31#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/pyGPs/pyGPs/Core/lik.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="339">
+          <caret line="303" column="45" selection-start-line="303" selection-start-column="45" selection-end-line="303" selection-end-column="45" />
         </state>
       </provider>
     </entry>
