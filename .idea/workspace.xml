@@ -1,13 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="f5ee25a8-0652-4b2d-84a2-b3ba6acce111" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/WGPC.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/WGPC.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/qp.py" beforeDir="false" afterPath="$PROJECT_DIR$/qp.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/test_qp.py" beforeDir="false" afterPath="$PROJECT_DIR$/test/test_qp.py" afterDir="false" />
-    </list>
+    <list default="true" id="f5ee25a8-0652-4b2d-84a2-b3ba6acce111" name="Default Changelist" comment="test infer and looking for close form expression" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -311,16 +305,15 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="23" width="1920" height="984" extended-state="6" />
-    <editor active="true" />
     <layout>
       <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.25855714" />
       <window_info anchor="bottom" id="TODO" order="6" />
       <window_info anchor="bottom" id="Event Log" order="10" side_tool="true" />
-      <window_info active="true" anchor="bottom" id="Run" order="2" visible="true" weight="0.32694477" />
+      <window_info anchor="bottom" id="Run" order="2" weight="0.32694477" />
       <window_info anchor="bottom" id="Version Control" order="8" />
       <window_info anchor="bottom" id="Python Console" order="12" weight="0.32919955" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
-      <window_info anchor="bottom" id="Terminal" order="11" weight="0.32919955" />
+      <window_info active="true" anchor="bottom" id="Terminal" order="11" visible="true" weight="0.32919955" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
@@ -364,6 +357,10 @@
   </component>
   <component name="VcsContentAnnotationSettings">
     <option name="myLimit" value="2678400000" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="test infer and looking for close form expression" />
+    <option name="LAST_COMMIT_MESSAGE" value="test infer and looking for close form expression" />
   </component>
   <component name="editorHistoryManager">
     <entry file="file://$PROJECT_DIR$/Demo/Classification/demo_GPC.py">
