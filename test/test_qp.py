@@ -1,5 +1,5 @@
 from unittest import TestCase
-import qp
+from core.quantile import *
 import time
 import numpy as np
 from scipy.special import erfinv
@@ -8,29 +8,29 @@ from pynverse import inversefunc
 from scipy.stats import norm
 
 class TestQp(TestCase):
-    # def test_Fr(self):
-    #     ms = [-2,-1,1,2]
-    #     vs = [-2,-1,1,2]
-    #     for x in np.linspace(-10,10,50):
-    #         for m in ms:
-    #             for v in vs:
-    #                 # t = time.time()
-    #                 res1 = qp.Fr(x, m, v, 0, 1)
-    #                 # print(time.time() - t, ' seconds')
-    #                 # t = time.time()
-    #                 res2 = qp.Fr_MC(x, m, v, 0, 1)
-    #                 # print(time.time() - t, ' seconds')
-    #                 assert np.isclose(res1,res2),(x,' Fr, Fr_MC',res1,res2)
-    #
-    # def test_inverse_Fr(self):
-    #     print('Test Inverse Func')
-    #     ms = [-2, -1, 1, 2]
-    #     vs = [-2, -1, 1, 2]
-    #     for m in ms:
-    #         for v in vs:
-    #             func = lambda x: qp.Fr(x, m, v, 0, 1)
-    #             for x in np.linspace(0,1,10):
-    #                 assert np.isclose(x,func(inversefunc(func, y_values=x)))
+    def test_Fr(self):
+        ms = [-2,-1,1,2]
+        vs = [-2,-1,1,2]
+        for x in np.linspace(-10,10,50):
+            for m in ms:
+                for v in vs:
+                    # t = time.time()
+                    res1 = Fr(x, m, v, 0, 1)
+                    # print(time.time() - t, ' seconds')
+                    # t = time.time()
+                    res2 = Fr_MC(x, m, v, 0, 1)
+                    # print(time.time() - t, ' seconds')
+                    assert np.isclose(res1,res2),(x,' Fr, Fr_MC',res1,res2)
+
+    def test_inverse_Fr(self):
+        print('Test Inverse Func')
+        ms = [-2, -1, 1, 2]
+        vs = [-2, -1, 1, 2]
+        for m in ms:
+            for v in vs:
+                func = lambda x: Fr(x, m, v, 0, 1)
+                for x in np.linspace(0,1,10):
+                    assert np.isclose(x,func(inversefunc(func, y_values=x)))
 
     def test_qp_fit_gauss2gauss(self):
         mus = np.linspace(-10,10,5)
@@ -48,6 +48,7 @@ class TestQp(TestCase):
                     assert np.isclose(inf_sigma, sigma), ('inf_sigma, sigma:', inf_sigma, sigma)
                 except Exception as e:
                     print(e,mu,sigma)
+
 
     # def test_fit_gauss_wd(self):
     #     ms = [-2, -1, 1, 2]
