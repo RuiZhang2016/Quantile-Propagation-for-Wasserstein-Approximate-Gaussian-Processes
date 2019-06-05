@@ -292,7 +292,7 @@ class Erf(Likelihood):
                 else:                                    # derivative mode
                     return []                            # derivative w.r.t. hypers
 
-            elif isinstance(inffunc, inf.EP):
+            elif isinstance(inffunc, inf.EP) or isinstance(inffunc, inf.QP):
                 if der is None:                          # no derivative mode
                     z = old_div(mu,np.sqrt(1+s2))
                     junk,lZ = self.cumGauss(y,z,2)       # log part function

@@ -647,7 +647,7 @@ class GPC(GP):
         self.meanfunc = mean.Zero()                        # default prior mean
         self.covfunc = cov.RBF()                           # default prior covariance
         self.likfunc = lik.Erf()                           # erf likihood
-        self.inffunc = inf.EP()                            # default inference method
+        self.inffunc = inf.QP()                            # default inference method
         self.optimizer = opt.Minimize(self)                # default optimizer
 
 
