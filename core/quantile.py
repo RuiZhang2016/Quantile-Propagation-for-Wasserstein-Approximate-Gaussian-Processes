@@ -60,7 +60,7 @@ def fit_gauss_wd(m,v,mu,sigma):
     inverse_Fr = lambda y: inversefunc(lambda x: Fr(x,m,v,mu,sigma),y_values=y,domain=[inf_mu-8*sigma, inf_mu+8*sigma])
     C2 = np.sqrt(2)*integrate.quad(lambda x: erfinv(2*x-1)*inverse_Fr(x),0,1)[0]
     inf_sigma = C2
-    return inf_mu,inf_sigma
+    return inf_mu,inf_sigma,mu/np.pi
 
 def fit_gauss_kl(m,v,mu,sigma):
     sigma2 = sigma**2
@@ -71,32 +71,31 @@ def fit_gauss_kl(m,v,mu,sigma):
     return inf_mu,np.sqrt(inf_sigma2)
 
 if __name__ == '__main__':
-    pass
-    # m,v,mu,sigma = 1,2,3,4
-    # inf_mu_wd,inf_sigma_wd = fit_gauss_wd(m,v,mu,sigma)
-    # inf_mu_kl, inf_sigma_kl = fit_gauss_kl(m, v, mu, sigma)
-    # print('wd: mu ',inf_mu_wd,' sigma:',inf_sigma_wd)
-    # print('kl: mu ', inf_mu_kl, ' sigma:', inf_sigma_kl)
-    # xplot = np.linspace(mu-5,mu+5,100)
-    # yplot_true = pr(xplot,m,v,mu,sigma)
-    # wd_pdf = lambda x: norm.pdf(x,loc=inf_mu_wd,scale=inf_sigma_wd)
-    # kl_pdf = lambda x: norm.pdf(x, loc=inf_mu_kl, scale=inf_sigma_kl)
-    # L2_wd = integrate.quad(lambda x: (wd_pdf(x)-pr(x,m,v,mu,sigma))**2,-1000,1000)[0]
-    # L2_kl = integrate.quad(lambda x: (kl_pdf(x) - pr(x, m, v, mu, sigma)) ** 2, -1000, 1000)[0]
-    # print('L2 wd, kl: ', L2_wd, L2_kl)
-    # plt.plot(xplot,yplot_true,label='True')
-    # plt.plot(xplot, wd_pdf(xplot), label='wd')
-    # plt.plot(xplot, kl_pdf(xplot), label='kl')
-    # plt.legend()
-    # plt.show()
+    m,v,mu,sigma = 1,2,3,1
+    inf_mu_wd,_,inf_sigma_wd = fit_gauss_wd(m,v,mu,sigma)
+    inf_mu_kl, inf_sigma_kl = fit_gauss_kl(m, v, mu, sigma)
+    print('wd: mu ',inf_mu_wd,' sigma:',inf_sigma_wd)
+    print('kl: mu ', inf_mu_kl, ' sigma:', inf_sigma_kl)
+    xplot = np.linspace(mu-5,mu+5,100)
+    yplot_true = pr(xplot,m,v,mu,sigma)
+    wd_pdf = lambda x: norm.pdf(x,loc=inf_mu_wd,scale=inf_sigma_wd)
+    kl_pdf = lambda x: norm.pdf(x, loc=inf_mu_kl, scale=inf_sigma_kl)
+    L2_wd = integrate.quad(lambda x: (wd_pdf(x)-pr(x,m,v,mu,sigma))**2,-1000,1000)[0]
+    L2_kl = integrate.quad(lambda x: (kl_pdf(x) - pr(x, m, v, mu, sigma)) ** 2, -1000, 1000)[0]
+    print('L2 wd, kl: ', L2_wd, L2_kl)
+    plt.plot(xplot,yplot_true,label='True')
+    plt.plot(xplot, wd_pdf(xplot), label='wd')
+    plt.plot(xplot, kl_pdf(xplot), label='kl')
+    plt.legend()
+    plt.show()
 
-    # xplot = np.linspace(mu - 5, mu + 10, 100)
-    # yplot_true = np.array([Fr(e, m, v, mu, sigma) for e in xplot])
-    # yplot_wd = norm.cdf(xplot, loc=inf_mu_wd, scale=inf_sigma_wd)
-    # yplot_kl = norm.cdf(xplot, loc=inf_mu_kl, scale=inf_sigma_kl)
-    # plt.plot(xplot, yplot_true, label='True')
-    # plt.plot(xplot, yplot_wd, label='wd')
-    # plt.plot(xplot, yplot_kl, label='kl')
-    # plt.legend()
-    # plt.show()
+    xplot = np.linspace(mu - 5, mu + 10, 100)
+    yplot_true = np.array([Fr(e, m, v, mu, sigma) for e in xplot])
+    yplot_wd = norm.cdf(xplot, loc=inf_mu_wd, scale=inf_sigma_wd)
+    yplot_kl = norm.cdf(xplot, loc=inf_mu_kl, scale=inf_sigma_kl)
+    plt.plot(xplot, yplot_true, label='True')
+    plt.plot(xplot, yplot_wd, label='wd')
+    plt.plot(xplot, yplot_kl, label='kl')
+    plt.legend()
+    plt.show()
 

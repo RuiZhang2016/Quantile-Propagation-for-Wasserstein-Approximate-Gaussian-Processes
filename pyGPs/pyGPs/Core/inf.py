@@ -4,6 +4,12 @@ from builtins import str
 from builtins import range
 from past.utils import old_div
 from builtins import object
+from scipy.stats import norm
+
+from scipy.special import owens_t
+import scipy.integrate as integrate
+from scipy.special import erfinv
+from pynverse import inversefunc
 #================================================================================
 #    Marion Neumann [marion dot neumann at uni-bonn dot de]
 #    Daniel Marthaler [dan dot marthaler at gmail dot com]
@@ -764,6 +770,19 @@ class EP(Inference):
                 ttau[ii] = old_div(-d2lZ,(1.+old_div(d2lZ,tau_ni)))
                 ttau[ii] = max(ttau[ii],0)        # enforce positivity i.e. lower bound ttau by zero
                 tnu[ii]  = old_div(( dlZ + (m[ii]-old_div(nu_ni,tau_ni))*d2lZ ),(1.+old_div(d2lZ,tau_ni)))
+
+                # zi = y[ii] * nu_ni / np.sqrt(1 + tau_ni)
+                # # assert lZ == np.log(norm.cdf(zi)),(lZ, np.log(norm.cdf(zi)))
+                # pdfdivcdf = norm.pdf(zi) / norm.cdf(zi)
+                # sigma_ni2 = 1 / tau_ni
+                #
+                # hat_mu = nu_ni / tau_ni + y[ii] * pdfdivcdf / np.sqrt(1 + tau_ni)
+                # sigma_hat2 = sigma_ni2 - sigma_ni2 / (1 + tau_ni) * pdfdivcdf * (zi + pdfdivcdf)
+                # ttau2 = 1 / sigma_hat2 - tau_ni
+                # tnu2 = 1 / sigma_hat2 * hat_mu - nu_ni
+                # ttau[ii] = ttau2
+                # tnu[ii] = tnu2
+
                 ds2 = ttau[ii] - ttau_old         # finally rank-1 update Sigma ..
                 si  = np.reshape(Sigma[:,ii],(Sigma.shape[0],1))
                 Sigma = Sigma - ds2/(1.+ds2*si[ii])*np.dot(si,si.T)   # takes 70# of total time
@@ -771,7 +790,8 @@ class EP(Inference):
             # recompute since repeated rank-one updates can destroy numerical precision
             Sigma, mu, nlZ, L = self._epComputeParams(K, y, ttau, tnu, likfunc, m, inffunc)
         if sweep == max_sweep:
-            self.logger.warning("maximum number of sweeps reached in function infEP")
+            # self.logger.warning("maximum number of sweeps reached in function infEP")
+            logging.warning("maximum number of sweeps reached in function infEP")
             
         self.last_ttau = ttau; self.last_tnu = tnu          # remember for next call
         sW = np.sqrt(ttau); alpha = tnu-sW*solve_chol(L,sW*np.dot(K,tnu))
@@ -803,6 +823,7 @@ class EP(Inference):
                 dnlZ.mean[ii] = dnlZ.mean[ii][0,0]
             return post, nlZ[0], dnlZ
         else:
+            print(post,nlZ[0])
             return post, nlZ[0]
 
 
@@ -812,7 +833,7 @@ class QP(Inference):
     '''
 
     def __init__(self):
-        self.name = 'Expectation Propagation'
+        self.name = 'Quantile Propagation'
         self.last_ttau = None
         self.last_tnu = None
 
@@ -846,16 +867,38 @@ class QP(Inference):
         while (np.abs(nlZ - nlZ_old) > tol and sweep < max_sweep) or (sweep < min_sweep):
             nlZ_old = nlZ;
             sweep += 1
+            print(sweep)
             rperm = range(n)  # randperm(n)
             for ii in rperm:  # iterate EP updates (in random order) over examples
                 tau_ni = old_div(1, Sigma[ii, ii]) - ttau[ii]  # first find the cavity distribution ..
                 nu_ni = old_div(mu[ii], Sigma[ii, ii]) + m[ii] * tau_ni - tnu[ii]  # .. params tau_ni and nu_ni
                 # compute the desired derivatives of the indivdual log partition function
-                lZ, dlZ, d2lZ = likfunc.evaluate(y[ii], old_div(nu_ni, tau_ni), old_div(1, tau_ni), inffunc, None, 3)
+                # lZ, dlZ, d2lZ = likfunc.evaluate(y[ii], old_div(nu_ni, tau_ni), old_div(1, tau_ni), inffunc, None, 3)
                 ttau_old = copy(ttau[ii])  # then find the new tilde parameters, keep copy of old
-                ttau[ii] = old_div(-d2lZ, (1. + old_div(d2lZ, tau_ni)))
-                ttau[ii] = max(ttau[ii], 0)  # enforce positivity i.e. lower bound ttau by zero
-                tnu[ii] = old_div((dlZ + (m[ii] - old_div(nu_ni, tau_ni)) * d2lZ), (1. + old_div(d2lZ, tau_ni)))
+                # ttau[ii] = old_div(-d2lZ, (1. + old_div(d2lZ, tau_ni)))
+                # ttau[ii] = max(ttau[ii], 0)  # enforce positivity i.e. lower bound ttau by zero
+                # tnu[ii] = old_div((dlZ + (m[ii] - old_div(nu_ni, tau_ni)) * d2lZ), (1. + old_div(d2lZ, tau_ni)))
+
+                # zi = y[ii] * nu_ni / np.sqrt(1 + tau_ni)
+                # assert lZ == np.log(norm.cdf(zi)),(lZ, np.log(norm.cdf(zi)))
+                # pdfdivcdf = norm.pdf(zi) / norm.cdf(zi)
+                # sigma_ni2 = 1 / tau_ni
+
+                # hat_mu = nu_ni / tau_ni + y[ii] * pdfdivcdf / np.sqrt(1 + tau_ni)
+                # sigma_hat2 =
+
+                # ttau2 = 1 / sigma_hat2 - tau_ni
+                # tnu2 = 1 / sigma_hat2 * hat_mu - nu_ni
+                # ttau[ii] = ttau2
+                # tnu[ii] = tnu2
+                v_wd,mu_wd,sigma_wd = 1/y[ii], nu_ni/tau_ni, np.sqrt(1/tau_ni)
+                hat_mu,sigma_hat = self.fit_gauss_wd(0,v_wd[0],mu_wd[0],sigma_wd[0])
+                sigma_hat2 = sigma_hat**2
+                ttau2 = 1 / sigma_hat2 - tau_ni
+                tnu2 = 1 / sigma_hat2 * hat_mu - nu_ni
+                ttau[ii] = ttau2
+                tnu[ii] = tnu2
+
                 ds2 = ttau[ii] - ttau_old  # finally rank-1 update Sigma ..
                 si = np.reshape(Sigma[:, ii], (Sigma.shape[0], 1))
                 Sigma = Sigma - ds2 / (1. + ds2 * si[ii]) * np.dot(si, si.T)  # takes 70# of total time
@@ -863,7 +906,8 @@ class QP(Inference):
             # recompute since repeated rank-one updates can destroy numerical precision
             Sigma, mu, nlZ, L = self._epComputeParams(K, y, ttau, tnu, likfunc, m, inffunc)
         if sweep == max_sweep:
-            self.logger.warning("maximum number of sweeps reached in function infEP")
+            # self.logger.warning("maximum number of sweeps reached in function infEP")
+            logging.warning("maximum number of sweeps reached in function infQP")
 
         self.last_ttau = ttau;
         self.last_tnu = tnu  # remember for next call
@@ -897,8 +941,49 @@ class QP(Inference):
                 dnlZ.mean[ii] = dnlZ.mean[ii][0, 0]
             return post, nlZ[0], dnlZ
         else:
+            # print(post,nlZ[0])
             return post, nlZ[0]
 
+    def fit_gauss_wd(self, m, v, mu, sigma):
+        z = (mu - m) / v / np.sqrt(1 + sigma ** 2 / v ** 2)
+        inf_mu = mu + sigma ** 2 * norm.pdf(z) / norm.cdf(z) / v / np.sqrt(1 + sigma ** 2 / v ** 2)
+        inverse_Fr = lambda y: inversefunc(lambda x: self._Fr(x, m, v, mu, sigma), y_values=y,
+                                           domain=[inf_mu - 5* sigma, inf_mu + 5 * sigma])
+        C2 = np.sqrt(2) * integrate.quad(lambda x: erfinv(2 * x - 1) * inverse_Fr(x), 0, 1)[0]
+        inf_sigma = C2
+        return inf_mu, inf_sigma
+
+    def _Fr(self, x,m,v,mu,sigma):
+        Z = norm.cdf((mu-m)/v/np.sqrt(1+sigma**2/v**2))
+        A = 1/Z
+        k = (mu-m)/np.sqrt(sigma**2+v**2)
+        h = (x-mu)/sigma
+        rho = 1/np.sqrt(1+v**2/sigma**2)
+        # print('Z: {}, \nA: {}, \nk: {}, \nh: {}, \nrho: {}'.format(Z,A,k,h,rho))
+
+        eta = 0 if h*k>0 or (h*k==0 and h+k >= 0) else -0.5
+        # eta = -0.5+((h * k > 0) + (h * k == 0)*(h + k >= 0))*0.5
+        # res = np.zeros(len(x))
+        # if k == 0 and 0 in h:
+        #     res += (h==0)*A * (0.25 + 1 / np.sin(-rho))
+        if k == 0 and h ==0:
+            return A*(0.25+1/np.sin(-rho))
+        # OT1 = owens_t(h,(k+rho*h)/h/np.sqrt(1-rho**2))
+        # OT2 = owens_t(k,(h+rho*k)/k/np.sqrt(1-rho**2))
+        OT1 = self._my_owens_t(h,k,rho)
+        OT2 = self._my_owens_t(k,h,rho)
+        if v>0:
+            return A*(0.5*norm.cdf(h)+0.5*norm.cdf(k)-OT1-OT2+eta)
+        if v<0:
+            return A * (0.5 * norm.cdf(h) - 0.5 * norm.cdf(k) + OT1 + OT2 - eta)
+
+    def _my_owens_t(self, x1, x2, rho):
+        if x1 == 0 and x2 > 0:
+            return 0.25
+        elif x1 == 0 and x2 < 0:
+            return -0.25
+        else:
+            return owens_t(x1, (x2 + rho * x1) / x1 / np.sqrt(1 - rho ** 2))
 
 class FITC_EP(Inference):
     '''
