@@ -1,4 +1,12 @@
 from __future__ import print_function
+
+import sys
+sys.path.append('/Users/ruizhang/PycharmProjects/Wasserstein-GPC/pyGPs')
+
+# for Mac OS
+if sys.platform == 'darwin':
+    import matplotlib
+    matplotlib.use('TkAgg')
 #================================================================================
 #    Marion Neumann [marion dot neumann at uni-bonn dot de]
 #    Daniel Marthaler [dan dot marthaler at gmail dot com]
