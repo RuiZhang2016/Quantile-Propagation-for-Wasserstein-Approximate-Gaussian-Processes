@@ -677,7 +677,6 @@ class GPC(GP):
             self.optimizer = opt.BFGS(self,conf)
 
 
-
     def plot(self,x1,x2,t1,t2,axisvals=None):
         '''
         Plot 2d GP Classification result.
