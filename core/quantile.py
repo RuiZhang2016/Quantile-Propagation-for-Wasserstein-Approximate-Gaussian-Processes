@@ -105,6 +105,7 @@ def fit_gauss_kl(m,v,mu,sigma):
     inf_sigma2 = sigma2-sigma2**2*norm.pdf(z)/(v2+sigma2)/norm.cdf(z)*(z+norm.pdf(z)/norm.cdf(z))
     return inf_mu,np.sqrt(inf_sigma2)
 
+
 if __name__ == '__main__':
     m,v,mu,sigma = 0,1,1,39.999
     t1 = time.time()
