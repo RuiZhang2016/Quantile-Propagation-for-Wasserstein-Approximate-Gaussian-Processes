@@ -2,16 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="f5ee25a8-0652-4b2d-84a2-b3ba6acce111" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/WGPC.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/WGPC.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/quantile.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/quantile.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pyGPs/pyGPs/Core/gp.py" beforeDir="false" afterPath="$PROJECT_DIR$/pyGPs/pyGPs/Core/gp.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pyGPs/pyGPs/Core/inf.py" beforeDir="false" afterPath="$PROJECT_DIR$/pyGPs/pyGPs/Core/inf.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pyGPs/pyGPs/Core/lik.py" beforeDir="false" afterPath="$PROJECT_DIR$/pyGPs/pyGPs/Core/lik.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pyGPs/pyGPs/Demo/Classification/demo_GPC.py" beforeDir="false" afterPath="$PROJECT_DIR$/pyGPs/pyGPs/Demo/Classification/demo_GPC.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pyGPs/pyGPs/Demo/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/pyGPs/pyGPs/Demo/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/test_qp.py" beforeDir="false" afterPath="$PROJECT_DIR$/test/test_qp.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -72,7 +63,7 @@
       <file leaf-file-name="test_qp.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/test/test_qp.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="521">
+            <state relative-caret-position="915">
               <caret line="68" column="72" selection-start-line="68" selection-start-column="20" selection-end-line="68" selection-end-column="72" />
               <folding>
                 <element signature="e#0#29#0" expanded="true" />
@@ -84,7 +75,7 @@
       <file leaf-file-name="quantile.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/core/quantile.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="232">
+            <state relative-caret-position="150">
               <caret line="19" column="55" selection-start-line="19" selection-start-column="55" selection-end-line="19" selection-end-column="55" />
               <folding>
                 <element signature="e#0#15#0" expanded="true" />
@@ -105,7 +96,7 @@
       <file leaf-file-name="gp.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/pyGPs/pyGPs/Core/gp.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="243">
+            <state relative-caret-position="8880">
               <caret line="647" column="36" selection-start-line="647" selection-start-column="36" selection-end-line="647" selection-end-column="36" />
               <folding>
                 <element signature="e#0#31#0" expanded="true" />
@@ -117,8 +108,8 @@
       <file leaf-file-name="demo_GPC.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/pyGPs/pyGPs/Demo/Classification/demo_GPC.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="335">
-              <caret line="70" column="15" lean-forward="true" selection-start-line="70" selection-start-column="15" selection-end-line="70" selection-end-column="15" />
+            <state relative-caret-position="1020">
+              <caret line="70" column="15" selection-start-line="70" selection-start-column="15" selection-end-line="70" selection-end-column="15" />
               <folding>
                 <element signature="e#0#37#0" expanded="true" />
               </folding>
@@ -129,8 +120,8 @@
       <file leaf-file-name="inf.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/pyGPs/pyGPs/Core/inf.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-1826">
-              <caret line="927" lean-forward="true" selection-start-line="927" selection-end-line="927" />
+            <state relative-caret-position="15">
+              <caret line="927" selection-start-line="927" selection-end-line="927" />
               <folding>
                 <element signature="e#0#31#0" expanded="true" />
               </folding>
@@ -141,7 +132,7 @@
       <file leaf-file-name="lik.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/pyGPs/pyGPs/Core/lik.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="114">
+            <state relative-caret-position="3705">
               <caret line="291" column="47" selection-start-line="291" selection-start-column="47" selection-end-line="291" selection-end-column="47" />
             </state>
           </provider>
@@ -209,7 +200,6 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -239,6 +229,7 @@
           <select />
         </subPane>
       </pane>
+      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -421,13 +412,14 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="23" width="1920" height="984" extended-state="0" />
+    <editor active="true" />
     <layout>
       <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.1563981" />
       <window_info anchor="bottom" id="TODO" order="6" />
       <window_info anchor="bottom" id="Event Log" order="10" side_tool="true" />
       <window_info anchor="bottom" id="Run" order="2" weight="0.32581738" />
       <window_info anchor="bottom" id="Version Control" order="8" />
-      <window_info anchor="bottom" id="Python Console" order="12" weight="0.32807216" />
+      <window_info active="true" anchor="bottom" id="Python Console" order="12" visible="true" weight="0.32807216" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info anchor="bottom" id="Terminal" order="11" weight="0.32807216" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.319053" />
@@ -448,14 +440,14 @@
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
       <window_info anchor="bottom" id="Docker" order="7" show_stripe_button="false" />
       <window_info active="true" anchor="bottom" id="Run" order="2" visible="true" weight="0.32581738" />
-      <window_info anchor="bottom" id="Message" order="0" />
-      <window_info id="Favorites" order="2" side_tool="true" />
       <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.26434967" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
       <window_info anchor="bottom" id="TODO" order="6" />
       <window_info anchor="bottom" id="Version Control" order="8" />
+      <window_info anchor="bottom" id="Find" order="1" />
+      <window_info anchor="bottom" id="Python Console" order="12" weight="0.32807216" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.319053" />
       <window_info anchor="right" id="Database" order="4" />
@@ -464,8 +456,8 @@
       <window_info anchor="bottom" id="Database Changes" order="9" show_stripe_button="false" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="right" id="SciView" order="3" visible="true" weight="0.27559492" />
-      <window_info anchor="bottom" id="Find" order="1" />
-      <window_info anchor="bottom" id="Python Console" order="12" weight="0.32807216" />
+      <window_info anchor="bottom" id="Message" order="0" />
+      <window_info id="Favorites" order="2" side_tool="true" />
     </layout-to-restore>
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -479,6 +471,60 @@
     <option name="LAST_COMMIT_MESSAGE" value="test infer and looking for close form expression" />
   </component>
   <component name="editorHistoryManager">
+    <entry file="file://$PROJECT_DIR$/core/quantile.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="150">
+          <caret line="19" column="55" selection-start-line="19" selection-start-column="55" selection-end-line="19" selection-end-column="55" />
+          <folding>
+            <element signature="e#0#15#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$USER_HOME$/anaconda3/lib/python3.6/site-packages/pynverse/inverse.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="75">
+          <caret line="8" column="4" selection-start-line="8" selection-start-column="4" selection-end-line="8" selection-end-column="4" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/pyGPs/pyGPs/Core/gp.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="8880">
+          <caret line="647" column="36" selection-start-line="647" selection-start-column="36" selection-end-line="647" selection-end-column="36" />
+          <folding>
+            <element signature="e#0#31#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/pyGPs/pyGPs/Demo/Classification/demo_GPC.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1020">
+          <caret line="70" column="15" lean-forward="true" selection-start-line="70" selection-start-column="15" selection-end-line="70" selection-end-column="15" />
+          <folding>
+            <element signature="e#0#37#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/pyGPs/pyGPs/Core/lik.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="3705">
+          <caret line="291" column="47" selection-start-line="291" selection-start-column="47" selection-end-line="291" selection-end-column="47" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/pyGPs/pyGPs/Core/inf.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="13905">
+          <caret line="927" lean-forward="true" selection-start-line="927" selection-end-line="927" />
+          <folding>
+            <element signature="e#0#31#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/test/test_qp.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="1020">
@@ -696,9 +742,6 @@
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/pyGPs/__init__.py" />
-    <entry file="file://$PROJECT_DIR$/pyGPs/pyGPs/__init__.py">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
     <entry file="file://$PROJECT_DIR$/pyGPs/pyGPs/Demo/__init__.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="210">
@@ -722,14 +765,14 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/pyGPs/pyGPs/Core/lik.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="114">
+        <state relative-caret-position="3705">
           <caret line="291" column="47" selection-start-line="291" selection-start-column="47" selection-end-line="291" selection-end-column="47" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/test/test_qp.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="521">
+        <state relative-caret-position="915">
           <caret line="68" column="72" selection-start-line="68" selection-start-column="20" selection-end-line="68" selection-end-column="72" />
           <folding>
             <element signature="e#0#29#0" expanded="true" />
@@ -739,7 +782,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/core/quantile.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="232">
+        <state relative-caret-position="150">
           <caret line="19" column="55" selection-start-line="19" selection-start-column="55" selection-end-line="19" selection-end-column="55" />
           <folding>
             <element signature="e#0#15#0" expanded="true" />
@@ -749,7 +792,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/pyGPs/pyGPs/Core/gp.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="243">
+        <state relative-caret-position="8880">
           <caret line="647" column="36" selection-start-line="647" selection-start-column="36" selection-end-line="647" selection-end-column="36" />
           <folding>
             <element signature="e#0#31#0" expanded="true" />
@@ -759,8 +802,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/pyGPs/pyGPs/Demo/Classification/demo_GPC.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="335">
-          <caret line="70" column="15" lean-forward="true" selection-start-line="70" selection-start-column="15" selection-end-line="70" selection-end-column="15" />
+        <state relative-caret-position="1020">
+          <caret line="70" column="15" selection-start-line="70" selection-start-column="15" selection-end-line="70" selection-end-column="15" />
           <folding>
             <element signature="e#0#37#0" expanded="true" />
           </folding>
@@ -769,8 +812,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/pyGPs/pyGPs/Core/inf.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-1826">
-          <caret line="927" lean-forward="true" selection-start-line="927" selection-end-line="927" />
+        <state relative-caret-position="15">
+          <caret line="927" selection-start-line="927" selection-end-line="927" />
           <folding>
             <element signature="e#0#31#0" expanded="true" />
           </folding>
