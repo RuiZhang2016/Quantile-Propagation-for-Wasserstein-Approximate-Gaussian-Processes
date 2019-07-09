@@ -2,13 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="f5ee25a8-0652-4b2d-84a2-b3ba6acce111" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/WGPC.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/WGPC.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/quantile.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/quantile.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/core/validate_locality.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/validate_locality.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pyGPs/pyGPs/Core/inf.py" beforeDir="false" afterPath="$PROJECT_DIR$/pyGPs/pyGPs/Core/inf.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pyGPs/pyGPs/Demo/Classification/demo_GPC.py" beforeDir="false" afterPath="$PROJECT_DIR$/pyGPs/pyGPs/Demo/Classification/demo_GPC.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -27,19 +22,19 @@
     <SUITE FILE_PATH="coverage/WGPC$quantile.coverage" NAME="quantile Coverage Results" MODIFIED="1560220797072" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/pyGPs/pyGPs/Optimization" />
     <SUITE FILE_PATH="coverage/WGPC$test_qp.coverage" NAME="test_qp Coverage Results" MODIFIED="1559543088496" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/test" />
     <SUITE FILE_PATH="coverage/WGPC$qp__1_.coverage" NAME="qp (1) Coverage Results" MODIFIED="1559544456059" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/core" />
-    <SUITE FILE_PATH="coverage/WGPC$validate_locality.coverage" NAME="validate_locality Coverage Results" MODIFIED="1562134312859" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/core" />
+    <SUITE FILE_PATH="coverage/WGPC$validate_locality.coverage" NAME="validate_locality Coverage Results" MODIFIED="1562665543234" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/core" />
   </component>
   <component name="FUSProjectUsageTrigger">
     <session id="-1474876133">
       <usages-collector id="statistics.lifecycle.project">
         <counts>
-          <entry key="project.closed" value="14" />
+          <entry key="project.closed" value="15" />
           <entry key="project.open.time.0" value="1" />
           <entry key="project.open.time.1" value="1" />
           <entry key="project.open.time.5" value="5" />
-          <entry key="project.open.time.6" value="6" />
+          <entry key="project.open.time.6" value="7" />
           <entry key="project.open.time.7" value="2" />
-          <entry key="project.opened" value="15" />
+          <entry key="project.opened" value="16" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.open">
@@ -54,15 +49,15 @@
       </usages-collector>
       <usages-collector id="statistics.file.extensions.edit">
         <counts>
-          <entry key="Python Console" value="31" />
+          <entry key="Python Console" value="129" />
           <entry key="dummy" value="9" />
-          <entry key="py" value="7762" />
+          <entry key="py" value="9136" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
         <counts>
           <entry key="PLAIN_TEXT" value="9" />
-          <entry key="Python" value="7793" />
+          <entry key="Python" value="9265" />
         </counts>
       </usages-collector>
     </session>
@@ -72,7 +67,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/test/test_qp.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="854">
+            <state relative-caret-position="1245">
               <caret line="90" column="32" selection-start-line="90" selection-start-column="32" selection-end-line="90" selection-end-column="32" />
               <folding>
                 <element signature="e#0#29#0" expanded="true" />
@@ -84,8 +79,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/core/quantile.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="555">
-              <caret line="105" column="11" selection-start-line="105" selection-start-column="11" selection-end-line="105" selection-end-column="11" />
+            <state relative-caret-position="465">
+              <caret line="105" column="37" lean-forward="true" selection-start-line="105" selection-start-column="37" selection-end-line="105" selection-end-column="37" />
               <folding>
                 <element signature="e#0#15#0" expanded="true" />
                 <marker date="1562132644025" expanded="true" signature="3977:3980" ph="..." />
@@ -97,11 +92,12 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/core/validate_locality.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="420">
-              <caret line="63" column="27" selection-start-line="63" selection-start-column="27" selection-end-line="63" selection-end-column="27" />
+            <state relative-caret-position="90">
+              <caret line="42" column="14" selection-start-line="42" selection-start-column="14" selection-end-line="42" selection-end-column="14" />
               <folding>
                 <element signature="e#0#15#0" expanded="true" />
-                <marker date="1562134155924" expanded="true" signature="960:1112" ph="..." />
+                <marker date="1562665395085" expanded="true" signature="329:336" ph="..." />
+                <marker date="1562665395085" expanded="true" signature="619:772" ph="..." />
               </folding>
             </state>
           </provider>
@@ -163,6 +159,9 @@
       <find>GPC</find>
       <find>QP</find>
       <find>print</find>
+      <find>multivariate_normal</find>
+      <find>make_1D_gauss</find>
+      <find>norm.pdf</find>
     </findStrings>
     <replaceStrings>
       <replace />
@@ -455,7 +454,7 @@
     <frame x="1147" y="122" width="1853" height="1055" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.160487" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.16214721" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
@@ -469,7 +468,7 @@
       <window_info anchor="bottom" id="Version Control" order="8" />
       <window_info anchor="bottom" id="Database Changes" order="9" show_stripe_button="false" />
       <window_info anchor="bottom" id="Event Log" order="10" side_tool="true" />
-      <window_info anchor="bottom" id="Terminal" order="11" weight="0.32756758" />
+      <window_info anchor="bottom" id="Terminal" order="11" weight="0.3264865" />
       <window_info anchor="bottom" id="Python Console" order="12" weight="0.32756758" />
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
@@ -572,6 +571,16 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/test/test_qp.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1245">
+          <caret line="90" column="32" selection-start-line="90" selection-start-column="32" selection-end-line="90" selection-end-column="32" />
+          <folding>
+            <element signature="e#0#29#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/pyGPs/pyGPs/Core/gp.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="9360">
@@ -603,20 +612,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/test/test_qp.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="854">
-          <caret line="90" column="32" selection-start-line="90" selection-start-column="32" selection-end-line="90" selection-end-column="32" />
-          <folding>
-            <element signature="e#0#29#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/core/quantile.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="555">
-          <caret line="105" column="11" selection-start-line="105" selection-start-column="11" selection-end-line="105" selection-end-column="11" />
+        <state relative-caret-position="465">
+          <caret line="105" column="37" lean-forward="true" selection-start-line="105" selection-start-column="37" selection-end-line="105" selection-end-column="37" />
           <folding>
             <element signature="e#0#15#0" expanded="true" />
             <marker date="1562132644025" expanded="true" signature="3977:3980" ph="..." />
@@ -626,11 +625,12 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/core/validate_locality.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="420">
-          <caret line="63" column="27" selection-start-line="63" selection-start-column="27" selection-end-line="63" selection-end-column="27" />
+        <state relative-caret-position="90">
+          <caret line="42" column="14" selection-start-line="42" selection-start-column="14" selection-end-line="42" selection-end-column="14" />
           <folding>
             <element signature="e#0#15#0" expanded="true" />
-            <marker date="1562134155924" expanded="true" signature="960:1112" ph="..." />
+            <marker date="1562665395085" expanded="true" signature="329:336" ph="..." />
+            <marker date="1562665395085" expanded="true" signature="619:772" ph="..." />
           </folding>
         </state>
       </provider>
