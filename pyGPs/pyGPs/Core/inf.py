@@ -4,7 +4,6 @@ from builtins import str
 from builtins import range
 from past.utils import old_div
 from builtins import object
-
 from scipy.special import owens_t
 from scipy.special import erfinv
 from scipy.stats import norm
@@ -770,6 +769,19 @@ class EP(Inference):
                 ttau[ii] = old_div(-d2lZ,(1.+old_div(d2lZ,tau_ni)))
                 ttau[ii] = max(ttau[ii],0)        # enforce positivity i.e. lower bound ttau by zero
                 tnu[ii]  = old_div(( dlZ + (m[ii]-old_div(nu_ni,tau_ni))*d2lZ ),(1.+old_div(d2lZ,tau_ni)))
+
+                # zi = y[ii] * nu_ni / np.sqrt(1 + tau_ni)
+                # # assert lZ == np.log(norm.cdf(zi)),(lZ, np.log(norm.cdf(zi)))
+                # pdfdivcdf = norm.pdf(zi) / norm.cdf(zi)
+                # sigma_ni2 = 1 / tau_ni
+                #
+                # hat_mu = nu_ni / tau_ni + y[ii] * pdfdivcdf / np.sqrt(1 + tau_ni)
+                # sigma_hat2 = sigma_ni2 - sigma_ni2 / (1 + tau_ni) * pdfdivcdf * (zi + pdfdivcdf)
+                # ttau2 = 1 / sigma_hat2 - tau_ni
+                # tnu2 = 1 / sigma_hat2 * hat_mu - nu_ni
+                # ttau[ii] = ttau2
+                # tnu[ii] = tnu2
+
                 ds2 = ttau[ii] - ttau_old         # finally rank-1 update Sigma ..
                 si  = np.reshape(Sigma[:,ii],(Sigma.shape[0],1))
                 Sigma = Sigma - ds2/(1.+ds2*si[ii])*np.dot(si,si.T)   # takes 70# of total time
@@ -809,6 +821,7 @@ class EP(Inference):
                 dnlZ.mean[ii] = dnlZ.mean[ii][0,0]
             return post, nlZ[0], dnlZ
         else:
+            print(post,nlZ[0])
             return post, nlZ[0]
 
 
@@ -852,8 +865,9 @@ class QP(Inference):
         nlZ_old = np.inf
         sweep = 0  # converged, max. sweeps or min. sweeps?
         while (np.abs(nlZ - nlZ_old) > tol and sweep < max_sweep) or (sweep < min_sweep):
-            nlZ_old = nlZ;
+            nlZ_old = nlZ
             sweep += 1
+            print(sweep)
             rperm = range(n)  # randperm(n)
             for ii in rperm:  # iterate EP updates (in random order) over examples
                 tau_ni = old_div(1, Sigma[ii, ii]) - ttau[ii]  # first find the cavity distribution ..
@@ -913,18 +927,20 @@ class QP(Inference):
                 dnlZ.mean[ii] = dnlZ.mean[ii][0, 0]
             return post, nlZ[0], dnlZ
         else:
+            # print(post,nlZ[0])
             return post, nlZ[0]
 
     def fit_gauss_wd(self, m, v, mu, sigma):
+        print('m,v,mu,sigma: ',m,v,mu,sigma)
         sigma2 = sigma ** 2
-        v2 = v ** 2
-        z = (mu - m) / v / np.sqrt(1 + sigma2 / v2)
-        inf_mu = mu + sigma ** 2 * norm.pdf(z) / norm.cdf(z) / v / np.sqrt(1 + sigma2 / v2)
+        # v2 = 1
+        z = (mu - m) / v / np.sqrt(1 + sigma2)  # z = (mu - m) / v / np.sqrt(1 + sigma2 / v2)
+        pdfdivcdf = norm.pdf(z) / norm.cdf(z)
+        inf_mu = mu + sigma2 * pdfdivcdf/v/np.sqrt(1+sigma2)# inf_mu = mu + sigma ** 2 * norm.pdf(z) / norm.cdf(z) / v / np.sqrt(1 + sigma2 / v2)
 
-        inf_sigma2 = sigma2 - sigma2 ** 2 * norm.pdf(z) / (v2 + sigma2) / norm.cdf(z) * (z + norm.pdf(z) / norm.cdf(z))
+        inf_sigma2 = sigma2 - sigma2 ** 2 * pdfdivcdf / (1 + sigma2) * (z + pdfdivcdf)# inf_sigma2 = sigma2 - sigma2 ** 2 * norm.pdf(z) / (v2 + sigma2) / norm.cdf(z) * (z + norm.pdf(z) / norm.cdf(z))
         inf_sigma = np.sqrt(inf_sigma2)
         xs_Fr = np.linspace(inf_mu - 5 * inf_sigma, inf_mu + 5 * inf_sigma, int(512*inf_sigma))
-        # print(len(xs_Fr))
 
         ys = np.array(self._Fr(xs_Fr, m, v, mu, sigma))
         ys[ys>=self._nugget1] = self._nugget1
@@ -934,35 +950,31 @@ class QP(Inference):
         prod = xs_Fr * xs_erf
 
         C2 = np.sqrt(2) * np.nansum((prod[:-1] + prod[1:]) * dys) * 0.5
-        print(C2)
         return inf_mu, C2
 
     def _Fr(self, x, m, v, mu, sigma):
         sigma2 = sigma ** 2
-        v2 = v ** 2
-        Z = norm.cdf((mu - m) / v / np.sqrt(1 + sigma2 / v2))
+        #v2 = 1
+        sqrtsigma = np.sqrt(sigma2+1)
+        Z = norm.cdf((mu - m) / v / sqrtsigma)# Z = norm.cdf((mu - m) / v / np.sqrt(1 + sigma2 / v2))
         A = 1 / Z
-        k = (mu - m) / np.sqrt(sigma2 + v2)
+        k = (mu - m) / sqrtsigma# k = (mu - m) / np.sqrt(sigma2 + v2)
         h = (x - mu) / sigma
-        rho = 1 / np.sqrt(1 + v2 / sigma2)
-        # print('Z: {}, \nA: {}, \nk: {}, \nh: {}, \nrho: {}'.format(Z,A,k,h,rho))
+        rho = sigma / sqrtsigma # rho = 1 / np.sqrt(1 + v2 / sigma2)
         cdfk = norm.cdf(k)
-        res = []
+        res = [0]*len(x) if np.ndim(x) else [0]
         hs = h if np.ndim(h)>0 else [h]
-        for h in hs:
+        for i in range(len(hs)):
+            h = hs[i]
             eta = 0 if h * k > 0 or (h * k == 0 and h + k >= 0) else -0.5
             if k == 0 and h == 0:
-                res.append(A * (0.25 + 1 / np.sin(-rho)))
+                res[i] = A * (0.25 + 1 / np.sin(-rho))
             # OT1 = owens_t(h,(k+rho*h)/h/np.sqrt(1-rho**2))
             # OT2 = owens_t(k,(h+rho*k)/k/np.sqrt(1-rho**2))
             OT1 = self._my_owens_t(h, k, rho)
             OT2 = self._my_owens_t(k, h, rho)
-            if v > 0:
-                res.append(A*(0.5*norm.cdf(h)+0.5*cdfk - OT1 - OT2 + eta))
-            if v < 0:
-                res.append(A*(0.5*norm.cdf(h)-0.5*cdfk + OT1 + OT2 - eta))
+            res[i] = A*(0.5*norm.cdf(h)+0.5*v*cdfk - v*OT1 - v*OT2 + v*eta)
         return res if np.ndim(hs)>0 else res[0]
-
 
     def _my_owens_t(self, x1, x2, rho):
         if x1 == 0 and x2 > 0:

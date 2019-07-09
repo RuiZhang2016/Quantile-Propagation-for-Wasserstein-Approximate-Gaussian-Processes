@@ -2,61 +2,19 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="f5ee25a8-0652-4b2d-84a2-b3ba6acce111" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/core/validate_locality.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/WGPC.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/WGPC.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/quantile.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/quantile.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pyGPs/pyGPs/Core/inf.py" beforeDir="false" afterPath="$PROJECT_DIR$/pyGPs/pyGPs/Core/inf.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pyGPs/pyGPs/Demo/Classification/demo_GPC.py" beforeDir="false" afterPath="$PROJECT_DIR$/pyGPs/pyGPs/Demo/Classification/demo_GPC.py" afterDir="false" />
     </list>
-    <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
-  </component>
-  <component name="CoverageDataManager">
-    <SUITE FILE_PATH="coverage/WGPC$demo_GPC.coverage" NAME="demo_GPC Coverage Results" MODIFIED="1559544101598" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/pyGPs/pyGPs/Demo/Classification" />
-    <SUITE FILE_PATH="coverage/WGPC$__init__.coverage" NAME="__init__ Coverage Results" MODIFIED="1559542818829" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/core" />
-    <SUITE FILE_PATH="coverage/WGPC$Unittests_for_test_qp_TestQp_test_Fr.coverage" NAME="Unittests for test_qp.TestQp.test_Fr Coverage Results" MODIFIED="1559026561166" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/test" />
-    <SUITE FILE_PATH="coverage/WGPC$qp.coverage" NAME="qp Coverage Results" MODIFIED="1559530213944" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/WGPC$Unittests_in_test_qp_py.coverage" NAME="Unittests in test_qp.py Coverage Results" MODIFIED="1559543927253" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/test" />
-    <SUITE FILE_PATH="coverage/WGPC$test_qp.coverage" NAME="test_qp Coverage Results" MODIFIED="1559543088496" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/test" />
-    <SUITE FILE_PATH="coverage/WGPC$qp__1_.coverage" NAME="qp (1) Coverage Results" MODIFIED="1559544456059" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/core" />
-  </component>
-  <component name="FUSProjectUsageTrigger">
-    <session id="-1474876133">
-      <usages-collector id="statistics.lifecycle.project">
-        <counts>
-          <entry key="project.closed" value="9" />
-          <entry key="project.open.time.0" value="1" />
-          <entry key="project.open.time.1" value="1" />
-          <entry key="project.open.time.5" value="4" />
-          <entry key="project.open.time.6" value="2" />
-          <entry key="project.open.time.7" value="2" />
-          <entry key="project.opened" value="10" />
-        </counts>
-      </usages-collector>
-      <usages-collector id="statistics.file.extensions.open">
-        <counts>
-          <entry key="py" value="30" />
-        </counts>
-      </usages-collector>
-      <usages-collector id="statistics.file.types.open">
-        <counts>
-          <entry key="Python" value="30" />
-        </counts>
-      </usages-collector>
-      <usages-collector id="statistics.file.extensions.edit">
-        <counts>
-          <entry key="Python Console" value="31" />
-          <entry key="dummy" value="9" />
-          <entry key="py" value="4056" />
-        </counts>
-      </usages-collector>
-      <usages-collector id="statistics.file.types.edit">
-        <counts>
-          <entry key="PLAIN_TEXT" value="9" />
-          <entry key="Python" value="4087" />
-        </counts>
-      </usages-collector>
-    </session>
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
@@ -75,8 +33,8 @@
       <file leaf-file-name="quantile.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/core/quantile.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="150">
-              <caret line="19" column="55" selection-start-line="19" selection-start-column="55" selection-end-line="19" selection-end-column="55" />
+            <state relative-caret-position="45">
+              <caret line="12" column="27" selection-start-line="12" selection-start-column="27" selection-end-line="12" selection-end-column="27" />
               <folding>
                 <element signature="e#0#15#0" expanded="true" />
               </folding>
@@ -109,7 +67,7 @@
         <entry file="file://$PROJECT_DIR$/pyGPs/pyGPs/Demo/Classification/demo_GPC.py">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="1020">
-              <caret line="70" column="15" selection-start-line="70" selection-start-column="15" selection-end-line="70" selection-end-column="15" />
+              <caret line="75" column="15" selection-start-line="75" selection-start-column="15" selection-end-line="75" selection-end-column="15" />
               <folding>
                 <element signature="e#0#37#0" expanded="true" />
               </folding>
@@ -120,11 +78,8 @@
       <file leaf-file-name="inf.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/pyGPs/pyGPs/Core/inf.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="15">
-              <caret line="927" selection-start-line="927" selection-end-line="927" />
-              <folding>
-                <element signature="e#0#31#0" expanded="true" />
-              </folding>
+            <state relative-caret-position="345">
+              <caret line="949" column="29" lean-forward="true" selection-start-line="949" selection-start-column="29" selection-end-line="949" selection-end-column="29" />
             </state>
           </provider>
         </entry>
@@ -140,59 +95,8 @@
       </file>
     </leaf>
   </component>
-  <component name="FileTemplateManagerImpl">
-    <option name="RECENT_TEMPLATES">
-      <list>
-        <option value="Python Script" />
-      </list>
-    </option>
-  </component>
-  <component name="FindInProjectRecents">
-    <findStrings>
-      <find>EP</find>
-      <find>setOptimizer</find>
-      <find>method</find>
-      <find>pyGPs</find>
-      <find>GPC</find>
-      <find>QP</find>
-    </findStrings>
-    <replaceStrings>
-      <replace />
-    </replaceStrings>
-  </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
-  </component>
-  <component name="IdeDocumentHistory">
-    <option name="CHANGED_PATHS">
-      <list>
-        <option value="$PROJECT_DIR$/test_intractable_integral.py" />
-        <option value="$PROJECT_DIR$/Demo/Classification/demo_GPC.py" />
-        <option value="$PROJECT_DIR$/qp.py" />
-        <option value="$PROJECT_DIR$/core/__init__.py" />
-        <option value="$PROJECT_DIR$/core/qp.py" />
-        <option value="$PROJECT_DIR$/test/test_qp.py" />
-        <option value="$PROJECT_DIR$/pyGPs/pyGPs/__init__.py" />
-        <option value="$PROJECT_DIR$/pyGPs/__init__.py" />
-        <option value="$PROJECT_DIR$/pyGPs/pyGPs/Demo/__init__.py" />
-        <option value="$PROJECT_DIR$/pyGPs/pyGPs/Demo/Classification/demo_GPC.py" />
-        <option value="$PROJECT_DIR$/pyGPs/pyGPs/Core/lik.py" />
-        <option value="$PROJECT_DIR$/core/quantile.py" />
-        <option value="$PROJECT_DIR$/pyGPs/pyGPs/Core/gp.py" />
-        <option value="$PROJECT_DIR$/pyGPs/pyGPs/Core/inf.py" />
-      </list>
-    </option>
-  </component>
-  <component name="JsBuildToolGruntFileManager" detection-done="true" sorting="DEFINITION_ORDER" />
-  <component name="JsBuildToolPackageJson" detection-done="true" sorting="DEFINITION_ORDER" />
-  <component name="JsGulpfileManager">
-    <detection-done>true</detection-done>
-    <sorting>DEFINITION_ORDER</sorting>
-  </component>
-  <component name="ProjectFrameBounds">
-    <option name="y" value="23" />
-    <option name="width" value="1920" />
-    <option name="height" value="984" />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectView">
@@ -212,38 +116,12 @@
               <item name="Wasserstein-GPC" type="462c0819:PsiDirectoryNode" />
               <item name="pyGPs" type="462c0819:PsiDirectoryNode" />
             </path>
-            <path>
-              <item name="Wasserstein-GPC" type="b2602c69:ProjectViewProjectNode" />
-              <item name="Wasserstein-GPC" type="462c0819:PsiDirectoryNode" />
-              <item name="pyGPs" type="462c0819:PsiDirectoryNode" />
-              <item name="pyGPs" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="Wasserstein-GPC" type="b2602c69:ProjectViewProjectNode" />
-              <item name="Wasserstein-GPC" type="462c0819:PsiDirectoryNode" />
-              <item name="pyGPs" type="462c0819:PsiDirectoryNode" />
-              <item name="pyGPs" type="462c0819:PsiDirectoryNode" />
-              <item name="Core" type="462c0819:PsiDirectoryNode" />
-            </path>
           </expand>
           <select />
         </subPane>
       </pane>
       <pane id="Scope" />
     </panes>
-  </component>
-  <component name="PropertiesComponent">
-    <property name="WebServerToolWindowFactoryState" value="false" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/test" />
-    <property name="nodejs_interpreter_path.stuck_in_default_project" value="undefined stuck path" />
-    <property name="nodejs_npm_path_reset_for_default_project" value="true" />
-    <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
-  </component>
-  <component name="RecentsManager">
-    <key name="MoveFile.RECENT_KEYS">
-      <recent name="$PROJECT_DIR$/core" />
-      <recent name="$PROJECT_DIR$" />
-    </key>
   </component>
   <component name="RunDashboard">
     <option name="ruleStates">
@@ -378,38 +256,6 @@
     </task>
     <servers />
   </component>
-  <component name="TestHistory">
-    <history-entry file="Unittests_in_test_qp_py - 2019.06.08 at 21h 09m 20s.xml">
-      <configuration name="Unittests in test_qp.py" configurationId="tests" />
-    </history-entry>
-    <history-entry file="Unittests_in_test_qp_py - 2019.06.08 at 21h 09m 45s.xml">
-      <configuration name="Unittests in test_qp.py" configurationId="tests" />
-    </history-entry>
-    <history-entry file="Unittests_in_test_qp_py - 2019.06.08 at 21h 10m 08s.xml">
-      <configuration name="Unittests in test_qp.py" configurationId="tests" />
-    </history-entry>
-    <history-entry file="Unittests_in_test_qp_py - 2019.06.08 at 21h 11m 16s.xml">
-      <configuration name="Unittests in test_qp.py" configurationId="tests" />
-    </history-entry>
-    <history-entry file="Unittests_in_test_qp_py - 2019.06.08 at 21h 11m 33s.xml">
-      <configuration name="Unittests in test_qp.py" configurationId="tests" />
-    </history-entry>
-    <history-entry file="Unittests_in_test_qp_py - 2019.06.08 at 21h 12m 28s.xml">
-      <configuration name="Unittests in test_qp.py" configurationId="tests" />
-    </history-entry>
-    <history-entry file="Unittests_in_test_qp_py - 2019.06.08 at 21h 13m 33s.xml">
-      <configuration name="Unittests in test_qp.py" configurationId="tests" />
-    </history-entry>
-    <history-entry file="Unittests_in_test_qp_py - 2019.06.08 at 21h 13m 49s.xml">
-      <configuration name="Unittests in test_qp.py" configurationId="tests" />
-    </history-entry>
-    <history-entry file="Unittests_in_test_qp_py - 2019.06.09 at 18h 20m 00s.xml">
-      <configuration name="Unittests in test_qp.py" configurationId="tests" />
-    </history-entry>
-    <history-entry file="Unittests_in_test_qp_py - 2019.06.09 at 19h 53m 32s.xml">
-      <configuration name="Unittests in test_qp.py" configurationId="tests" />
-    </history-entry>
-  </component>
   <component name="ToolWindowManager">
     <frame x="0" y="23" width="1920" height="984" extended-state="0" />
     <editor active="true" />
@@ -419,9 +265,9 @@
       <window_info anchor="bottom" id="Event Log" order="10" side_tool="true" />
       <window_info anchor="bottom" id="Run" order="2" weight="0.32581738" />
       <window_info anchor="bottom" id="Version Control" order="8" />
-      <window_info active="true" anchor="bottom" id="Python Console" order="12" visible="true" weight="0.32807216" />
+      <window_info anchor="bottom" id="Python Console" order="12" weight="0.32807216" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
-      <window_info anchor="bottom" id="Terminal" order="11" weight="0.32807216" />
+      <window_info active="true" anchor="bottom" id="Terminal" order="11" visible="true" weight="0.32807216" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.319053" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
@@ -459,9 +305,6 @@
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info id="Favorites" order="2" side_tool="true" />
     </layout-to-restore>
-  </component>
-  <component name="TypeScriptGeneratedFilesManager">
-    <option name="version" value="1" />
   </component>
   <component name="VcsContentAnnotationSettings">
     <option name="myLimit" value="2678400000" />
@@ -519,9 +362,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="13905">
           <caret line="927" lean-forward="true" selection-start-line="927" selection-end-line="927" />
-          <folding>
-            <element signature="e#0#31#0" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -566,9 +406,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="120">
           <caret line="8" column="32" lean-forward="true" selection-start-line="8" selection-start-column="32" selection-end-line="8" selection-end-column="32" />
-          <folding>
-            <element signature="e#0#31#0" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -782,8 +619,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/core/quantile.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="150">
-          <caret line="19" column="55" selection-start-line="19" selection-start-column="55" selection-end-line="19" selection-end-column="55" />
+        <state relative-caret-position="45">
+          <caret line="12" column="27" selection-start-line="12" selection-start-column="27" selection-end-line="12" selection-end-column="27" />
           <folding>
             <element signature="e#0#15#0" expanded="true" />
           </folding>
@@ -803,7 +640,7 @@
     <entry file="file://$PROJECT_DIR$/pyGPs/pyGPs/Demo/Classification/demo_GPC.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="1020">
-          <caret line="70" column="15" selection-start-line="70" selection-start-column="15" selection-end-line="70" selection-end-column="15" />
+          <caret line="75" column="15" selection-start-line="75" selection-start-column="15" selection-end-line="75" selection-end-column="15" />
           <folding>
             <element signature="e#0#37#0" expanded="true" />
           </folding>
@@ -812,11 +649,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/pyGPs/pyGPs/Core/inf.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="15">
-          <caret line="927" selection-start-line="927" selection-end-line="927" />
-          <folding>
-            <element signature="e#0#31#0" expanded="true" />
-          </folding>
+        <state relative-caret-position="345">
+          <caret line="949" column="29" lean-forward="true" selection-start-line="949" selection-start-column="29" selection-end-line="949" selection-end-column="29" />
         </state>
       </provider>
     </entry>
