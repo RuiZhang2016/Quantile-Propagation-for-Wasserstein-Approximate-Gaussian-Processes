@@ -1,12 +1,15 @@
 from __future__ import print_function
 
 import sys
-sys.path.append('/Users/ruizhang/PycharmProjects/Wasserstein-GPC/pyGPs')
+#
 
 # for Mac OS
 if sys.platform == 'darwin':
     import matplotlib
     matplotlib.use('TkAgg')
+    sys.path.append('/Users/ruizhang/PycharmProjects/Wasserstein-GPC/pyGPs')
+else:
+    sys.path.append('/home/rzhang/PycharmProjects/WGPC/pyGPs')
 #================================================================================
 #    Marion Neumann [marion dot neumann at uni-bonn dot de]
 #    Daniel Marthaler [dan dot marthaler at gmail dot com]
@@ -54,7 +57,9 @@ p2 = demoData['p2']          # prior for class 2 (with label +1)
 # First example -> state default values
 #----------------------------------------------------------------------
 print('Basic Example - Data')
-model = pyGPs.GPC()          # binary classification (default inference method: EP)
+model = pyGPs.GPC()  # binary classification (default inference method: EP)
+# model.inffunc = pyGPs.inf.QP()
+# model.setOptimizer('BFGS')
 model.plotData_2d(x1,x2,t1,t2,p1,p2)
 model.getPosterior(x, y)     # fit default model (mean zero & rbf kernel) with data
 model.optimize(x, y)         # optimize hyperparamters (default optimizer: single run minimize)

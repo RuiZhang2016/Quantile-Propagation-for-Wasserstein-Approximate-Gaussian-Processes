@@ -9,23 +9,30 @@ from scipy.special import erfinv
 from pynverse import inversefunc
 import matplotlib.pyplot as plt
 
-def Fr(x,m,v,mu,sigma):
-    Z = norm.cdf((mu-m)/v/np.sqrt(1+sigma**2/v**2))
-    A = 1/Z
-    k = (mu-m)/np.sqrt(sigma**2+v**2)
-    h = (x-mu)/sigma
-    rho = 1/np.sqrt(1+v**2/sigma**2)
-    # print('Z: {}, \nA: {}, \nk: {}, \nh: {}, \nrho: {}'.format(Z,A,k,h,rho))
 
-    eta = 0 if h*k>0 or (h*k==0 and h+k >= 0) else -0.5
-    if k == 0 and h ==0:
-        return A*(0.25+1/np.sin(-rho))
-    OT1 = my_owens_t(h,k,rho)
-    OT2 = my_owens_t(k,h,rho)
-    if v>0:
-        return A*(0.5*norm.cdf(h)+0.5*norm.cdf(k)-OT1-OT2+eta)
-    if v<0:
-        return A * (0.5 * norm.cdf(h) - 0.5 * norm.cdf(k) + OT1 + OT2 - eta)
+def Fr(x, m, v, mu, sigma):
+    sigma2 = sigma ** 2
+    # v2 = 1
+    sqrtsigma = np.sqrt(sigma2 + 1)
+    Z = norm.cdf((mu - m) / v / sqrtsigma)  # Z = norm.cdf((mu - m) / v / np.sqrt(1 + sigma2 / v2))
+    A = 1 / Z
+    k = (mu - m) / sqrtsigma  # k = (mu - m) / np.sqrt(sigma2 + v2)
+    h = (x - mu) / sigma
+    rho = sigma / sqrtsigma  # rho = 1 / np.sqrt(1 + v2 / sigma2)
+    cdfk = norm.cdf(k)
+    res = [0] * len(x) if np.ndim(x) else [0]
+    hs = h if np.ndim(h) > 0 else [h]
+    for i in range(len(hs)):
+        h = hs[i]
+        eta = 0 if h * k > 0 or (h * k == 0 and h + k >= 0) else -0.5
+        if k == 0 and h == 0:
+            res[i] = A * (0.25 + 1 / np.sin(-rho))
+        # OT1 = owens_t(h,(k+rho*h)/h/np.sqrt(1-rho**2))
+        # OT2 = owens_t(k,(h+rho*k)/k/np.sqrt(1-rho**2))
+        OT1 = my_owens_t(h, k, rho)
+        OT2 = my_owens_t(k, h, rho)
+        res[i] = A * (0.5 * norm.cdf(h) + 0.5 * v * cdfk - v * OT1 - v * OT2 + v * eta)
+    return res[0]
 
 def pr(x,m,v,mu,sigma):
     Z = norm.cdf((mu - m) / v / np.sqrt(1 + sigma ** 2 / v ** 2))
@@ -66,23 +73,29 @@ def cal_C2(m,v,mu,sigma):
     return np.sum(np.sqrt(2)*0.5*(prod[:-1]+prod[1:]))*d
 
 
-def fit_gauss_wd(m,v,mu,sigma):
+_nugget0 = 1e-14
+_nugget1 = 1 - 1e-14
+def fit_gauss_wd(m, v, mu, sigma):
+    print('m,v,mu,sigma: ', m, v, mu, sigma)
     sigma2 = sigma ** 2
-    v2 = v ** 2
-    z = (mu-m)/v/np.sqrt(1+sigma**2/v**2)
-    inf_mu = mu+sigma**2*norm.pdf(z)/norm.cdf(z)/v/np.sqrt(1+sigma2/v2)
-    #inverse_Fr = lambda y: inversefunc(lambda x: Fr(x,m,v,mu,sigma),y_values=y,accuracy=8)
-    # C2 = np.sqrt(2)*integrate.quad(lambda x: erfinv(2*x-1)*inverse_Fr(x),1e-6,1-1e-6)[0]
-    inf_sigma2 = sigma2 - sigma2 ** 2 * norm.pdf(z) / (v2 + sigma2) / norm.cdf(z) * (z + norm.pdf(z) / norm.cdf(z))
+    # v2 = 1
+    z = (mu - m) / v / np.sqrt(1 + sigma2)  # z = (mu - m) / v / np.sqrt(1 + sigma2 / v2)
+    pdfdivcdf = norm.pdf(z) / norm.cdf(z)
+    inf_mu = mu + sigma2 * pdfdivcdf / v / np.sqrt(1 + sigma2)  # inf_mu = mu + sigma ** 2 * norm.pdf(z) / norm.cdf(z) / v / np.sqrt(1 + sigma2 / v2)
+
+    inf_sigma2 = sigma2 - sigma2 ** 2 * pdfdivcdf / (1 + sigma2) * (z + pdfdivcdf)  # inf_sigma2 = sigma2 - sigma2 ** 2 * norm.pdf(z) / (v2 + sigma2) / norm.cdf(z) * (z + norm.pdf(z) / norm.cdf(z))
     inf_sigma = np.sqrt(inf_sigma2)
-    xs_Fr = np.linspace(inf_mu - 5 * inf_sigma, inf_mu + 5 * inf_sigma, 1024)
-    ys = np.array([Fr(x,m,v,mu,sigma) for x in xs_Fr])
+    xs_Fr = np.linspace(inf_mu - 5 * inf_sigma, inf_mu + 5 * inf_sigma, int(512 * inf_sigma))
+
+    ys = np.array([Fr(x, m, v, mu, sigma) for x in xs_Fr])
+    ys[ys >= _nugget1] = _nugget1
+    ys[ys <= _nugget0] = _nugget0
     dys = ys[1:] - ys[:-1]
     xs_erf = erfinv(2 * ys - 1)
     prod = xs_Fr * xs_erf
-    prod = prod[~np.isnan(prod)]
-    C2 = np.sqrt(2) * np.sum((prod[:-1] + prod[1:]) * dys) * 0.5
-    return inf_mu,C2
+
+    C2 = np.sqrt(2) * np.nansum((prod[:-1] + prod[1:]) * dys) * 0.5
+    return inf_mu, C2
 
 def fit_gauss_kl(m,v,mu,sigma):
     sigma2 = sigma**2
@@ -92,8 +105,9 @@ def fit_gauss_kl(m,v,mu,sigma):
     inf_sigma2 = sigma2-sigma2**2*norm.pdf(z)/(v2+sigma2)/norm.cdf(z)*(z+norm.pdf(z)/norm.cdf(z))
     return inf_mu,np.sqrt(inf_sigma2)
 
+
 if __name__ == '__main__':
-    m,v,mu,sigma = 0,20,30,40
+    m,v,mu,sigma = 0,1,1,39.999
     t1 = time.time()
     inf_mu_wd,inf_sigma_wd = fit_gauss_wd(m,v,mu,sigma)
     t2 = time.time()
@@ -106,7 +120,6 @@ if __name__ == '__main__':
     yplot_true = pr(xplot,m,v,mu,sigma)
     wd_pdf = lambda x: norm.pdf(x,loc=inf_mu_wd,scale=inf_sigma_wd)
     kl_pdf = lambda x: norm.pdf(x, loc=inf_mu_kl, scale=inf_sigma_kl)
-
     inverse_Fr = lambda y: inversefunc(lambda x: Fr(x, m, v, mu, sigma), y_values=y,accuracy=6)
     L2_wd = integrate.quad(lambda x: (inverse_Fr(x)-inf_mu_wd-inf_sigma_wd*np.sqrt(2)*erfinv(2*x-1)) ** 2, 0, 1)[0]
     L2_kl = integrate.quad(lambda x: (inverse_Fr(x)-inf_mu_kl-inf_sigma_kl*np.sqrt(2)*erfinv(2*x-1)) ** 2, 0, 1)[0]
@@ -119,15 +132,15 @@ if __name__ == '__main__':
     plt.legend()
     plt.show()
 
-    # xplot = np.linspace(mu - 5, mu + 10, 100)
-    # yplot_true = np.array([Fr(e, m, v, mu, sigma) for e in xplot])
-    # yplot_wd = norm.cdf(xplot, loc=inf_mu_wd, scale=inf_sigma_wd)
-    # yplot_kl = norm.cdf(xplot, loc=inf_mu_kl, scale=inf_sigma_kl)
-    # plt.plot(xplot, yplot_true, label='True')
-    # plt.plot(xplot, yplot_wd, label='wd')
-    # plt.plot(xplot, yplot_kl, label='kl')
-    # plt.legend()
-    # plt.show()
+    xplot = np.linspace(mu - 5, mu + 10, 100)
+    yplot_true = np.array([Fr(e, m, v, mu, sigma) for e in xplot])
+    yplot_wd = norm.cdf(xplot, loc=inf_mu_wd, scale=inf_sigma_wd)
+    yplot_kl = norm.cdf(xplot, loc=inf_mu_kl, scale=inf_sigma_kl)
+    plt.plot(xplot, yplot_true, label='True')
+    plt.plot(xplot, yplot_wd, label='wd')
+    plt.plot(xplot, yplot_kl, label='kl')
+    plt.legend()
+    plt.show()
 
     # xplot = np.linspace(1e-6,1-1e-6,1024)
     # yplot = []
