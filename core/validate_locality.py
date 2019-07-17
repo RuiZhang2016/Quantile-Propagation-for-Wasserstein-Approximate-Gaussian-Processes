@@ -71,9 +71,9 @@ if __name__ == '__main__':
         G0 = ot.emd2(ys, ys2, M2,numItermax=10000000)
         return G0
 
-    res = Parallel(n_jobs=8)(delayed(loop)(mu) for mu in mus)
-    for i in range(len(mus)):
-        print(mus[i],res[i])
+    for mu in mus:
+        print(mu,loop(mu))
+
     #
     # 1-d Gaussian
     # b = 1000
