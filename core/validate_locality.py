@@ -18,10 +18,10 @@ from joblib import Parallel, delayed
 #     expp = -(k_a*(x-tmu)**2-2*a*x*y*tsigma2+k**2*(x**2+y**2)*tsigma2)/2/tsigma2/k_a
 #     return np.exp(expp)*erfc(-y/np.sqrt(2)/v)/4/np.sqrt(2*k_a)/np.pi/np.sqrt(np.pi)/tsigma
 
-def truth(x,K,tmus,tsigma2s):
+def truth(x,K,tmus,tsigma2s,v):
     tsigmas = np.sqrt(tsigma2s)
     mn = multivariate_normal([0,0],K)
-    return mn.pdf(x)*norm.pdf(x[:,0],loc=tmus[0],scale=tsigmas[0])*norm.pdf(x[:,1],loc=tmus[1],scale=tsigmas[1])
+    return mn.pdf(x)*norm.pdf(x[:,0],loc=tmus[0],scale=tsigmas[0])*norm.cdf(x[:,1]/v)
 
 def gauss(x,K,tmus,tsigma2s):
     Sigma =np.linalg.inv(np.linalg.inv(K)+np.diag(1/tsigma2s))
@@ -49,44 +49,46 @@ if __name__ == '__main__':
     K = np.array([[1, 0.1], [0.1, 1]])
 
     for tmus0 in [-0.1,-0.05,0,0.05,0.1]:
-        tmus = np.array([tmus0, 0])
-        tsigma2s = np.array([1, 1])
-        mu_ni, sigma_ni2 = cavity_param(K, tmus, tsigma2s)
-        tl_mu, tl_sigma = quantile.fit_gauss_wd(0, v, mu_ni, np.sqrt(sigma_ni2))
+        for tsigma2s0 in [0.9,0.95,1,1.05,1.1]:
+            tmus = np.array([tmus0, 0])
+            tsigma2s = np.array([tsigma2s0, 1])
+            mu_ni, sigma_ni2 = cavity_param(K, tmus, tsigma2s)
+            hat_mu, hat_sigma = quantile.fit_gauss_wd(0, v, mu_ni, np.sqrt(sigma_ni2))
+            tl_sigma2 = 1 / (1 / hat_sigma ** 2 - 1 / sigma_ni2)
+            tl_mu = tl_sigma2*(1/hat_sigma**2*hat_mu-1/sigma_ni2*mu_ni)
+            mus = [0.15,0.1,0.05,0,-0.05,-0.1,-0.15]
+            sigmas = [1.15,1.1,1.05,1,0.95,0.9,0.85]
+            def loop(mu,sigma):
+                xs = np.array([[i,j] for i in np.linspace(-3+mu,mu+3,n) for j in np.linspace(mu-3,mu+3,n)])
 
-        mus = [0.15,0.1,0.05,0,-0.05,-0.1,-0.15]
-        sigmas = [1.15,1.1,1.05,1,0.95,0.9,0.85]
-        def loop(mu,sigma):
-            xs = np.array([[i,j] for i in np.linspace(-3+mu,mu+3,n) for j in np.linspace(mu-3,mu+3,n)])
+                # ys = truth(xdata, ydata, v, k, a, tl_mu, tl_sigma)
+                ys = truth(xs,K,tmus,tsigma2s,v)
+                ys /= np.sum(ys)
 
-            # ys = truth(xdata, ydata, v, k, a, tl_mu, tl_sigma)
-            ys = truth(xs,K,tmus,tsigma2s)
-            ys /= np.sum(ys)
-
-            tmus_2 = np.array([mu, tl_mu])
-            tsigma2s_2 = np.array([sigma, tl_sigma])
-            ys2 = gauss(xs, K, tmus_2, tsigma2s_2)
-            ys2 /= np.sum(ys2)
+                tmus_2 = np.array([mu, tl_mu])
+                tsigma2s_2 = np.array([sigma, tl_sigma2])
+                ys2 = gauss(xs, K, tmus_2, tsigma2s_2)
+                ys2 /= np.sum(ys2)
 
 
-            M2 = np.sum([((xs[:, i]).reshape((l, 1)) - (xs[:, i]).reshape((1, l))) ** 2 for i in range(2)], axis=0)
-            G0 = ot.emd2(ys, ys2, M2,numItermax=1000000)
-            return G0
+                M2 = np.sum([((xs[:, i]).reshape((l, 1)) - (xs[:, i]).reshape((1, l))) ** 2 for i in range(2)], axis=0)
+                G0 = ot.emd2(ys, ys2, M2,numItermax=1000000)
+                return G0
 
-        # res = Parallel(n_jobs=2)(delayed(loop)(mu) for mu in mus)
-        # print(mus,res)
-        res = [[loop(mu,sigma) for sigma in sigmas] for mu in mus]
-        plt.imshow(res)
-        plt.yticks([i for i in range(len(mus))],mus)
-        plt.xticks([i for i in range(len(sigmas))],sigmas)
-        for i in range(len(mus)):
-            for j in range(len(sigmas)):
-                plt.text(j-0.5,i,'{0:.4f}'.format(res[i][j]))
-        plt.xlabel('sigma')
-        plt.ylabel('mu')
-        plt.colorbar()
-        plt.savefig('../plots/mu{}_sigma{}_K{}.pdf'.format(tmus[0],tsigma2s[0],K))
-        plt.close('all')
+            # res = Parallel(n_jobs=2)(delayed(loop)(mu) for mu in mus)
+            # print(mus,res)
+            res = [[loop(mu,sigma) for sigma in sigmas] for mu in mus]
+            plt.imshow(res)
+            plt.yticks([i for i in range(len(mus))],mus)
+            plt.xticks([i for i in range(len(sigmas))],sigmas)
+            for i in range(len(mus)):
+                for j in range(len(sigmas)):
+                    plt.text(j-0.5,i,'{0:.4f}'.format(res[i][j]))
+            plt.xlabel('sigma')
+            plt.ylabel('mu')
+            plt.colorbar()
+            plt.savefig('../plots/mu{}_sigma{}_K{}.pdf'.format(tmus[0],tsigma2s[0],K))
+            plt.close('all')
         # plt.show()
     #
     # 1-d Gaussian
