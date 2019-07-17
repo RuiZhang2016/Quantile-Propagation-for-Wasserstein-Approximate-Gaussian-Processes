@@ -41,39 +41,53 @@ def cavity_param(K,tmus,tsigma2s):
 if __name__ == '__main__':
     n = 100
     l = n ** 2
-    v = -1
+    v = 1
     k = 1
     a = 0
     # ct = integrate.dblquad(lambda x,y: truth(x,y,v,k,a,tl_mu,tl_sigma),-10,10,lambda x:-10,lambda x:10)[0]
     # ys = truth(xdata, ydata, v, k, a, tl_mu, tl_sigma)/ct
+    K = np.array([[1, 0.1], [0.1, 1]])
 
-    tmus = np.array([0, 0])
-    tsigma2s = np.array([1, 1])
-    K = np.array([[1,0], [0, 1]])
-    mu_ni, sigma_ni2 = cavity_param(K, tmus, tsigma2s)
-    tl_mu, tl_sigma = quantile.fit_gauss_kl(0, v, mu_ni, np.sqrt(sigma_ni2))
+    for tmus0 in [-0.1,-0.05,0,0.05,0.1]:
+        tmus = np.array([tmus0, 0])
+        tsigma2s = np.array([1, 1])
+        mu_ni, sigma_ni2 = cavity_param(K, tmus, tsigma2s)
+        tl_mu, tl_sigma = quantile.fit_gauss_wd(0, v, mu_ni, np.sqrt(sigma_ni2))
 
-    mus = [0.3,0.2,0.1,0,-0.1,-0.2,-0.3]
-    def loop(mu):
-        xs = np.array([[i,j] for i in np.linspace(-5+mu,mu+5,n) for j in np.linspace(mu-5,mu+5,n)])
+        mus = [0.15,0.1,0.05,0,-0.05,-0.1,-0.15]
+        sigmas = [1.15,1.1,1.05,1,0.95,0.9,0.85]
+        def loop(mu,sigma):
+            xs = np.array([[i,j] for i in np.linspace(-3+mu,mu+3,n) for j in np.linspace(mu-3,mu+3,n)])
 
-        # ys = truth(xdata, ydata, v, k, a, tl_mu, tl_sigma)
-        ys = truth(xs,K,tmus,tsigma2s)
-        ys /= np.sum(ys)
+            # ys = truth(xdata, ydata, v, k, a, tl_mu, tl_sigma)
+            ys = truth(xs,K,tmus,tsigma2s)
+            ys /= np.sum(ys)
 
-        tmus_2 = np.array([mu, tl_mu])
-        tsigma2s_2 = np.array([1, tl_sigma])
-        ys2 = gauss(xs, K, tmus_2, tsigma2s_2)
-        ys2 /= np.sum(ys2)
+            tmus_2 = np.array([mu, tl_mu])
+            tsigma2s_2 = np.array([sigma, tl_sigma])
+            ys2 = gauss(xs, K, tmus_2, tsigma2s_2)
+            ys2 /= np.sum(ys2)
 
 
-        M2 = np.sum([((xs[:, i]).reshape((l, 1)) - (xs[:, i]).reshape((1, l))) ** 2 for i in range(2)], axis=0)
-        G0 = ot.emd2(ys, ys2, M2,numItermax=10000000)
-        return G0
+            M2 = np.sum([((xs[:, i]).reshape((l, 1)) - (xs[:, i]).reshape((1, l))) ** 2 for i in range(2)], axis=0)
+            G0 = ot.emd2(ys, ys2, M2,numItermax=1000000)
+            return G0
 
-    for mu in mus:
-        print(mu,loop(mu))
-
+        # res = Parallel(n_jobs=2)(delayed(loop)(mu) for mu in mus)
+        # print(mus,res)
+        res = [[loop(mu,sigma) for sigma in sigmas] for mu in mus]
+        plt.imshow(res)
+        plt.yticks([i for i in range(len(mus))],mus)
+        plt.xticks([i for i in range(len(sigmas))],sigmas)
+        for i in range(len(mus)):
+            for j in range(len(sigmas)):
+                plt.text(j-0.5,i,'{0:.4f}'.format(res[i][j]))
+        plt.xlabel('sigma')
+        plt.ylabel('mu')
+        plt.colorbar()
+        plt.savefig('../plots/mu{}_sigma{}_K{}.pdf'.format(tmus[0],tsigma2s[0],K))
+        plt.close('all')
+        # plt.show()
     #
     # 1-d Gaussian
     # b = 1000
