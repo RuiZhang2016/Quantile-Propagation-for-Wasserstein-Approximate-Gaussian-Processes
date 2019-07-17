@@ -8,7 +8,7 @@ import time
 from scipy.special import erfinv
 from pynverse import inversefunc
 import matplotlib.pyplot as plt
-
+np.random.seed(0)
 
 def Fr(x, m, v, mu, sigma):
     sigma2 = sigma ** 2
@@ -73,29 +73,52 @@ def cal_C2(m,v,mu,sigma):
     return np.sum(np.sqrt(2)*0.5*(prod[:-1]+prod[1:]))*d
 
 
-_nugget0 = 1e-14
+_nugget0 = -1+1e-14
 _nugget1 = 1 - 1e-14
+# def fit_gauss_wd(m, v, mu, sigma):
+#     print('m,v,mu,sigma: ', m, v, mu, sigma)
+#     sigma2 = sigma ** 2
+#     # v2 = 1
+#     z = (mu - m) / v / np.sqrt(1 + sigma2)  # z = (mu - m) / v / np.sqrt(1 + sigma2 / v2)
+#     pdfdivcdf = norm.pdf(z) / norm.cdf(z)
+#     inf_mu = mu + sigma2 * pdfdivcdf / v / np.sqrt(1 + sigma2)  # inf_mu = mu + sigma ** 2 * norm.pdf(z) / norm.cdf(z) / v / np.sqrt(1 + sigma2 / v2)
+#
+#     inf_sigma2 = sigma2 - sigma2 ** 2 * pdfdivcdf / (1 + sigma2) * (z + pdfdivcdf)  # inf_sigma2 = sigma2 - sigma2 ** 2 * norm.pdf(z) / (v2 + sigma2) / norm.cdf(z) * (z + norm.pdf(z) / norm.cdf(z))
+#     inf_sigma = np.sqrt(inf_sigma2)
+#     xs_Fr = np.linspace(inf_mu - 5 * inf_sigma, inf_mu + 5 * inf_sigma, int(512 * inf_sigma))
+#
+#     ys = np.array([Fr(x, m, v, mu, sigma) for x in xs_Fr])
+#     ys[ys >= _nugget1] = _nugget1
+#     ys[ys <= _nugget0] = _nugget0
+#     dys = ys[1:] - ys[:-1]
+#     xs_erf = erfinv(2 * ys - 1)
+#     prod = xs_Fr * xs_erf
+#
+#     C2 = np.sqrt(2) * np.nansum((prod[:-1] + prod[1:]) * dys) * 0.5
+#     return inf_mu, C2
+
+xs_norm = np.random.normal(size=10000)
 def fit_gauss_wd(m, v, mu, sigma):
     print('m,v,mu,sigma: ', m, v, mu, sigma)
     sigma2 = sigma ** 2
-    # v2 = 1
+    Z = norm.cdf((mu - m) / v / np.sqrt(1 + sigma ** 2 / v ** 2))
     z = (mu - m) / v / np.sqrt(1 + sigma2)  # z = (mu - m) / v / np.sqrt(1 + sigma2 / v2)
     pdfdivcdf = norm.pdf(z) / norm.cdf(z)
     inf_mu = mu + sigma2 * pdfdivcdf / v / np.sqrt(1 + sigma2)  # inf_mu = mu + sigma ** 2 * norm.pdf(z) / norm.cdf(z) / v / np.sqrt(1 + sigma2 / v2)
 
-    inf_sigma2 = sigma2 - sigma2 ** 2 * pdfdivcdf / (1 + sigma2) * (z + pdfdivcdf)  # inf_sigma2 = sigma2 - sigma2 ** 2 * norm.pdf(z) / (v2 + sigma2) / norm.cdf(z) * (z + norm.pdf(z) / norm.cdf(z))
-    inf_sigma = np.sqrt(inf_sigma2)
-    xs_Fr = np.linspace(inf_mu - 5 * inf_sigma, inf_mu + 5 * inf_sigma, int(512 * inf_sigma))
+    xs_Fr = xs_norm*sigma+mu
 
     ys = np.array([Fr(x, m, v, mu, sigma) for x in xs_Fr])
-    ys[ys >= _nugget1] = _nugget1
-    ys[ys <= _nugget0] = _nugget0
-    dys = ys[1:] - ys[:-1]
-    xs_erf = erfinv(2 * ys - 1)
-    prod = xs_Fr * xs_erf
+    ys_2 = 2 * ys - 1
+    ys_2[ys_2 >= _nugget1] = _nugget1
+    ys_2[ys_2 <= _nugget0] = _nugget0
 
-    C2 = np.sqrt(2) * np.nansum((prod[:-1] + prod[1:]) * dys) * 0.5
+    xs_erf = erfinv(ys_2)
+    prod = xs_Fr*xs_erf*norm.cdf(xs_Fr*v)
+
+    C2 = np.sqrt(2) * np.mean(prod)/Z
     return inf_mu, C2
+
 
 def fit_gauss_kl(m,v,mu,sigma):
     sigma2 = sigma**2
@@ -107,7 +130,7 @@ def fit_gauss_kl(m,v,mu,sigma):
 
 
 if __name__ == '__main__':
-    m,v,mu,sigma = 0,1,1,39.999
+    m,v,mu,sigma = 0,1,1,5
     t1 = time.time()
     inf_mu_wd,inf_sigma_wd = fit_gauss_wd(m,v,mu,sigma)
     t2 = time.time()
