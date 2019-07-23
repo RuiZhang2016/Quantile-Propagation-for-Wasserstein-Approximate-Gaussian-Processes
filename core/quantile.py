@@ -10,13 +10,13 @@ from pynverse import inversefunc
 import matplotlib.pyplot as plt
 np.random.seed(0)
 
-def Fr(x, m, v, mu, sigma):
+def Fr(x, v, mu, sigma):
     sigma2 = sigma ** 2
     # v2 = 1
     sqrtsigma = np.sqrt(sigma2 + 1)
-    Z = norm.cdf((mu - m) / v / sqrtsigma)  # Z = norm.cdf((mu - m) / v / np.sqrt(1 + sigma2 / v2))
+    k = mu / sqrtsigma
+    Z = norm.cdf(k/ v)  # Z = norm.cdf((mu - m) / v / np.sqrt(1 + sigma2 / v2))
     A = 1 / Z
-    k = (mu - m) / sqrtsigma  # k = (mu - m) / np.sqrt(sigma2 + v2)
     h = (x - mu) / sigma
     rho = sigma / sqrtsigma  # rho = 1 / np.sqrt(1 + v2 / sigma2)
     cdfk = norm.cdf(k)
@@ -34,9 +34,9 @@ def Fr(x, m, v, mu, sigma):
         res[i] = A * (0.5 * norm.cdf(h) + 0.5 * v * cdfk - v * OT1 - v * OT2 + v * eta)
     return res[0]
 
-def pr(x,m,v,mu,sigma):
-    Z = norm.cdf((mu - m) / v / np.sqrt(1 + sigma ** 2 / v ** 2))
-    return norm.cdf((x-m)/v)*norm.pdf(x,loc=mu,scale=sigma)/Z
+def pr(x,v,mu,sigma):
+    Z = norm.cdf(mu  / v / np.sqrt(1 + sigma ** 2))
+    return norm.cdf(x/v)*norm.pdf(x,loc=mu,scale=sigma)/Z
 
 def my_owens_t(x1,x2,rho):
     if x1 == 0 and x2>0:
@@ -55,16 +55,17 @@ def Fr_MC(x,m,v,mu,sigma):
     return integral/Z
 
 
-def cal_C2(m,v,mu,sigma):
+def cal_C2(v,mu,sigma):
     sigma2 = sigma ** 2
-    v2 = v ** 2
-    z = (mu - m) / v / np.sqrt(1 + sigma2 / v2)
-    inf_mu = mu + sigma ** 2 * norm.pdf(z) / norm.cdf(z) / v / np.sqrt(1 + sigma ** 2 / v ** 2)
-    inf_sigma2 = sigma2 - sigma2 ** 2 * norm.pdf(z) / (v2 + sigma2) / norm.cdf(z) * (z + norm.pdf(z) / norm.cdf(z))
+    sqrtsigma = np.sqrt(sigma2 + 1)
+    z = mu / v / sqrtsigma
+    pdfdivcdf = norm.pdf(z) / norm.cdf(z)
+    inf_mu = mu + sigma ** 2 * norm.pdf(z) / norm.cdf(z) / v / sqrtsigma
+    inf_sigma2 = sigma2 - sigma2 ** 2 * pdfdivcdf / (1 + sigma2) * (z + pdfdivcdf)
     inf_sigma = np.sqrt(inf_sigma2)
     xs_Fr = np.linspace(inf_mu-4*inf_sigma,inf_mu+4*inf_sigma,256)
     d = xs_Fr[1]-xs_Fr[0]
-    ys = np.array([Fr(x,m,v,mu,sigma) for x in xs_Fr])
+    ys = np.array([Fr(x,v,mu,sigma) for x in xs_Fr])
     # print(ys)
     # print(erfinv(2*ys-1))
     xs_erf = erfinv(2*ys-1)
@@ -75,40 +76,23 @@ def cal_C2(m,v,mu,sigma):
 
 _nugget0 = -1+1e-14
 _nugget1 = 1 - 1e-14
-# def fit_gauss_wd(m, v, mu, sigma):
-#     print('m,v,mu,sigma: ', m, v, mu, sigma)
-#     sigma2 = sigma ** 2
-#     # v2 = 1
-#     z = (mu - m) / v / np.sqrt(1 + sigma2)  # z = (mu - m) / v / np.sqrt(1 + sigma2 / v2)
-#     pdfdivcdf = norm.pdf(z) / norm.cdf(z)
-#     inf_mu = mu + sigma2 * pdfdivcdf / v / np.sqrt(1 + sigma2)  # inf_mu = mu + sigma ** 2 * norm.pdf(z) / norm.cdf(z) / v / np.sqrt(1 + sigma2 / v2)
-#
-#     inf_sigma2 = sigma2 - sigma2 ** 2 * pdfdivcdf / (1 + sigma2) * (z + pdfdivcdf)  # inf_sigma2 = sigma2 - sigma2 ** 2 * norm.pdf(z) / (v2 + sigma2) / norm.cdf(z) * (z + norm.pdf(z) / norm.cdf(z))
-#     inf_sigma = np.sqrt(inf_sigma2)
-#     xs_Fr = np.linspace(inf_mu - 5 * inf_sigma, inf_mu + 5 * inf_sigma, int(512 * inf_sigma))
-#
-#     ys = np.array([Fr(x, m, v, mu, sigma) for x in xs_Fr])
-#     ys[ys >= _nugget1] = _nugget1
-#     ys[ys <= _nugget0] = _nugget0
-#     dys = ys[1:] - ys[:-1]
-#     xs_erf = erfinv(2 * ys - 1)
-#     prod = xs_Fr * xs_erf
-#
-#     C2 = np.sqrt(2) * np.nansum((prod[:-1] + prod[1:]) * dys) * 0.5
-#     return inf_mu, C2
 
-xs_norm = np.random.normal(size=10000)
-def fit_gauss_wd(m, v, mu, sigma):
-    print('m,v,mu,sigma: ', m, v, mu, sigma)
+xs_norm = np.random.normal(size=20000)
+# xs_disc = np.linspace(-1,1,20000)
+def fit_gauss_wd( v, mu, sigma):
+    # print('m,v,mu,sigma: ', m, v, mu, sigma)
     sigma2 = sigma ** 2
-    Z = norm.cdf((mu - m) / v / np.sqrt(1 + sigma ** 2 / v ** 2))
-    z = (mu - m) / v / np.sqrt(1 + sigma2)  # z = (mu - m) / v / np.sqrt(1 + sigma2 / v2)
+    sqrtsigma = np.sqrt(sigma2 + 1)
+    z = mu / v / sqrtsigma  # z = (mu - m) / v / np.sqrt(1 + sigma2 / v2)
+    Z = norm.cdf(z)
     pdfdivcdf = norm.pdf(z) / norm.cdf(z)
-    inf_mu = mu + sigma2 * pdfdivcdf / v / np.sqrt(1 + sigma2)  # inf_mu = mu + sigma ** 2 * norm.pdf(z) / norm.cdf(z) / v / np.sqrt(1 + sigma2 / v2)
+    inf_mu = mu + sigma2 * pdfdivcdf / v / sqrtsigma  # inf_mu = mu + sigma ** 2 * norm.pdf(z) / norm.cdf(z) / v / np.sqrt(1 + sigma2 / v2)
+    #inf_sigma2 = sigma2 - sigma2 ** 2 * pdfdivcdf / (1 + sigma2) * (z + pdfdivcdf)
+    #inf_sigma = np.sqrt(inf_sigma2)
 
-    xs_Fr = xs_norm*sigma+mu
+    xs_Fr = xs_norm*sigma+mu# xs_disc*3*inf_sigma+inf_mu# np.linspace(inf_mu-4*inf_sigma,inf_mu+4*inf_sigma,8200) # xs_norm*sigma+mu
 
-    ys = np.array([Fr(x, m, v, mu, sigma) for x in xs_Fr])
+    ys = np.array([Fr(x, v, mu, sigma) for x in xs_Fr])
     ys_2 = 2 * ys - 1
     ys_2[ys_2 >= _nugget1] = _nugget1
     ys_2[ys_2 <= _nugget0] = _nugget0
@@ -120,32 +104,31 @@ def fit_gauss_wd(m, v, mu, sigma):
     return inf_mu, C2
 
 
-def fit_gauss_kl(m,v,mu,sigma):
+def fit_gauss_kl(v,mu,sigma):
     sigma2 = sigma**2
-    v2 = v**2
-    z = (mu-m)/v/np.sqrt(1+sigma2/v2)
-    inf_mu = mu+sigma2*norm.pdf(z)/norm.cdf(z)/v/np.sqrt(1+sigma2/v2)
-    inf_sigma2 = sigma2-sigma2**2*norm.pdf(z)/(v2+sigma2)/norm.cdf(z)*(z+norm.pdf(z)/norm.cdf(z))
+    z = mu/v/np.sqrt(1+sigma2)
+    inf_mu = mu+sigma2*norm.pdf(z)/norm.cdf(z)/v/np.sqrt(1+sigma2)
+    inf_sigma2 = sigma2-sigma2**2*norm.pdf(z)/(1+sigma2)/norm.cdf(z)*(z+norm.pdf(z)/norm.cdf(z))
     return inf_mu,np.sqrt(inf_sigma2)
 
 
 if __name__ == '__main__':
-    m,v,mu,sigma = 0,1,1,5
+    v,mu,sigma = 1,1,5
     t1 = time.time()
-    inf_mu_wd,inf_sigma_wd = fit_gauss_wd(m,v,mu,sigma)
+    inf_mu_wd,inf_sigma_wd = fit_gauss_wd(v,mu,sigma)
     t2 = time.time()
-    inf_mu_kl, inf_sigma_kl = fit_gauss_kl(m, v, mu, sigma)
+    inf_mu_kl, inf_sigma_kl = fit_gauss_kl(v, mu, sigma)
     t3 = time.time()
     print('wd time, kl time: ',t2-t1,t3-t2)
     print('wd: mu ',inf_mu_wd,' sigma:',inf_sigma_wd)
     print('kl: mu ', inf_mu_kl, ' sigma:', inf_sigma_kl)
     xplot = np.linspace(mu-5,mu+5,100)
-    yplot_true = pr(xplot,m,v,mu,sigma)
+    yplot_true = pr(xplot,v,mu,sigma)
     wd_pdf = lambda x: norm.pdf(x,loc=inf_mu_wd,scale=inf_sigma_wd)
     kl_pdf = lambda x: norm.pdf(x, loc=inf_mu_kl, scale=inf_sigma_kl)
-    inverse_Fr = lambda y: inversefunc(lambda x: Fr(x, m, v, mu, sigma), y_values=y,accuracy=6)
-    L2_wd = integrate.quad(lambda x: (inverse_Fr(x)-inf_mu_wd-inf_sigma_wd*np.sqrt(2)*erfinv(2*x-1)) ** 2, 0, 1)[0]
-    L2_kl = integrate.quad(lambda x: (inverse_Fr(x)-inf_mu_kl-inf_sigma_kl*np.sqrt(2)*erfinv(2*x-1)) ** 2, 0, 1)[0]
+    inverse_Fr = lambda y: inversefunc(lambda x: Fr(x, v, mu, sigma), y_values=y,accuracy=6)
+    L2_wd = integrate.quad(lambda x: (inverse_Fr(x)-inf_mu_wd-inf_sigma_wd*np.sqrt(2)*erfinv(2*x-1)) ** 2, 1e-14, 1-1e-14)[0]
+    L2_kl = integrate.quad(lambda x: (inverse_Fr(x)-inf_mu_kl-inf_sigma_kl*np.sqrt(2)*erfinv(2*x-1)) ** 2, 1e-14, 1-1e-14)[0]
     print('wd quantile L2, kl quantile L2: ', L2_wd, L2_kl)
 
     plt.plot(xplot,yplot_true,label='True')
@@ -156,7 +139,7 @@ if __name__ == '__main__':
     plt.show()
 
     xplot = np.linspace(mu - 5, mu + 10, 100)
-    yplot_true = np.array([Fr(e, m, v, mu, sigma) for e in xplot])
+    yplot_true = np.array([Fr(e, v, mu, sigma) for e in xplot])
     yplot_wd = norm.cdf(xplot, loc=inf_mu_wd, scale=inf_sigma_wd)
     yplot_kl = norm.cdf(xplot, loc=inf_mu_kl, scale=inf_sigma_kl)
     plt.plot(xplot, yplot_true, label='True')
