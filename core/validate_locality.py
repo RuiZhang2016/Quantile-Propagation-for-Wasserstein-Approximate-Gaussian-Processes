@@ -46,7 +46,7 @@ if __name__ == '__main__':
     a = 0
     # ct = integrate.dblquad(lambda x,y: truth(x,y,v,k,a,tl_mu,tl_sigma),-10,10,lambda x:-10,lambda x:10)[0]
     # ys = truth(xdata, ydata, v, k, a, tl_mu, tl_sigma)/ct
-    K = np.array([[1, 0.1], [0.1, 1]])
+    K = np.array([[1, 0.5], [0.5, 1]])
 
     for tmus0 in [-0.1,-0.05,0,0.05,0.1]:
         for tsigma2s0 in [0.9,0.95,1,1.05,1.1]:

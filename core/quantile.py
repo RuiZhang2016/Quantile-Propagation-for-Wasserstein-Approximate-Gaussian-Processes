@@ -10,13 +10,13 @@ from pynverse import inversefunc
 import matplotlib.pyplot as plt
 np.random.seed(0)
 
-def Fr(x, m, v, mu, sigma):
+def Fr(x, v, mu, sigma):
     sigma2 = sigma ** 2
-    # v2 = 1
     sqrtsigma = np.sqrt(sigma2 + 1)
-    Z = norm.cdf((mu - m) / v / sqrtsigma)  # Z = norm.cdf((mu - m) / v / np.sqrt(1 + sigma2 / v2))
+    # v2 = 1
+    k = mu / sqrtsigma
+    Z = norm.cdf(k / v)  # Z = norm.cdf((mu - m) / v / np.sqrt(1 + sigma2 / v2))
     A = 1 / Z
-    k = (mu - m) / sqrtsigma  # k = (mu - m) / np.sqrt(sigma2 + v2)
     h = (x - mu) / sigma
     rho = sigma / sqrtsigma  # rho = 1 / np.sqrt(1 + v2 / sigma2)
     cdfk = norm.cdf(k)
@@ -97,7 +97,7 @@ _nugget1 = 1 - 1e-14
 #     C2 = np.sqrt(2) * np.nansum((prod[:-1] + prod[1:]) * dys) * 0.5
 #     return inf_mu, C2
 
-xs_norm = np.random.normal(size=10000)
+xs_norm = np.random.normal(size=20000)
 def fit_gauss_wd(m, v, mu, sigma):
     print('m,v,mu,sigma: ', m, v, mu, sigma)
     sigma2 = sigma ** 2
@@ -147,6 +147,7 @@ if __name__ == '__main__':
     L2_wd = integrate.quad(lambda x: (inverse_Fr(x)-inf_mu_wd-inf_sigma_wd*np.sqrt(2)*erfinv(2*x-1)) ** 2, 0, 1)[0]
     L2_kl = integrate.quad(lambda x: (inverse_Fr(x)-inf_mu_kl-inf_sigma_kl*np.sqrt(2)*erfinv(2*x-1)) ** 2, 0, 1)[0]
     print('wd quantile L2, kl quantile L2: ', L2_wd, L2_kl)
+    print('sigma_q^2-sigma^*2: ', inf_mu_kl**2-inf_mu_wd**2)
 
     plt.plot(xplot,yplot_true,label='True')
     plt.plot(xplot, wd_pdf(xplot), label='wd')
