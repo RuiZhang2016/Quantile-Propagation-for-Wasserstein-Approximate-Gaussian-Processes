@@ -12,6 +12,7 @@ from scipy import integrate
 import ot
 import ot.plot
 from joblib import Parallel, delayed
+import csv
 # def truth(x,y,v,k,a,tmu,tsigma):
 #     k_a = k**4-a**2
 #     tsigma2 = tsigma**2
@@ -38,7 +39,29 @@ def cavity_param(K,tmus,tsigma2s):
     mu_ni = sigma_ni2*(1/Sigma[1,1]*mu[1]-1/tsigma2s[1]*tmus[1])
     return mu_ni, sigma_ni2
 
+def plot_table(filename, tmus0, tsigma2s0):
+    with open(filename,'r') as rf:
+        reader = csv.reader(rf)
+        lines = list(reader)
+        table = [[float(e) for e in l] for l in lines]
+
+    plt.imshow(table)
+    plt.show()
+    # mus = np.linspace(-10 + tmus0, 10 + tmus0, 23)
+    # sigmas = np.linspace(-0.2 + tsigma2s0, 0.2 + tsigma2s0, 8)
+    # X, Y = np.meshgrid(sigmas,mus)
+    # Z = table
+    # plt.figure()
+    # cp = plt.contourf(X, Y, Z)
+    # plt.colorbar(cp)
+    # plt.title('Filled Contours Plot')
+    # plt.xlabel('sigma')
+    # plt.ylabel('mu')
+    # plt.show()
+
 if __name__ == '__main__':
+    # dir = '../res/WD_GPC/'
+    # plot_table(dir+'mu0_sigma1.0_K[[1.  0.5]\^J [0.5 1. ]].csv',0.1,0.8)
     n = 100
     l = n ** 2
     v = 1
@@ -48,19 +71,20 @@ if __name__ == '__main__':
     # ys = truth(xdata, ydata, v, k, a, tl_mu, tl_sigma)/ct
     K = np.array([[1, 0.5], [0.5, 1]])
 
-    for tmus0 in [-0.1,-0.05,0,0.05,0.1]:
-        for tsigma2s0 in [0.9,0.95,1,1.05,1.1]:
+    for tmus0 in [0.1]:#,-0.05,0,0.05,0.1]:
+        for tsigma2s0 in [1]:#0.9,0.95,1,1.05,1.1]:
             tmus = np.array([tmus0, 0])
             tsigma2s = np.array([tsigma2s0, 1])
             mu_ni, sigma_ni2 = cavity_param(K, tmus, tsigma2s)
-            hat_mu, hat_sigma = quantile.fit_gauss_wd(0, v, mu_ni, np.sqrt(sigma_ni2))
+            hat_mu, hat_sigma = quantile.fit_gauss_wd_integral(v, mu_ni, np.sqrt(sigma_ni2))
             tl_sigma2 = 1 / (1 / hat_sigma ** 2 - 1 / sigma_ni2)
             tl_mu = tl_sigma2*(1/hat_sigma**2*hat_mu-1/sigma_ni2*mu_ni)
-            mus = [0.15,0.1,0.05,0,-0.05,-0.1,-0.15]
+            mus = [-0.5 + 0.1*i for i in range(11)]
+            mus = [e+tmus[0] for e in mus]
             sigmas = [1.15,1.1,1.05,1,0.95,0.9,0.85]
             def loop(mu,sigma):
-                xs = np.array([[i,j] for i in np.linspace(-3+mu,mu+3,n) for j in np.linspace(mu-3,mu+3,n)])
-
+                xs = np.array([[i,j] for i in np.linspace(-5+mu,mu+5,n) for j in np.linspace(tmus[1]-5,tmus[1]+5,n)])
+                # normalization = integrate.quad()
                 # ys = truth(xdata, ydata, v, k, a, tl_mu, tl_sigma)
                 ys = truth(xs,K,tmus,tsigma2s,v)
                 ys /= np.sum(ys)
@@ -73,6 +97,7 @@ if __name__ == '__main__':
 
                 M2 = np.sum([((xs[:, i]).reshape((l, 1)) - (xs[:, i]).reshape((1, l))) ** 2 for i in range(2)], axis=0)
                 G0 = ot.emd2(ys, ys2, M2,numItermax=1000000)
+                print(mu,sigma,G0)
                 return G0
 
             # res = Parallel(n_jobs=2)(delayed(loop)(mu) for mu in mus)
@@ -87,9 +112,13 @@ if __name__ == '__main__':
             plt.xlabel('sigma')
             plt.ylabel('mu')
             plt.colorbar()
+            with open('../plots/mu{}_sigma{}_K{}.csv'.format(tmus[0],tsigma2s[0],K), 'w') as wf:
+                writer = csv.writer(wf)
+                writer.writerows(res)
+
             plt.savefig('../plots/mu{}_sigma{}_K{}.pdf'.format(tmus[0],tsigma2s[0],K))
             plt.close('all')
-        # plt.show()
+            #plt.show()
     #
     # 1-d Gaussian
     # b = 1000
