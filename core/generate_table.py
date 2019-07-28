@@ -1,4 +1,4 @@
-from quantile import *
+from core.quantile import *
 import numpy as np
 from pynverse import inversefunc
 import scipy.integrate as integrate
@@ -27,6 +27,14 @@ def generate_table(v):
     with open('sigma_{}.csv'.format(v),'w') as wf:
         writer = csv.writer(wf)
         writer.writerows(table)
+
+def read_table(file):
+    with open(file,'r') as rf:
+        reader = csv.reader(rf)
+        lines = list(reader)
+        z = [[float(e) for e in l] for l in lines]
+    return z
+
 
 if __name__ == '__main__':
     generate_table(1)
