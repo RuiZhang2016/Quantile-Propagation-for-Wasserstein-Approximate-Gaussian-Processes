@@ -75,7 +75,7 @@ def run(f, X, args=(), length=None, red=1.0, verbose=False):
     
     while i < abs(length):                                  # while not finished
         i = i + (length>0)                                  # count iterations?!
-
+        print('minimize iteration: {}'.format(i))
         X0 = X; F0 = f0; dF0 = df0               # make a copy of current values
         if length>0:
             M = MAX
