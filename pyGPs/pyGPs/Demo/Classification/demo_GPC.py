@@ -25,7 +25,7 @@ else:
 
 import pyGPs
 import numpy as np
-
+from read_data import *
 # To have a gerneral idea,
 # you may want to read demo_GPR, demo_kernel and demo_optimization first!
 # Here, the focus is on the difference of classification model.
@@ -39,8 +39,11 @@ print('---------------------GPC DEMO-------------------------')
 # GPC target class are +1 and -1
 demoData = np.load('classification_data.npz')
 x = demoData['x']            # training data
+xmean = np.mean(x)
+xstd = np.std(x)
 y = demoData['y']            # training target
 z = demoData['xstar']        # test data
+
 
 # only needed for 2-d contour plotting 
 x1 = demoData['x1']          # x for class 1 (with label -1)
@@ -50,7 +53,13 @@ t2 = demoData['t2']          # y for class 2 (with label +1)
 p1 = demoData['p1']          # prior for class 1 (with label -1)
 p2 = demoData['p2']          # prior for class 2 (with label +1)
 
-
+## By Rui
+def preproc(x, m, s):
+    return (x-m)/s
+x = preproc(x,xmean,xstd)
+z = preproc(z,xmean,xstd)
+x1 = preproc(x1,xmean,xstd)
+x2 = preproc(x2,xmean,xstd)
 
 
 #----------------------------------------------------------------------
