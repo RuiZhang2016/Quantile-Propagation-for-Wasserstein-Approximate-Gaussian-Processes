@@ -62,12 +62,15 @@ def experiments_ionosphere():
 
         # Prediction
         n = x_test.shape[0]
-        ymu, ys2, fmu, fs2, lp = model.predict(x_test, ys=np.ones((n, 1)))
+        # ymu, ys2, fmu, fs2, lp = model.predict(x_test, ys=np.ones((n, 1)))
 
-        # pyGPs.GPC.plot() is a toy method for 2-d data
-        # plot log probability distribution for class +1
+        print('new model using QP and initilized with the optimal hyp from EP')
+        model.useInference('QP')
 
-        # model.plot(x1, x2, y1, y2)
+        model.getPosterior(x_train, y)
+        print("Negative log marginal liklihood before:", round(model.nlZ, 7))
+        model.optimize(x_train, y, numIterations=6)
+        print("Negative log marginal liklihood optimized:", round(model.nlZ, 7))
 
 
 if __name__ == '__main__':
