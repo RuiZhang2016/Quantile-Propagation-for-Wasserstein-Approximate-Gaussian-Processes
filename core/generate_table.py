@@ -63,10 +63,15 @@ def compress(v):
             raise Exception(filename, ' not exists')
     print(table.shape)
 
-
+def plot_table(v):
+    table = WR_table('../res/WD_GPC/sigma_{}.csv'.format(v),'r')
+    plt.matshow(table[200:])
+    plt.colorbar()
+    plt.show()
 
 if __name__ == '__main__':
-    compress(-1)
+    # compress(-1)
+    plot_table(1)
     # compress(-1)
     # # generate_table(1)
     # table = [[1.0002,2,3],[2.1,3.1,4.1]]
