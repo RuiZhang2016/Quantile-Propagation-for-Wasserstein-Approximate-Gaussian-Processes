@@ -21,6 +21,17 @@ from read_data import *
 def preproc(x, m, s):
     return (x-m)/s
 
+def compute_Is(ys, ps, ys_train):
+    p1 = np.mean([e if e == 1 else 0 for e in ys_train])
+    p2 = 1-p1
+    H = -p1*np.log2(p1)-p2*np.log2(p2)
+    assert len(ys) == len(ps)
+    n = len(ps)
+    Is = (ys+1)/2*np.log2(ps)+(1-ys)/2*np.log2(1-ps)+H
+    return Is
+
+def compute_E(ys,ps):
+    return np.mean([1 if (ps[i] > 0.5)^(ys[i] == 1) else 0 for i in range(len(ps))])
 
 def experiments_ionosphere():
     data = read_ionosphere()
@@ -61,17 +72,28 @@ def experiments_ionosphere():
         print("Negative log marginal liklihood optimized:", round(model.nlZ, 3))
 
         # Prediction
-        n = x_test.shape[0]
-        # ymu, ys2, fmu, fs2, lp = model.predict(x_test, ys=np.ones((n, 1)))
+        ymu, ys2, fmu, fs2, lp = model.predict(x_test, ys=y_test.reshape((-1,1)))
+        Is = compute_Is(y_test,np.exp(lp),y_train)
+        E = compute_E(y_test,np.exp(lp))
+        print('EP I E: {} {}'.format(np.mean(Is),E))
 
         print('new model using QP and initilized with the optimal hyp from EP')
         model.useInference('QP')
 
-        model.getPosterior(x_train, y)
+        model = pyGPs.GPC()
+        # kernel
+        k = pyGPs.cov.RBFard(log_ell_list=[0.5] * n_features, log_sigma=1.)
+        model.setPrior(kernel=k)
+
+        model.getPosterior(x_train, y_train)
         print("Negative log marginal liklihood before:", round(model.nlZ, 7))
-        model.optimize(x_train, y, numIterations=6)
+        model.optimize(x_train, y_train, numIterations=6)
         print("Negative log marginal liklihood optimized:", round(model.nlZ, 7))
 
+        ymu, ys2, fmu, fs2, lp = model.predict(x_test, ys=y_test.reshape((-1, 1)))
+        Is = compute_Is(y_test, np.exp(lp), y_train)
+        E = compute_E(y_test, np.exp(lp))
+        print('QP I E: {} {}'.format(np.mean(Is), E))
 
 if __name__ == '__main__':
     experiments_ionosphere()
