@@ -289,7 +289,6 @@ class Minimize(Optimizer):
         try:
             # opt = minimize.run(self._nlzAnddnlz, hypInArray, length=-numIters)
             opt = minimize.run(self._nlzAnddnlz, hypInArray, length=numIters)
-            print(opt)
             optimalHyp = deepcopy(opt[0])
             funcValue  = opt[1][-1]
             self.logger.warning("Number of line searches %g", opt[2])

@@ -840,12 +840,12 @@ class QP(Inference):
         self.sqrt2 = np.sqrt(2)
         self.samples = np.linspace(-5,5,1024)
 
-        table1 = GT.WR_table('/home/rzhang/PycharmProjects/WGPC/res/WD_GPC/sigma_1.csv','r')
-        table2 = GT.WR_table('/home/rzhang/PycharmProjects/WGPC/res/WD_GPC/sigma_-1.csv','r')
-        x = [i*0.01-10 for i in range(400*5)]
-        y = np.linspace(0.4, 5, int((5 - 0.4) / 0.01 + 1))
-        self.f1 = interpolate.interp2d(y, x, table1, kind='linear')
-        self.f2 = interpolate.interp2d(y, x, table2, kind='linear')
+        # table1 = GT.WR_table('/home/rzhang/PycharmProjects/WGPC/res/WD_GPC/sigma_1.csv','r')
+        # table2 = GT.WR_table('/home/rzhang/PycharmProjects/WGPC/res/WD_GPC/sigma_-1.csv','r')
+        # x = [i*0.01-10 for i in range(400*5)]
+        # y = np.linspace(0.4, 5, int((5 - 0.4) / 0.01 + 1))
+        # self.f1 = interpolate.interp2d(y, x, table1, kind='linear')
+        # self.f2 = interpolate.interp2d(y, x, table2, kind='linear')
 
     def evaluate(self, meanfunc, covfunc, likfunc, x, y, nargout=1):
         tol = 1e-4
