@@ -840,12 +840,12 @@ class QP(Inference):
         self.sqrt2 = np.sqrt(2)
         self.samples = np.linspace(-5,5,1024)
 
-        # table1 = GT.WR_table('/home/rzhang/PycharmProjects/WGPC/res/WD_GPC/sigma_1.csv','r')
-        # table2 = GT.WR_table('/home/rzhang/PycharmProjects/WGPC/res/WD_GPC/sigma_-1.csv','r')
-        # x = [i*0.01-10 for i in range(400*5)]
-        # y = np.linspace(0.4, 5, int((5 - 0.4) / 0.01 + 1))
-        # self.f1 = interpolate.interp2d(y, x, table1, kind='linear')
-        # self.f2 = interpolate.interp2d(y, x, table2, kind='linear')
+        table1 = GT.WR_table('/home/rzhang/PycharmProjects/WGPC/res/WD_GPC/sigma_1.csv','r')
+        table2 = GT.WR_table('/home/rzhang/PycharmProjects/WGPC/res/WD_GPC/sigma_-1.csv','r')
+        x = [i*0.01-10 for i in range(400*5)]
+        y = np.linspace(0.4, 5, int((5 - 0.4) / 0.01 + 1))
+        self.f1 = interpolate.interp2d(y, x, table1, kind='linear')
+        self.f2 = interpolate.interp2d(y, x, table2, kind='linear')
 
     def evaluate(self, meanfunc, covfunc, likfunc, x, y, nargout=1):
         tol = 1e-4
@@ -877,7 +877,7 @@ class QP(Inference):
         while (np.abs(nlZ - nlZ_old) > tol and sweep < max_sweep) or (sweep < min_sweep):
             nlZ_old = nlZ
             sweep += 1
-            print(sweep)
+            # print('sweep {}'.format(sweep))
             rperm = range(n)  # randperm(n)
             for ii in rperm:  # iterate EP updates (in random order) over examples
                 tau_ni = old_div(1, Sigma[ii, ii]) - ttau[ii]  # first find the cavity distribution ..
@@ -891,8 +891,10 @@ class QP(Inference):
 
                 v_wd, mu_wd, sigma_wd = 1 / y[ii], nu_ni / tau_ni, np.sqrt(1 / tau_ni)
                 mu_hat, sigma_hat = self.fit_gauss_wd(v_wd[0], mu_wd[0], sigma_wd[0])
+                # print(v_wd,mu_wd,sigma_wd,mu_hat,sigma_hat)
                 sigma_hat2 = sigma_hat ** 2
                 ttau[ii] = 1 / sigma_hat2 - tau_ni
+                ttau[ii] = max(ttau[ii], 0)
                 tnu[ii] = 1 / sigma_hat2 * mu_hat - nu_ni
 
                 ds2 = ttau[ii] - ttau_old  # finally rank-1 update Sigma ..
@@ -902,8 +904,10 @@ class QP(Inference):
 
             # recompute since repeated rank-one updates can destroy numerical precision
             Sigma, mu, nlZ, L = self._epComputeParams(K, y, ttau, tnu, likfunc, m, inffunc)
+            # print(K, ttau, tnu)
+            # print(Sigma,mu,nlZ,L)
         if sweep == max_sweep:
-            logging.warning("maximum number of sweeps reached in function infEP")
+            logging.warning("maximum number of sweeps reached in function infQP")
 
         self.last_ttau = ttau
         self.last_tnu = tnu  # remember for next call
@@ -950,21 +954,24 @@ class QP(Inference):
 
         # inverse_Fr = lambda y: inversefunc(lambda x: self._Fr(x, v, mu, sigma), y_values=y, accuracy=6)
         # inf_sigma =  self.sqrt2* integrate.quad(lambda x: inverse_Fr(x)*erfinv(2 * x - 1), 0, 1)[0]
-        # if -4<=mu<=4 and 0.5<=sigma<=5:
-        #     inf_sigma = (self.f1(mu,sigma) if v == 1 else self.f2(mu,sigma))[0]
-        # else:
-        inf_sigma2 = sigma2 - sigma2 ** 2 * pdfdivcdf / (1 + sigma2) * (
-                    z + pdfdivcdf)  # inf_sigma2 = sigma2 - sigma2 ** 2 * norm.pdf(z) / (v2 + sigma2) / norm.cdf(z) * (z + norm.pdf(z) / norm.cdf(z))
-        inf_sigma = np.sqrt(inf_sigma2)
-        xs_Fr = self.samples*inf_sigma+inf_mu # np.linspace(inf_mu - 5 * inf_sigma, inf_mu + 5 * inf_sigma, int(512*inf_sigma))
-
-        ys = np.array(self._Fr(xs_Fr, v, mu, sigma))
-        ys[ys>=self._nugget1] = self._nugget1
-        ys[ys<=self._nugget0] = self._nugget0
-        dys = ys[1:] - ys[:-1]
-        xs_erf = erfinv(2 * ys - 1)
-        prod = xs_Fr * xs_erf
-        inf_sigma = self.sqrt2 * np.nansum((prod[:-1] + prod[1:]) * dys) * 0.5
+        if -6<=mu<=6 and 0.5<=sigma <= 5:
+            inf_sigma = (self.f1(mu, sigma) if v == 1 else self.f2(mu, sigma))[0]
+        else:
+            mu = min(max(mu,-6),6)
+            sigma = min(max(mu,0.5),5)
+            inf_sigma = (self.f1(mu, sigma) if v == 1 else self.f2(mu, sigma))[0]
+            # inf_sigma2 = sigma2 - sigma2 ** 2 * pdfdivcdf / (1 + sigma2) * (
+            #             z + pdfdivcdf)  # inf_sigma2 = sigma2 - sigma2 ** 2 * norm.pdf(z) / (v2 + sigma2) / norm.cdf(z) * (z + norm.pdf(z) / norm.cdf(z))
+            # inf_sigma = np.sqrt(inf_sigma2)
+            # xs_Fr = self.samples*inf_sigma+inf_mu # np.linspace(inf_mu - 5 * inf_sigma, inf_mu + 5 * inf_sigma, int(512*inf_sigma))
+            #
+            # ys = np.array(self._Fr(xs_Fr, v, mu, sigma))
+            # ys[ys>=self._nugget1] = self._nugget1
+            # ys[ys<=self._nugget0] = self._nugget0
+            # dys = ys[1:] - ys[:-1]
+            # xs_erf = erfinv(2 * ys - 1)
+            # prod = xs_Fr * xs_erf
+            # inf_sigma = self.sqrt2 * np.nansum((prod[:-1] + prod[1:]) * dys) * 0.5
         return inf_mu, inf_sigma
 
         # inf_sigma2 = sigma2 - sigma2 ** 2 * pdfdivcdf / (1 + sigma2) * (z + pdfdivcdf)# inf_sigma2 = sigma2 - sigma2 ** 2 * norm.pdf(z) / (v2 + sigma2) / norm.cdf(z) * (z + norm.pdf(z) / norm.cdf(z))
