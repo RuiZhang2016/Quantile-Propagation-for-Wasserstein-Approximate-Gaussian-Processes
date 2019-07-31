@@ -1,4 +1,4 @@
-from core.quantile import *
+from quantile import *
 import numpy as np
 from pynverse import inversefunc
 import scipy.integrate as integrate
@@ -64,14 +64,14 @@ def WR_table(file,op,table=None):
 
 
 def compress(v):
-    table = WR_table('/home/rzhang/PycharmProjects/WGPC/tmp/sigma_-10.00_{}.csv'.format(v),'r')
-    for i in range(2,401):
-        sv = i/20-10.05
-        filename = '/home/rzhang/PycharmProjects/WGPC/tmp/sigma_{:.2f}_{}.csv'.format(sv,v)
+    table = WR_table('/Users/ruizhang/PycharmProjects/tmp/sigma_-5.000_{}.csv'.format(v),'r')
+    for i in range(2,2000):
+        sv = i*0.005-5
+        filename = '/Users/ruizhang/PycharmProjects/tmp/sigma_{:.3f}_{}.csv'.format(sv,v)
         if os.path.exists(filename):
             z = WR_table(filename,'r')
             table = np.vstack((table, z))
-            assert WR_table('../res/WD_GPC/sigma_{}.csv'.format(v),'w',table)
+            assert WR_table('../res/WD_GPC/sigma_new_{}.csv'.format(v),'w',table)
         else:
             raise Exception(filename, ' not exists')
     print(table.shape)
@@ -100,8 +100,8 @@ def plot_table(v):
     plt.show()
 
 if __name__ == '__main__':
-    # compress(-1)
-    plot_table(1)
+    compress(1)
+    # plot_table(1)
     # generate_table_EP(-1)
 
 
