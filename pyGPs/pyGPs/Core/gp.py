@@ -704,7 +704,7 @@ class GPC(GP):
 
 
 
-    def useInference(self, newInf):
+    def useInference(self, newInf,f1=None,f2=None):
         '''
         Use another inference techinique other than default EP inference.
 
@@ -713,7 +713,9 @@ class GPC(GP):
         if newInf == "Laplace":
             self.inffunc = inf.Laplace()
         elif newInf == "QP":
-            self.inffunc = inf.QP()
+            self.inffunc = inf.QP(f1,f2)
+        elif newInf == "EP":
+            self.inffunc = inf.EP()
         else:
             raise Exception('Possible inf values are "Laplace".')
 
