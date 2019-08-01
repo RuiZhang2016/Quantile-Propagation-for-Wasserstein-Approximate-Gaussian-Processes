@@ -24,8 +24,9 @@ else:
 #================================================================================
 
 import pyGPs
-import numpy as np
 from read_data import *
+from core.generate_table import *
+from scipy import interpolate
 # To have a gerneral idea,
 # you may want to read demo_GPR, demo_kernel and demo_optimization first!
 # Here, the focus is on the difference of classification model.
@@ -104,8 +105,15 @@ x2 = preproc(x2,xmean,xstd)
 # # plot log probability distribution for class +1
 # model.plot(x1,x2,t1,t2)
 
+table1 = WR_table('/home/rzhang/PycharmProjects/WGPC/res/WD_GPC/sigma_new_1.csv', 'r')
+table2 = WR_table('/home/rzhang/PycharmProjects/WGPC/res/WD_GPC/sigma_new_-1.csv', 'r')
+x = [i * 0.001 - 5 for i in range(10000)]
+y = [0.4 + 0.001 * i for i in range(4601)]
+f1 = interpolate.interp2d(y, x, table1, kind='linear')
+f2 = interpolate.interp2d(y, x, table2, kind='linear')
+
 model = pyGPs.GPC()
-# model.useInference('EP')
+model.useInference('QP',f1,f2)
 # Analogously to GPR
 k = pyGPs.cov.RBFard(log_ell_list=[0.05,0.17], log_sigma=1.)
 model.setPrior(kernel=k)
