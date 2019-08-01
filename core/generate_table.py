@@ -1,4 +1,4 @@
-from quantile import *
+from core.quantile import *
 import numpy as np
 from pynverse import inversefunc
 import scipy.integrate as integrate
