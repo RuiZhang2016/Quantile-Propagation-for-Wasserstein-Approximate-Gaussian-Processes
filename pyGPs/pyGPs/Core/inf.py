@@ -180,9 +180,13 @@ class Inference(object):
     def _epComputeParams(self, K, y, ttau, tnu, likfunc, m, inffunc):
         n     = len(y)                                                # number of training cases
         ssi   = np.sqrt(ttau)                                         # compute Sigma and mu
+        # if any([np.isnan(col) for row in ssi for col in row]):
+        #     print(ttau,ssi)
         #L     = np.linalg.cholesky(np.eye(n)+np.dot(ssi,ssi.T)*K).T   # L'*L=B=eye(n)+sW*K*sW
         L     = jitchol(np.eye(n)+np.dot(ssi,ssi.T)*K).T   # L'*L=B=eye(n)+sW*K*sW
         V     = np.linalg.solve(L.T,np.tile(ssi,(1,n))*K)
+        # print(any([np.isnan(col) for row in L for col in row]),
+        #       any([np.isnan(col) for row in V for col in row]))
         Sigma = K - np.dot(V.T,V)
         mu    = np.dot(Sigma,tnu)
         Dsigma = np.reshape(np.diag(Sigma),(np.diag(Sigma).shape[0],1))
@@ -831,7 +835,7 @@ class QP(Inference):
     Quantile Propagation approximation to the posterior Gaussian Process.
     '''
 
-    def __init__(self):
+    def __init__(self,f1,f2):
         self.name = 'Quantile Propagation'
         self.last_ttau = None
         self.last_tnu = None
@@ -839,13 +843,8 @@ class QP(Inference):
         self._nugget1 = 1-1e-14
         self.sqrt2 = np.sqrt(2)
         self.samples = np.linspace(-5,5,1024)
-
-        table1 = GT.WR_table('/home/rzhang/PycharmProjects/WGPC/res/WD_GPC/sigma_1.csv','r')
-        table2 = GT.WR_table('/home/rzhang/PycharmProjects/WGPC/res/WD_GPC/sigma_-1.csv','r')
-        x = [i*0.01-10 for i in range(400*5)]
-        y = np.linspace(0.4, 5, int((5 - 0.4) / 0.01 + 1))
-        self.f1 = interpolate.interp2d(y, x, table1, kind='linear')
-        self.f2 = interpolate.interp2d(y, x, table2, kind='linear')
+        self.f1 = f1
+        self.f2 = f2
 
     def evaluate(self, meanfunc, covfunc, likfunc, x, y, nargout=1):
         tol = 1e-4
@@ -875,12 +874,14 @@ class QP(Inference):
         nlZ_old = np.inf
         sweep = 0  # converged, max. sweeps or min. sweeps?
         while (np.abs(nlZ - nlZ_old) > tol and sweep < max_sweep) or (sweep < min_sweep):
+            print(nlZ,nlZ_old)
             nlZ_old = nlZ
             sweep += 1
             # print('sweep {}'.format(sweep))
             rperm = range(n)  # randperm(n)
             for ii in rperm:  # iterate EP updates (in random order) over examples
                 tau_ni = old_div(1, Sigma[ii, ii]) - ttau[ii]  # first find the cavity distribution ..
+                # print(Sigma[ii,ii],ttau[ii])
                 nu_ni = old_div(mu[ii], Sigma[ii, ii]) + m[ii] * tau_ni - tnu[ii]  # .. params tau_ni and nu_ni
                 # compute the desired derivatives of the indivdual log partition function
                 # lZ, dlZ, d2lZ = likfunc.evaluate(y[ii], old_div(nu_ni, tau_ni), old_div(1, tau_ni), inffunc, None, 3)
@@ -889,12 +890,11 @@ class QP(Inference):
                 # ttau[ii] = max(ttau[ii], 0)  # enforce positivity i.e. lower bound ttau by zero
                 # tnu[ii] = old_div((dlZ + (m[ii] - old_div(nu_ni, tau_ni)) * d2lZ), (1. + old_div(d2lZ, tau_ni)))
 
-                v_wd, mu_wd, sigma_wd = 1 / y[ii], nu_ni / tau_ni, np.sqrt(1 / tau_ni)
-                mu_hat, sigma_hat = self.fit_gauss_wd(v_wd[0], mu_wd[0], sigma_wd[0])
+                mu_wd, sigma_wd = nu_ni / tau_ni, np.sqrt(1 / tau_ni)
+                mu_hat, sigma_hat = self.fit_gauss_wd(y[ii][0], mu_wd[0], sigma_wd[0])
                 # print(v_wd,mu_wd,sigma_wd,mu_hat,sigma_hat)
                 sigma_hat2 = sigma_hat ** 2
-                ttau[ii] = 1 / sigma_hat2 - tau_ni
-                ttau[ii] = max(ttau[ii], 0)
+                ttau[ii] = max(1 / sigma_hat2 - tau_ni, 1e-8)
                 tnu[ii] = 1 / sigma_hat2 * mu_hat - nu_ni
 
                 ds2 = ttau[ii] - ttau_old  # finally rank-1 update Sigma ..
@@ -904,6 +904,7 @@ class QP(Inference):
 
             # recompute since repeated rank-one updates can destroy numerical precision
             Sigma, mu, nlZ, L = self._epComputeParams(K, y, ttau, tnu, likfunc, m, inffunc)
+
             # print(K, ttau, tnu)
             # print(Sigma,mu,nlZ,L)
         if sweep == max_sweep:
@@ -945,7 +946,7 @@ class QP(Inference):
             return post, nlZ[0]
 
     def fit_gauss_wd(self, v, mu, sigma):
-        # if abs(mu)>2 or sigma>5: print('mu,sigma: ',mu,sigma)
+        # if abs(mu)>2 or abs(sigma)>5: print(v,mu,sigma)
         sigma2 = sigma ** 2
         # v2 = 1
         z = mu / v / np.sqrt(1 + sigma2)  # z = (mu - m) / v / np.sqrt(1 + sigma2 / v2)
@@ -954,16 +955,19 @@ class QP(Inference):
 
         # inverse_Fr = lambda y: inversefunc(lambda x: self._Fr(x, v, mu, sigma), y_values=y, accuracy=6)
         # inf_sigma =  self.sqrt2* integrate.quad(lambda x: inverse_Fr(x)*erfinv(2 * x - 1), 0, 1)[0]
-        if -6<=mu<=6 and 0.5<=sigma <= 5:
+        if -5<=mu<=5 and 0.4<=sigma<= 5:
             inf_sigma = (self.f1(mu, sigma) if v == 1 else self.f2(mu, sigma))[0]
+        elif sigma < 0.4:
+            inf_sigma2 = sigma2 - sigma2 ** 2 * pdfdivcdf / (1 + sigma2) * (z + pdfdivcdf)
+            inf_sigma = np.sqrt(inf_sigma2)
         else:
-            mu = min(max(mu,-6),6)
-            sigma = min(max(mu,0.5),5)
-            inf_sigma = (self.f1(mu, sigma) if v == 1 else self.f2(mu, sigma))[0]
+            mu = min(max(mu,-5),5)
+            sigma = min(max(sigma,0.4),5)
+            inf_mu, inf_sigma = self.fit_gauss_wd(v,mu,sigma)
             # inf_sigma2 = sigma2 - sigma2 ** 2 * pdfdivcdf / (1 + sigma2) * (
             #             z + pdfdivcdf)  # inf_sigma2 = sigma2 - sigma2 ** 2 * norm.pdf(z) / (v2 + sigma2) / norm.cdf(z) * (z + norm.pdf(z) / norm.cdf(z))
             # inf_sigma = np.sqrt(inf_sigma2)
-            # xs_Fr = self.samples*inf_sigma+inf_mu # np.linspace(inf_mu - 5 * inf_sigma, inf_mu + 5 * inf_sigma, int(512*inf_sigma))
+            # xs_Fr = self.samples*inf_sigma+inf_mu
             #
             # ys = np.array(self._Fr(xs_Fr, v, mu, sigma))
             # ys[ys>=self._nugget1] = self._nugget1
