@@ -23,7 +23,7 @@ def split_data(data,dataname):
         loop(i,data,l)
 
 def save_obj(obj, name ):
-    with open('/home/rzhang/PycharmProjects/WGPC/data/split_data/'+ name + '.pkl', 'wb') as f:
+    with open(os.environ['proj']+'/data/split_data/'+ name + '.pkl', 'wb') as f:
         pickle.dump(obj, f, pickle.HIGHEST_PROTOCOL)
 
 

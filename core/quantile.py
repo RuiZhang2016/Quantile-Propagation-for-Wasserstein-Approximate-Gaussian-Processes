@@ -1,5 +1,3 @@
-# import __init__
-
 import numpy as np
 from scipy.stats import norm
 from scipy.special import owens_t

@@ -58,10 +58,10 @@ def WR_table(file,op,table=None):
 
 
 def compress(v):
-    table = WR_table('/Users/ruizhang/PycharmProjects/tmp/sigma_-5.000_{}.csv'.format(v),'r')
+    table = WR_table(os.environ['proj']+'/tmp/sigma_-5.000_{}.csv'.format(v),'r')
     for i in range(1,2000):
         sv = i*0.005-5
-        filename = '/Users/ruizhang/PycharmProjects/tmp/sigma_{:.3f}_{}.csv'.format(sv,v)
+        filename = os.environ['proj']+'/tmp/sigma_{:.3f}_{}.csv'.format(sv,v)
         if os.path.exists(filename):
             z = WR_table(filename,'r')
             table = np.vstack((table, z))

@@ -2,19 +2,27 @@ from __future__ import print_function
 
 import sys
 import pickle
+import os
 # for Mac OS
 if sys.platform == 'darwin':
     import matplotlib
     matplotlib.use('TkAgg')
-    sys.path.append('/Users/ruizhang/PycharmProjects/Wasserstein-GPC/pyGPs')
+    os.environ['proj'] = '/Users/ruizhang/PycharmProjects/WGPC'
 else:
+<<<<<<< HEAD
     sys.path.append('/home/users/u5963436/Work/WGPC/pyGPs')
     sys.path.append('/home/users/u5963436/Work/WGPC/')
 
+=======
+    os.environ['proj'] = '/home/rzhang/PycharmProjects/WGPC'
+sys.path.append(os.environ['proj']+'/pyGPs')
+sys.path.append(os.environ['proj'])
+>>>>>>> 59ad9916af626ce55bad15784075c63d559f73e6
 
 import pyGPs
 import numpy as np
 np.random.seed(0)
+from read_data import *
 from core.generate_table import *
 from scipy import interpolate
 
@@ -33,8 +41,8 @@ def compute_E(ys,ps):
     return np.mean([100 if (ps[i] > 0.5)^(ys[i] == 1) else 0 for i in range(len(ps))])
 
 def interp_fs():
-    table1 = WR_table('/home/users/u5963436/Work/WGPC/res/WD_GPC/sigma_new_1.csv', 'r')
-    table2 = WR_table('/home/users/u5963436/Work/WGPC/res/WD_GPC/sigma_new_-1.csv', 'r')
+    table1 = WR_table(os.environ['proj']+'/res/WD_GPC/sigma_new_1.csv', 'r')
+    table2 = WR_table(os.environ['proj']+'/res/WD_GPC/sigma_new_-1.csv', 'r')
     x = [i * 0.001 - 5 for i in range(10000)]
     y = [0.4 + 0.001 * i for i in range(4601)]
     f1 = interpolate.interp2d(y, x, table1, kind='cubic')
@@ -60,13 +68,13 @@ def run(x_train,y_train,x_test,y_test,f1,f2,dataname, id):
     # EP
     modelEP.getPosterior(x_train, y_train)
     # nlZEP1 = modelEP.nlZ
-    modelEP.optimize(x_train, y_train, numIterations=40)
+    modelEP.optimize(x_train, y_train, numIterations=5)
     # nlZEP2 = modelEP.nlZ
 
     # ymu, ys2, fmu, fs2, lp = modelEP.predict(x_test, ys=y_test.reshape((-1, 1)))
     ymu, ys2, fmu, fs2, lp = modelEP.predict(x_test, ys=np.ones((n_test,1)))
     IEP = compute_I(y_test, np.exp(lp.flatten()), y_train)
-    EEP = compute_E(y_test, np.exp(lp))
+    EEP = compute_E(y_test, np.exp(lp.flatten()))
 
     # QP
     # modelQP.getPosterior(x_train, y_train)
@@ -75,44 +83,36 @@ def run(x_train,y_train,x_test,y_test,f1,f2,dataname, id):
     # nlZQP2 = modelQP.nlZ
 
     # ymu, ys2, fmu, fs2, lp = modelQP.predict(x_test, ys=np.ones((n_test,1)))
-    IQP = 0# compute_I(y_test, np.exp(lp), y_train)
-    EQP = 0 # compute_E(y_test, np.exp(lp))
+    IQP = 0 # compute_I(y_test, np.exp(lp.flatten()), y_train)
+    EQP = 0 # compute_E(y_test, np.exp(lp.flatten()))
 
     # print results
     # print("Negative log marginal liklihood before and after optimization")
     # print("EP: {}, {}".format(round(nlZEP1, 7), round(nlZEP2, 7)))
     # print("QP: {}, {}".format(round(nlZQP1, 7), round(nlZQP2, 7)))
     # print('I E: EP {} {} QP {} {}'.format(IEP, EEP, IQP, EQP))
-    f = open("/home/users/u5963436/Work/WGPC/res/{}_output.txt".format(dataname), "a")
+    f = open(os.environ['proj']+"/res/{}_output.txt".format(dataname), "a")
     # f.write("Negative log marginal liklihood before and after optimization:\n")
     # f.write("EP: {}, {}\n".format(round(nlZEP1, 7), round(nlZEP2, 7)))
     # f.write("QP: {}, {}\n".format(round(nlZQP1, 7), round(nlZQP2, 7)))
     f.write('{} I E: EP {} {} QP {} {}\n'.format(id, IEP, EEP, IQP, EQP))
     f.close()
 
-def experiments(f1,f2,dic,exp_id):
-    try:
-        # data_id, piece_id = divmod(exp_id,10)
-        # datanames = ['ionosphere','breast_cancer','crabs','pima','usps','sonar']
-        # dic = load_obj('{}_{}'.format(datanames[data_id],piece_id))
-        run(dic['x_train'],dic['y_train'],dic['x_test'],dic['y_test'],f1,f2,'ionosphere',exp_id)
-    except Exception as e:
-        print(e)
+def experiments(f1,f2,exp_id):
+    data_id, piece_id = divmod(exp_id,10)
+    datanames = ['ionosphere','breast_cancer','crabs','pima','usps','sonar']
+    dic = load_obj('{}_{}'.format(datanames[data_id],piece_id))
+    run(dic['x_train'],dic['y_train'],dic['x_test'],dic['y_test'],f1,f2,datanames[data_id],exp_id)
 
 def load_obj(name):
-    with open('/home/users/u5963436/Work/WGPC/data/split_data/'+ name + '.pkl', 'rb') as f:
+    with open(os.environ['proj']+'/data/split_data/'+ name + '.pkl', 'rb') as f:
         return pickle.load(f)
 
 if __name__ == '__main__':
-    f1, f2 = interp_fs()
-    datanames = ['ionosphere','breast_cancer','crabs','pima','usps','sonar']
-    dics = []
-    for exp_id in range(60):
-        data_id, piece_id = divmod(exp_id,10)
-        dic = load_obj('{}_{}'.format(datanames[data_id],piece_id))
-        dics +=[dic]
-    Parallel(n_jobs=40)(delayed(experiments)(f1,f2,dics[exp_id],exp_id) for exp_id in range(60)) 
-    # for exp_id in range(60):
-       #  experiments(f1,f2,dicexp_id)
-    # experiments(f1,f2,exp_id)
+    # f1, f2 = interp_fs()
+    # exp_id = int(sys.argv[1])
+
+    Parallel(n_jobs=4)(delayed(experiments)(0,0,exp_id) for exp_id in range(60))
+        # print(exp_id)
+        # experiments(0,0,exp_id)
 
