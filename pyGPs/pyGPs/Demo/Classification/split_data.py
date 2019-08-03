@@ -26,9 +26,6 @@ def save_obj(obj, name ):
     with open('/home/rzhang/PycharmProjects/WGPC/data/split_data/'+ name + '.pkl', 'wb') as f:
         pickle.dump(obj, f, pickle.HIGHEST_PROTOCOL)
 
-def load_obj(name ):
-    with open('/home/rzhang/PycharmProjects/WGPC/data/split_data/'+ name + '.pkl', 'rb') as f:
-        return pickle.load(f)
 
 
 if __name__ == '__main__':
@@ -36,5 +33,5 @@ if __name__ == '__main__':
     split_data(read_breast_cancer(),'breast_cancer')
     split_data(read_crabs(),'crabs')
     split_data(read_pima(),'pima')
-    split_data(read_sonar(),'pima')
+    split_data(read_sonar(),'sonar')
     split_data(read_usps(),'usps')

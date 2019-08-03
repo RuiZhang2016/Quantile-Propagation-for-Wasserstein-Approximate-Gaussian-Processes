@@ -1,6 +1,7 @@
 from __future__ import print_function
 
 import sys
+import pickle
 # for Mac OS
 if sys.platform == 'darwin':
     import matplotlib
@@ -13,7 +14,6 @@ else:
 import pyGPs
 import numpy as np
 np.random.seed(0)
-from read_data import *
 from core.generate_table import *
 from scipy import interpolate
 
@@ -40,7 +40,7 @@ def interp_fs():
     f2 = interpolate.interp2d(y, x, table2, kind='cubic')
     return f1, f2
 
-def run(x_train,y_train,x_test,y_test,f1,f2,dataname):
+def run(x_train,y_train,x_test,y_test,f1,f2,dataname, id):
     n_features = x_train.shape[1]
     n_test = len(x_test)
     xmean = np.mean(x_train, axis=0)
@@ -50,17 +50,17 @@ def run(x_train,y_train,x_test,y_test,f1,f2,dataname):
 
     # define models
     modelEP = pyGPs.GPC()
-    # modelQP = pyGPs.GPC()
-    # modelQP.useInference('QP', f1, f2)
+    modelQP = pyGPs.GPC()
+    modelQP.useInference('QP', f1, f2)
     k = pyGPs.cov.RBFard(log_ell_list=[2] * n_features, log_sigma=1.)  # kernel
     modelEP.setPrior(kernel=k)
-    # modelQP.setPrior(kernel=k)
+    modelQP.setPrior(kernel=k)
 
     # EP
     modelEP.getPosterior(x_train, y_train)
-    nlZEP1 = modelEP.nlZ
+    # nlZEP1 = modelEP.nlZ
     modelEP.optimize(x_train, y_train, numIterations=40)
-    nlZEP2 = modelEP.nlZ
+    # nlZEP2 = modelEP.nlZ
 
     # ymu, ys2, fmu, fs2, lp = modelEP.predict(x_test, ys=y_test.reshape((-1, 1)))
     ymu, ys2, fmu, fs2, lp = modelEP.predict(x_test, ys=np.ones((n_test,1)))
@@ -68,14 +68,14 @@ def run(x_train,y_train,x_test,y_test,f1,f2,dataname):
     EEP = compute_E(y_test, np.exp(lp))
 
     # QP
-    # modelQP.getPosterior(x_train, y_train)
+    modelQP.getPosterior(x_train, y_train)
     # nlZQP1 = modelQP.nlZ
-    # modelQP.optimize(x_train, y_train, numIterations=40)
+    modelQP.optimize(x_train, y_train, numIterations=40)
     # nlZQP2 = modelQP.nlZ
 
     # ymu, ys2, fmu, fs2, lp = modelQP.predict(x_test, ys=np.ones((n_test,1)))
-    IQP = 0 # compute_I(y_test, np.exp(lp), y_train)
-    EQP = 0 # compute_E(y_test, np.exp(lp))
+    IQP = compute_I(y_test, np.exp(lp), y_train)
+    EQP = compute_E(y_test, np.exp(lp))
 
     # print results
     # print("Negative log marginal liklihood before and after optimization")
@@ -83,49 +83,24 @@ def run(x_train,y_train,x_test,y_test,f1,f2,dataname):
     # print("QP: {}, {}".format(round(nlZQP1, 7), round(nlZQP2, 7)))
     # print('I E: EP {} {} QP {} {}'.format(IEP, EEP, IQP, EQP))
     f = open("/home/rzhang/PycharmProjects/WGPC/res/{}_output.txt".format(dataname), "a")
-    f.write("Negative log marginal liklihood before and after optimization:\n")
-    f.write("EP: {}, {}\n".format(round(nlZEP1, 7), round(nlZEP2, 7)))
+    # f.write("Negative log marginal liklihood before and after optimization:\n")
+    # f.write("EP: {}, {}\n".format(round(nlZEP1, 7), round(nlZEP2, 7)))
     # f.write("QP: {}, {}\n".format(round(nlZQP1, 7), round(nlZQP2, 7)))
-    f.write('I E: EP {} {} QP {} {}\n'.format(IEP, EEP, IQP, EQP))
+    f.write('{} I E: EP {} {} QP {} {}\n'.format(id, IEP, EEP, IQP, EQP))
     f.close()
 
-def experiments_ionosphere(f1,f2):
-    data = read_ionosphere()
-    data = np.delete(data, 1, axis=1)
-    np.random.shuffle(data)
-    n= data.shape[0]
-    l = int(n / 10)
+def experiments(f1,f2,exp_id):
+    data_id, piece_id = divmod(exp_id,10)
+    datanames = ['ionosphere','breast_cancer','crabs','pima','usps','sonar']
+    dic = load_obj('{}_{}'.format(datanames[data_id],piece_id))
+    run(dic['x_train'],dic['y_train'],dic['x_test'],dic['y_test'],f1,f2,'ionosphere')
 
-    for i in range(10):
-        # split data
-        test = data[i * l:i * l + l]
-        train = np.vstack((data[:i * l], data[i * l + l:]))
-        x_train = train[:,:-1]
-        y_train = train[:, -1]
-        x_test = test[:,:-1]
-        y_test = test[:, -1]
-        run(x_train,y_train,x_test,y_test,f1,f2,'ionosphere')
-
-def experiments_breast_cancer(f1,f2):
-    data = read_breast_cancer()
-    np.random.shuffle(data)
-    n = data.shape[0]
-    l = int(n / 10)
-
-    def loop(i,data,l):
-        # split data
-        test = data[i * l:i * l + l]
-        train = np.vstack((data[:i * l], data[i * l + l:]))
-        x_train = train[:, :-1]
-        y_train = train[:, -1]
-        x_test = test[:, :-1]
-        y_test = test[:, -1]
-        run(x_train, y_train, x_test, y_test, f1, f2, 'breast_cancer')
-
-    # Parallel(n_jobs=6)(delayed(loop)(i,data,l) for i in range(10))
+def load_obj(name):
+    with open('/home/rzhang/PycharmProjects/WGPC/data/split_data/'+ name + '.pkl', 'rb') as f:
+        return pickle.load(f)
 
 if __name__ == '__main__':
-    # f1,f2 = interp_fs()
-    f1,f2 = 0,0
-    experiments_ionosphere(f1,f2)
-    experiments_breast_cancer(f1,f2)
+    f1, f2 = interp_fs()
+    exp_id = int(sys.argv[1])
+    experiments(f1,f2,exp_id)
+
