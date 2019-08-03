@@ -106,7 +106,7 @@ def fit_gauss_wd_sampling(v, mu, sigma):
     C2 = np.sqrt(2) * np.mean(prod)/Z
     return inf_mu, C2
 
-samples = np.linspace(-1,1,512)
+samples = np.linspace(-1,1,1024)
 def fit_gauss_wd_nature(v, mu, sigma):
     print('mu,sigma: ',mu,sigma)
     sigma2 = sigma ** 2

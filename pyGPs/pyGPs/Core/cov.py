@@ -934,7 +934,7 @@ class RBFard(Kernel):
         elif der == D:                    # compute derivative matrix wrt magnitude parameter
             A = 2.*A
         else:
-            raise Exception("Wrong derivative index in RDFard")
+            raise Exception("Wrong derivative index in RDFard: {}".format(der))
         return A
 
 
