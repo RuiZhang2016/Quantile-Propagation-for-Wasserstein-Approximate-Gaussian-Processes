@@ -1,5 +1,6 @@
 from __future__ import division
 from __future__ import absolute_import
+from . import __init__
 from builtins import str
 from builtins import range
 from past.utils import old_div
@@ -7,7 +8,7 @@ from builtins import object
 from scipy.special import owens_t
 from scipy.special import erfinv
 from scipy.stats import norm
-import core.generate_table as GT
+from core import generate_table as GT
 from scipy import interpolate
 
 #================================================================================
@@ -874,7 +875,7 @@ class QP(Inference):
         nlZ_old = np.inf
         sweep = 0  # converged, max. sweeps or min. sweeps?
         while (np.abs(nlZ - nlZ_old) > tol and sweep < max_sweep) or (sweep < min_sweep):
-            print(nlZ,nlZ_old)
+            # print(nlZ,nlZ_old)
             nlZ_old = nlZ
             sweep += 1
             # print('sweep {}'.format(sweep))
