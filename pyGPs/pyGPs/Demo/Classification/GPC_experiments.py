@@ -9,6 +9,7 @@ if sys.platform == 'darwin':
     sys.path.append('/Users/ruizhang/PycharmProjects/Wasserstein-GPC/pyGPs')
 else:
     sys.path.append('/home/rzhang/PycharmProjects/WGPC/pyGPs')
+    sys.path.append('/home/rzhang/PycharmProjects/WGPC')
 
 
 import pyGPs
@@ -52,11 +53,12 @@ def run(x_train,y_train,x_test,y_test,f1,f2,dataname, id):
     modelEP = pyGPs.GPC()
     modelQP = pyGPs.GPC()
     modelQP.useInference('QP', f1, f2)
-    k = pyGPs.cov.RBFard(log_ell_list=[2] * n_features, log_sigma=1.)  # kernel
+    k = pyGPs.cov.RBFard(log_ell_list=[4] * n_features, log_sigma=1.)  # kernel
     modelEP.setPrior(kernel=k)
+    k = pyGPs.cov.RBFard(log_ell_list=[4] * n_features, log_sigma=1.)
     modelQP.setPrior(kernel=k)
 
-    # EP
+    print('EP')
     modelEP.getPosterior(x_train, y_train)
     # nlZEP1 = modelEP.nlZ
     modelEP.optimize(x_train, y_train, numIterations=40)
@@ -67,8 +69,8 @@ def run(x_train,y_train,x_test,y_test,f1,f2,dataname, id):
     IEP = compute_I(y_test, np.exp(lp.flatten()), y_train)
     EEP = compute_E(y_test, np.exp(lp))
 
-    # QP
-    modelQP.getPosterior(x_train, y_train)
+    print('QP')
+    # modelQP.getPosterior(x_train, y_train)
     # nlZQP1 = modelQP.nlZ
     modelQP.optimize(x_train, y_train, numIterations=40)
     # nlZQP2 = modelQP.nlZ
@@ -93,14 +95,16 @@ def experiments(f1,f2,exp_id):
     data_id, piece_id = divmod(exp_id,10)
     datanames = ['ionosphere','breast_cancer','crabs','pima','usps','sonar']
     dic = load_obj('{}_{}'.format(datanames[data_id],piece_id))
-    run(dic['x_train'],dic['y_train'],dic['x_test'],dic['y_test'],f1,f2,'ionosphere')
+    print(dic['x_train'])
+    run(dic['x_train'],dic['y_train'],dic['x_test'],dic['y_test'],f1,f2,'ionosphere',piece_id)
 
 def load_obj(name):
     with open('/home/rzhang/PycharmProjects/WGPC/data/split_data/'+ name + '.pkl', 'rb') as f:
         return pickle.load(f)
 
 if __name__ == '__main__':
-    f1, f2 = interp_fs()
-    exp_id = int(sys.argv[1])
+    # f1, f2 = interp_fs()
+    f1,f2 = 0,0
+    exp_id = 1 # int(sys.argv[1])-1
     experiments(f1,f2,exp_id)
 

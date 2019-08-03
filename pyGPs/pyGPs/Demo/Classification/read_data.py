@@ -13,7 +13,7 @@ def read_ionosphere():
         reader = csv.reader(rf)
         lines = list(reader)
         n = len(lines[0])
-        z = [[float(l[i]) if i < n-1 else str2int(l[i])  for i in range(n)] for l in lines]
+        z = [[float(l[i]) if i < n-1 else str2int(l[i]) for i in range(n) if i != 1] for l in lines]
     n = len(z)
     m = len(z[0])
     print("#features: ", m - 1)
