@@ -2,15 +2,16 @@ from __future__ import print_function
 
 import sys
 import pickle
+import os
 # for Mac OS
 if sys.platform == 'darwin':
     import matplotlib
     matplotlib.use('TkAgg')
-    proj_path = '/Users/ruizhang/PycharmProjects/WGPC'
+    os.environ['proj'] = '/Users/ruizhang/PycharmProjects/WGPC'
 else:
-    proj_path = '/home/rzhang/PycharmProjects/WGPC'
-sys.path.append(proj_path+'/pyGPs')
-sys.path.append(proj_path)
+    os.environ['proj'] = '/home/rzhang/PycharmProjects/WGPC'
+sys.path.append(os.environ['proj']+'/pyGPs')
+sys.path.append(os.environ['proj'])
 
 import pyGPs
 import numpy as np
@@ -34,8 +35,8 @@ def compute_E(ys,ps):
     return np.mean([100 if (ps[i] > 0.5)^(ys[i] == 1) else 0 for i in range(len(ps))])
 
 def interp_fs():
-    table1 = WR_table(proj_path+'/res/WD_GPC/sigma_new_1.csv', 'r')
-    table2 = WR_table(proj_path+'/res/WD_GPC/sigma_new_-1.csv', 'r')
+    table1 = WR_table(os.environ['proj']+'/res/WD_GPC/sigma_new_1.csv', 'r')
+    table2 = WR_table(os.environ['proj']+'/res/WD_GPC/sigma_new_-1.csv', 'r')
     x = [i * 0.001 - 5 for i in range(10000)]
     y = [0.4 + 0.001 * i for i in range(4601)]
     f1 = interpolate.interp2d(y, x, table1, kind='cubic')
@@ -67,7 +68,7 @@ def run(x_train,y_train,x_test,y_test,f1,f2,dataname, id):
     # ymu, ys2, fmu, fs2, lp = modelEP.predict(x_test, ys=y_test.reshape((-1, 1)))
     ymu, ys2, fmu, fs2, lp = modelEP.predict(x_test, ys=np.ones((n_test,1)))
     IEP = compute_I(y_test, np.exp(lp.flatten()), y_train)
-    EEP = compute_E(y_test, np.exp(lp))
+    EEP = compute_E(y_test, np.exp(lp.flatten()))
 
     # QP
     # modelQP.getPosterior(x_train, y_train)
@@ -76,15 +77,15 @@ def run(x_train,y_train,x_test,y_test,f1,f2,dataname, id):
     # nlZQP2 = modelQP.nlZ
 
     # ymu, ys2, fmu, fs2, lp = modelQP.predict(x_test, ys=np.ones((n_test,1)))
-    IQP = compute_I(y_test, np.exp(lp), y_train)
-    EQP = compute_E(y_test, np.exp(lp))
+    IQP = 0 # compute_I(y_test, np.exp(lp.flatten()), y_train)
+    EQP = 0 # compute_E(y_test, np.exp(lp.flatten()))
 
     # print results
     # print("Negative log marginal liklihood before and after optimization")
     # print("EP: {}, {}".format(round(nlZEP1, 7), round(nlZEP2, 7)))
     # print("QP: {}, {}".format(round(nlZQP1, 7), round(nlZQP2, 7)))
     # print('I E: EP {} {} QP {} {}'.format(IEP, EEP, IQP, EQP))
-    f = open(proj_path+"/res/{}_output.txt".format(dataname), "a")
+    f = open(os.environ['proj']+"/res/{}_output.txt".format(dataname), "a")
     # f.write("Negative log marginal liklihood before and after optimization:\n")
     # f.write("EP: {}, {}\n".format(round(nlZEP1, 7), round(nlZEP2, 7)))
     # f.write("QP: {}, {}\n".format(round(nlZQP1, 7), round(nlZQP2, 7)))
@@ -95,10 +96,10 @@ def experiments(f1,f2,exp_id):
     data_id, piece_id = divmod(exp_id,10)
     datanames = ['ionosphere','breast_cancer','crabs','pima','usps','sonar']
     dic = load_obj('{}_{}'.format(datanames[data_id],piece_id))
-    run(dic['x_train'],dic['y_train'],dic['x_test'],dic['y_test'],f1,f2,'ionosphere')
+    run(dic['x_train'],dic['y_train'],dic['x_test'],dic['y_test'],f1,f2,'ionosphere',exp_id)
 
 def load_obj(name):
-    with open(proj_path+'/data/split_data/'+ name + '.pkl', 'rb') as f:
+    with open(os.environ['proj']+'/data/split_data/'+ name + '.pkl', 'rb') as f:
         return pickle.load(f)
 
 if __name__ == '__main__':
