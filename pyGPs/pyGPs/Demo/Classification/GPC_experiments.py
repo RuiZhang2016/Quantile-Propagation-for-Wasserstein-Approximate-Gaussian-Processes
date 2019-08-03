@@ -2,19 +2,21 @@ from __future__ import print_function
 
 import sys
 import pickle
+import os
 # for Mac OS
 if sys.platform == 'darwin':
     import matplotlib
     matplotlib.use('TkAgg')
-    sys.path.append('/Users/ruizhang/PycharmProjects/Wasserstein-GPC/pyGPs')
+    os.environ['proj'] = '/Users/ruizhang/PycharmProjects/WGPC'
 else:
-    sys.path.append('/home/rzhang/PycharmProjects/WGPC/pyGPs')
-    sys.path.append('/home/rzhang/PycharmProjects/WGPC')
-
+    os.environ['proj'] = '/home/rzhang/PycharmProjects/WGPC'
+sys.path.append(os.environ['proj']+'/pyGPs')
+sys.path.append(os.environ['proj'])
 
 import pyGPs
 import numpy as np
 np.random.seed(0)
+from read_data import *
 from core.generate_table import *
 from scipy import interpolate
 
@@ -33,8 +35,8 @@ def compute_E(ys,ps):
     return np.mean([100 if (ps[i] > 0.5)^(ys[i] == 1) else 0 for i in range(len(ps))])
 
 def interp_fs():
-    table1 = WR_table('/home/rzhang/PycharmProjects/WGPC/res/WD_GPC/sigma_new_1.csv', 'r')
-    table2 = WR_table('/home/rzhang/PycharmProjects/WGPC/res/WD_GPC/sigma_new_-1.csv', 'r')
+    table1 = WR_table(os.environ['proj']+'/res/WD_GPC/sigma_new_1.csv', 'r')
+    table2 = WR_table(os.environ['proj']+'/res/WD_GPC/sigma_new_-1.csv', 'r')
     x = [i * 0.001 - 5 for i in range(10000)]
     y = [0.4 + 0.001 * i for i in range(4601)]
     f1 = interpolate.interp2d(y, x, table1, kind='cubic')
@@ -61,30 +63,30 @@ def run(x_train,y_train,x_test,y_test,f1,f2,dataname, id):
     print('EP')
     modelEP.getPosterior(x_train, y_train)
     # nlZEP1 = modelEP.nlZ
-    modelEP.optimize(x_train, y_train, numIterations=40)
+    modelEP.optimize(x_train, y_train, numIterations=5)
     # nlZEP2 = modelEP.nlZ
 
     # ymu, ys2, fmu, fs2, lp = modelEP.predict(x_test, ys=y_test.reshape((-1, 1)))
     ymu, ys2, fmu, fs2, lp = modelEP.predict(x_test, ys=np.ones((n_test,1)))
     IEP = compute_I(y_test, np.exp(lp.flatten()), y_train)
-    EEP = compute_E(y_test, np.exp(lp))
+    EEP = compute_E(y_test, np.exp(lp.flatten()))
 
     print('QP')
     # modelQP.getPosterior(x_train, y_train)
     # nlZQP1 = modelQP.nlZ
-    modelQP.optimize(x_train, y_train, numIterations=40)
+    # modelQP.optimize(x_train, y_train, numIterations=40)
     # nlZQP2 = modelQP.nlZ
 
     # ymu, ys2, fmu, fs2, lp = modelQP.predict(x_test, ys=np.ones((n_test,1)))
-    IQP = compute_I(y_test, np.exp(lp), y_train)
-    EQP = compute_E(y_test, np.exp(lp))
+    IQP = 0 # compute_I(y_test, np.exp(lp.flatten()), y_train)
+    EQP = 0 # compute_E(y_test, np.exp(lp.flatten()))
 
     # print results
     # print("Negative log marginal liklihood before and after optimization")
     # print("EP: {}, {}".format(round(nlZEP1, 7), round(nlZEP2, 7)))
     # print("QP: {}, {}".format(round(nlZQP1, 7), round(nlZQP2, 7)))
     # print('I E: EP {} {} QP {} {}'.format(IEP, EEP, IQP, EQP))
-    f = open("/home/rzhang/PycharmProjects/WGPC/res/{}_output.txt".format(dataname), "a")
+    f = open(os.environ['proj']+"/res/{}_output.txt".format(dataname), "a")
     # f.write("Negative log marginal liklihood before and after optimization:\n")
     # f.write("EP: {}, {}\n".format(round(nlZEP1, 7), round(nlZEP2, 7)))
     # f.write("QP: {}, {}\n".format(round(nlZQP1, 7), round(nlZQP2, 7)))
@@ -96,15 +98,17 @@ def experiments(f1,f2,exp_id):
     datanames = ['ionosphere','breast_cancer','crabs','pima','usps','sonar']
     dic = load_obj('{}_{}'.format(datanames[data_id],piece_id))
     print(dic['x_train'])
-    run(dic['x_train'],dic['y_train'],dic['x_test'],dic['y_test'],f1,f2,'ionosphere',piece_id)
+
+    run(dic['x_train'],dic['y_train'],dic['x_test'],dic['y_test'],f1,f2,datanames[data_id],exp_id)
 
 def load_obj(name):
-    with open('/home/rzhang/PycharmProjects/WGPC/data/split_data/'+ name + '.pkl', 'rb') as f:
+    with open(os.environ['proj']+'/data/split_data/'+ name + '.pkl', 'rb') as f:
         return pickle.load(f)
 
 if __name__ == '__main__':
     # f1, f2 = interp_fs()
-    f1,f2 = 0,0
-    exp_id = 1 # int(sys.argv[1])-1
-    experiments(f1,f2,exp_id)
+    # exp_id = int(sys.argv[1])
+    Parallel(n_jobs=4)(delayed(experiments)(0,0,exp_id) for exp_id in range(60))
+        # print(exp_id)
+        # experiments(0,0,exp_id)
 

@@ -2,9 +2,11 @@ import csv
 import numpy as np
 np.random.seed(0)
 import h5py
+import os
+
 
 def read_ionosphere():
-    file = '/home/rzhang/PycharmProjects/WGPC/data/ionosphere.data'
+    file = os.environ['proj']+'/data/ionosphere.data'
     def str2int(s):
         return 1 if s is 'g' else -1
     print('reading Ionosphere')
@@ -21,7 +23,7 @@ def read_ionosphere():
     return np.array(z)
 
 def read_breast_cancer():
-    file = '/home/rzhang/PycharmProjects/WGPC/data/breast-cancer-wisconsin.data'
+    file = os.environ['proj']+'/data/breast-cancer-wisconsin.data'
     def str2int(s):
         return 1 if s is '4' else -1
 
@@ -38,7 +40,7 @@ def read_breast_cancer():
     return np.array(z)
 
 def read_sonar():
-    file = '/home/rzhang/PycharmProjects/WGPC/data/sonar.all-data'
+    file = os.environ['proj']+'/data/sonar.all-data'
     def str2int(s):
         return 1 if s is 'R' else -1
     print('reading Sonar')
@@ -54,7 +56,7 @@ def read_sonar():
     return np.array(z)
 
 def read_usps():
-    file = '/home/rzhang/PycharmProjects/WGPC/data/usps.h5'
+    file = os.environ['proj']+'/data/usps.h5'
 
     print('reading USPS')
     with h5py.File(file, 'r') as hf:
@@ -75,7 +77,7 @@ def read_usps():
     return np.hstack((a,b))
 
 def read_crabs():
-    file = '/home/rzhang/PycharmProjects/WGPC/data/crabs.dat'
+    file = os.environ['proj']+'/data/crabs.dat'
 
     str2int = {'M':1,'F':-1,'B':1,'O':-1}
     print('reading crabs')
@@ -99,7 +101,7 @@ def read_pima():
     str2int = {'Yes':1,'No':-1}
 
     def read_and_remove_na(fileid):
-        file = '/home/rzhang/PycharmProjects/WGPC/data/{}'.format(fileid)
+        file = os.environ['proj']+'/data/{}'.format(fileid)
         print('reading {}'.format(fileid))
         with open(file, 'r') as rf:
             reader = csv.reader(rf)

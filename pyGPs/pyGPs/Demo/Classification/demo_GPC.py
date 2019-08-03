@@ -45,7 +45,7 @@ xstd = np.std(x)
 y = demoData['y']            # training target
 z = demoData['xstar']        # test data
 print([e for e in demoData.keys()])
-
+print(y,type(y[0,0]))
 # only needed for 2-d contour plotting 
 x1 = demoData['x1']          # x for class 1 (with label -1)
 x2 = demoData['x2']          # x for class 2 (with label +1)     
