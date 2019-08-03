@@ -16,7 +16,7 @@ import pyGPs
 import numpy as np
 np.random.seed(0)
 from read_data import *
-from generate_table import *
+from core.generate_table import *
 from scipy import interpolate
 
 def preproc(x, m, s):

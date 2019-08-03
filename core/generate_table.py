@@ -103,7 +103,7 @@ def plot_table(v):
     plt.show()
 
 if __name__ == '__main__':
-    # generate_table_EP(1)
+    generate_table_EP(1)
     # table = [[1.0002,2,3],[2.1,3.1,4.1]]
     # with open('sigma_{}.csv'.format(1),'w') as wf:
     #     writer = csv.writer(wf)

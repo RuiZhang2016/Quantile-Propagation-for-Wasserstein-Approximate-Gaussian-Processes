@@ -18,7 +18,7 @@ def read_ionosphere():
     return np.array(z)
 
 def read_breast_cancer():
-    file = '/home/rzhang/PycharmProjects/WGPC/data/breast-cancer-wisconsin.data'
+    file = '/Users/ruizhang/PycharmProjects/WGPC/data/breast-cancer-wisconsin.data'
     def str2int(s):
         return 1 if s is '4' else -1
 
@@ -30,7 +30,7 @@ def read_breast_cancer():
     return np.array(z)
 
 def read_sonar():
-    file = '/home/rzhang/PycharmProjects/WGPC/data/sonar.all-data'
+    file = '/Users/ruizhang/PycharmProjects/WGPC/data/sonar.all-data'
     def str2int(s):
         return 1 if s is 'R' else -1
 
