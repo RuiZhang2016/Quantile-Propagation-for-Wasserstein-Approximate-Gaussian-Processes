@@ -1,4 +1,4 @@
-import core.__init__
+import __init__
 
 import numpy as np
 from scipy.stats import norm
