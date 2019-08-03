@@ -33,7 +33,7 @@ def plot_components():
     labs = [l.get_label() for l in lns]
     ax1.legend(lns, labs, loc=2,prop={'size': 20})
 
-    fontsize = 20
+    fontsize = 28
     ax1.set_xlabel('f',fontsize=fontsize)
     ax1.set_ylabel('p(f$|$y)',fontsize=fontsize)
     ax2.set_ylabel('p(y$|$f)',fontsize=fontsize)
@@ -43,7 +43,8 @@ def plot_components():
 
     # plt.legend()
     fig.tight_layout()
-    fig.show()
+    plt.savefig('../plots/components.pdf')
+    # fig.show()
 
 if __name__ == '__main__':
     plot_components()
