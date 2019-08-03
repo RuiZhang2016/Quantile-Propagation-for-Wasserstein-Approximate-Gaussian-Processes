@@ -67,11 +67,10 @@ def WR_table(file,op,table=None):
 
 
 def compress(v):
-    table = WR_table('/home/rzhang/PycharmProjects/tmp/sigma_-5.000_{}.csv'.format(v),'r')
+    table = WR_table('/Users/ruizhang/PycharmProjects/tmp/sigma_-5.000_{}.csv'.format(v),'r')
     for i in range(1,2000):
         sv = i*0.005-5
-        print(i)
-        filename = '/home/rzhang/PycharmProjects/tmp/sigma_{:.3f}_{}.csv'.format(sv,v)
+        filename = '/Users/ruizhang/PycharmProjects/tmp/sigma_{:.3f}_{}.csv'.format(sv,v)
         if os.path.exists(filename):
             z = WR_table(filename,'r')
             table = np.vstack((table, z))
@@ -104,9 +103,6 @@ def plot_table(v):
     plt.show()
 
 if __name__ == '__main__':
-    # compress(1)
-    plot_table(1)
-
     # generate_table_EP(1)
     # table = [[1.0002,2,3],[2.1,3.1,4.1]]
     # with open('sigma_{}.csv'.format(1),'w') as wf:
