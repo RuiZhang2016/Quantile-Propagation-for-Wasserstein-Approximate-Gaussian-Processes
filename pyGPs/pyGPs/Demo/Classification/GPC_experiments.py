@@ -62,7 +62,7 @@ def run(x_train,y_train,x_test,y_test,f1,f2,dataname, id):
     # EP
     modelEP.getPosterior(x_train, y_train)
     # nlZEP1 = modelEP.nlZ
-    modelEP.optimize(x_train, y_train, numIterations=40)
+    modelEP.optimize(x_train, y_train, numIterations=5)
     # nlZEP2 = modelEP.nlZ
 
     # ymu, ys2, fmu, fs2, lp = modelEP.predict(x_test, ys=y_test.reshape((-1, 1)))
@@ -96,7 +96,7 @@ def experiments(f1,f2,exp_id):
     data_id, piece_id = divmod(exp_id,10)
     datanames = ['ionosphere','breast_cancer','crabs','pima','usps','sonar']
     dic = load_obj('{}_{}'.format(datanames[data_id],piece_id))
-    run(dic['x_train'],dic['y_train'],dic['x_test'],dic['y_test'],f1,f2,'ionosphere',exp_id)
+    run(dic['x_train'],dic['y_train'],dic['x_test'],dic['y_test'],f1,f2,datanames[data_id],exp_id)
 
 def load_obj(name):
     with open(os.environ['proj']+'/data/split_data/'+ name + '.pkl', 'rb') as f:
@@ -106,6 +106,7 @@ if __name__ == '__main__':
     # f1, f2 = interp_fs()
     # exp_id = int(sys.argv[1])
 
-    for exp_id in range(60):
-        experiments(0,0,exp_id)
+    Parallel(n_jobs=4)(delayed(experiments)(0,0,exp_id) for exp_id in range(60))
+        # print(exp_id)
+        # experiments(0,0,exp_id)
 
