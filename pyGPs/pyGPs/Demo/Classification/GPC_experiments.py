@@ -6,10 +6,11 @@ import pickle
 if sys.platform == 'darwin':
     import matplotlib
     matplotlib.use('TkAgg')
-    sys.path.append('/Users/ruizhang/PycharmProjects/Wasserstein-GPC/pyGPs')
+    proj_path = '/Users/ruizhang/PycharmProjects/WGPC'
 else:
-    sys.path.append('/home/rzhang/PycharmProjects/WGPC/pyGPs')
-
+    proj_path = '/home/rzhang/PycharmProjects/WGPC'
+sys.path.append(proj_path+'/pyGPs')
+sys.path.append(proj_path)
 
 import pyGPs
 import numpy as np
@@ -33,8 +34,8 @@ def compute_E(ys,ps):
     return np.mean([100 if (ps[i] > 0.5)^(ys[i] == 1) else 0 for i in range(len(ps))])
 
 def interp_fs():
-    table1 = WR_table('/home/rzhang/PycharmProjects/WGPC/res/WD_GPC/sigma_new_1.csv', 'r')
-    table2 = WR_table('/home/rzhang/PycharmProjects/WGPC/res/WD_GPC/sigma_new_-1.csv', 'r')
+    table1 = WR_table(proj_path+'/res/WD_GPC/sigma_new_1.csv', 'r')
+    table2 = WR_table(proj_path+'/res/WD_GPC/sigma_new_-1.csv', 'r')
     x = [i * 0.001 - 5 for i in range(10000)]
     y = [0.4 + 0.001 * i for i in range(4601)]
     f1 = interpolate.interp2d(y, x, table1, kind='cubic')
@@ -69,9 +70,9 @@ def run(x_train,y_train,x_test,y_test,f1,f2,dataname, id):
     EEP = compute_E(y_test, np.exp(lp))
 
     # QP
-    modelQP.getPosterior(x_train, y_train)
+    # modelQP.getPosterior(x_train, y_train)
     # nlZQP1 = modelQP.nlZ
-    modelQP.optimize(x_train, y_train, numIterations=40)
+    # modelQP.optimize(x_train, y_train, numIterations=40)
     # nlZQP2 = modelQP.nlZ
 
     # ymu, ys2, fmu, fs2, lp = modelQP.predict(x_test, ys=np.ones((n_test,1)))
@@ -83,7 +84,7 @@ def run(x_train,y_train,x_test,y_test,f1,f2,dataname, id):
     # print("EP: {}, {}".format(round(nlZEP1, 7), round(nlZEP2, 7)))
     # print("QP: {}, {}".format(round(nlZQP1, 7), round(nlZQP2, 7)))
     # print('I E: EP {} {} QP {} {}'.format(IEP, EEP, IQP, EQP))
-    f = open("/home/rzhang/PycharmProjects/WGPC/res/{}_output.txt".format(dataname), "a")
+    f = open(proj_path+"/res/{}_output.txt".format(dataname), "a")
     # f.write("Negative log marginal liklihood before and after optimization:\n")
     # f.write("EP: {}, {}\n".format(round(nlZEP1, 7), round(nlZEP2, 7)))
     # f.write("QP: {}, {}\n".format(round(nlZQP1, 7), round(nlZQP2, 7)))
@@ -97,11 +98,13 @@ def experiments(f1,f2,exp_id):
     run(dic['x_train'],dic['y_train'],dic['x_test'],dic['y_test'],f1,f2,'ionosphere')
 
 def load_obj(name):
-    with open('/home/rzhang/PycharmProjects/WGPC/data/split_data/'+ name + '.pkl', 'rb') as f:
+    with open(proj_path+'/data/split_data/'+ name + '.pkl', 'rb') as f:
         return pickle.load(f)
 
 if __name__ == '__main__':
-    f1, f2 = interp_fs()
-    exp_id = int(sys.argv[1])
-    experiments(f1,f2,exp_id)
+    # f1, f2 = interp_fs()
+    # exp_id = int(sys.argv[1])
+
+    for exp_id in range(60):
+        experiments(0,0,exp_id)
 
