@@ -24,8 +24,9 @@ else:
 #================================================================================
 
 import pyGPs
-import numpy as np
 from read_data import *
+from core.generate_table import *
+from scipy import interpolate
 # To have a gerneral idea,
 # you may want to read demo_GPR, demo_kernel and demo_optimization first!
 # Here, the focus is on the difference of classification model.
@@ -84,9 +85,51 @@ x2 = preproc(x2,xmean,xstd)
 # GP classification example
 #----------------------------------------------------------------------
 # print('More Advanced Example')
-# # Start from a new model
-# model = pyGPs.GPC()
+# Start from a new model
+model = pyGPs.GPC()
+
+# Analogously to GPR
+k = pyGPs.cov.RBFard(log_ell_list=[0.05,0.17], log_sigma=1.)
+model.setPrior(kernel=k)
+
+model.getPosterior(x, y)
+print("Negative log marginal liklihood before:", round(model.nlZ,7))
+model.optimize(x, y)
+print("Negative log marginal liklihood optimized:", round(model.nlZ,7))
+
+# Prediction
+n = x.shape[0]
+ymu, ys2, fmu, fs2, lp = model.predict(x, ys=np.ones((n,1)))
+
+# pyGPs.GPC.plot() is a toy method for 2-d data
+# plot log probability distribution for class +1
+# model.plot(x1,x2,t1,t2)
+# print(x1.shape,x2.shape,z.shape,x.shape)
+
+def compute_I(ys, ps, ys_train):
+    p1 = np.mean([e if e == 1 else 0 for e in ys_train])
+    p2 = 1-p1
+    H = -p1*np.log2(p1)-p2*np.log2(p2)
+    assert len(ys) == len(ps)
+    Is = (ys+1)/2*np.log2(ps)+(1-ys)/2*np.log2(1-ps)+H
+    print((ys+1)/2*np.log2(ps)+(1-ys)/2*np.log2(1-ps))
+    return np.mean(Is)
+
+def compute_E(ys,ps):
+    return np.mean([100 if (ps[i] > 0.5)^(ys[i] == 1) else 0 for i in range(len(ps))])
+print(y,lp)
+I = compute_I(y,np.exp(lp),y)
+E = compute_E(y,np.exp(lp))
+print(I,E)
+# table1 = WR_table('/home/rzhang/PycharmProjects/WGPC/res/WD_GPC/sigma_new_1.csv', 'r')
+# table2 = WR_table('/home/rzhang/PycharmProjects/WGPC/res/WD_GPC/sigma_new_-1.csv', 'r')
+# x = [i * 0.001 - 5 for i in range(10000)]
+# y = [0.4 + 0.001 * i for i in range(4601)]
+# f1 = interpolate.interp2d(y, x, table1, kind='linear')
+# f2 = interpolate.interp2d(y, x, table2, kind='linear')
 #
+# model = pyGPs.GPC()
+# model.useInference('QP',f1,f2)
 # # Analogously to GPR
 # k = pyGPs.cov.RBFard(log_ell_list=[0.05,0.17], log_sigma=1.)
 # model.setPrior(kernel=k)
@@ -99,33 +142,15 @@ x2 = preproc(x2,xmean,xstd)
 # # Prediction
 # n = z.shape[0]
 # ymu, ys2, fmu, fs2, lp = model.predict(z, ys=np.ones((n,1)))
-#
+# print(np.exp(lp))
+# I = np.mean(lp)
+# E = np.mean([0 if np.exp(e)>0.5 else 1 for e in lp])
+# print(I,E)
 # # pyGPs.GPC.plot() is a toy method for 2-d data
 # # plot log probability distribution for class +1
 # model.plot(x1,x2,t1,t2)
-
-model = pyGPs.GPC()
-# model.useInference('EP')
-# Analogously to GPR
-k = pyGPs.cov.RBFard(log_ell_list=[0.05,0.17], log_sigma=1.)
-model.setPrior(kernel=k)
-
-model.getPosterior(x, y)
-print("Negative log marginal liklihood before:", round(model.nlZ,7))
-model.optimize(x, y)
-print("Negative log marginal liklihood optimized:", round(model.nlZ,7))
-
-# Prediction
-n = z.shape[0]
-ymu, ys2, fmu, fs2, lp = model.predict(z, ys=np.ones((n,1)))
-I = np.mean(lp)
-E = np.mean([0 if np.exp(e)>0.5 else 1 for e in lp])
-print(I,E)
-# pyGPs.GPC.plot() is a toy method for 2-d data
-# plot log probability distribution for class +1
-model.plot(x1,x2,t1,t2)
-
-print('--------------------END OF DEMO-----------------------')
+#
+# print('--------------------END OF DEMO-----------------------')
 
 
 
