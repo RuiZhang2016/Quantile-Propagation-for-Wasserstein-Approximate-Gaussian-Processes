@@ -44,42 +44,35 @@ def interp_fs():
     return f1, f2
 
 def run(x_train,y_train,x_test,y_test,f1,f2,dataname, id):
+    # print(x_train[1:10, 1:10], np.std(x_train, axis=0), np.std(x_test, axis=0))
     n_features = x_train.shape[1]
     n_test = len(x_test)
     xmean = np.mean(x_train, axis=0)
     xstd = np.std(x_train, axis=0)
     x_train = preproc(x_train, xmean, xstd)
     x_test = preproc(x_test, xmean, xstd)
-
+    # return#, y_train, y_test)
     # define models
     modelEP = pyGPs.GPC()
-    modelQP = pyGPs.GPC()
-    modelQP.useInference('QP', f1, f2)
-    k = pyGPs.cov.RBFard(log_ell_list=[4] * n_features, log_sigma=1.)  # kernel
+    # modelQP = pyGPs.GPC()
+    # modelQP.useInference('QP', f1, f2)
+    k = pyGPs.cov.RBFard(log_ell_list=[np.log(n_features)/10] * n_features, log_sigma=1.)  # kernel
     modelEP.setPrior(kernel=k)
-    k = pyGPs.cov.RBFard(log_ell_list=[4] * n_features, log_sigma=1.)
-    modelQP.setPrior(kernel=k)
+    # k = pyGPs.cov.RBFard(log_ell_list=[np.log(n_features)/10] * n_features, log_sigma=1.)
+    # modelQP.setPrior(kernel=k)
 
     print('EP')
-    modelEP.getPosterior(x_train, y_train)
-    # nlZEP1 = modelEP.nlZ
-    modelEP.optimize(x_train, y_train, numIterations=5)
-    # nlZEP2 = modelEP.nlZ
-
-    # ymu, ys2, fmu, fs2, lp = modelEP.predict(x_test, ys=y_test.reshape((-1, 1)))
+    modelEP.optimize(x_train, y_train.reshape((-1,1)), numIterations=40)
     ymu, ys2, fmu, fs2, lp = modelEP.predict(x_test, ys=np.ones((n_test,1)))
     IEP = compute_I(y_test, np.exp(lp.flatten()), y_train)
     EEP = compute_E(y_test, np.exp(lp.flatten()))
 
-    print('QP')
-    # modelQP.getPosterior(x_train, y_train)
-    # nlZQP1 = modelQP.nlZ
-    # modelQP.optimize(x_train, y_train, numIterations=40)
+    # print('QP')
+    # modelQP.optimize(x_train, y_train.reshape((-1,1)), numIterations=40)
     # nlZQP2 = modelQP.nlZ
-
     # ymu, ys2, fmu, fs2, lp = modelQP.predict(x_test, ys=np.ones((n_test,1)))
-    IQP = 0 # compute_I(y_test, np.exp(lp.flatten()), y_train)
-    EQP = 0 # compute_E(y_test, np.exp(lp.flatten()))
+    # IQP = 0 # compute_I(y_test, np.exp(lp.flatten()), y_train)
+    # EQP = 0 # compute_E(y_test, np.exp(lp.flatten()))
 
     # print results
     # print("Negative log marginal liklihood before and after optimization")
@@ -90,14 +83,13 @@ def run(x_train,y_train,x_test,y_test,f1,f2,dataname, id):
     # f.write("Negative log marginal liklihood before and after optimization:\n")
     # f.write("EP: {}, {}\n".format(round(nlZEP1, 7), round(nlZEP2, 7)))
     # f.write("QP: {}, {}\n".format(round(nlZQP1, 7), round(nlZQP2, 7)))
-    f.write('{} I E: EP {} {} QP {} {}\n'.format(id, IEP, EEP, IQP, EQP))
+    f.write('{} I E {} {}\n'.format(id, IEP, EEP))
     f.close()
 
 def experiments(f1,f2,exp_id):
     data_id, piece_id = divmod(exp_id,10)
     datanames = ['ionosphere','breast_cancer','crabs','pima','usps','sonar']
     dic = load_obj('{}_{}'.format(datanames[data_id],piece_id))
-    print(dic['x_train'])
 
     run(dic['x_train'],dic['y_train'],dic['x_test'],dic['y_test'],f1,f2,datanames[data_id],exp_id)
 
@@ -108,7 +100,8 @@ def load_obj(name):
 if __name__ == '__main__':
     # f1, f2 = interp_fs()
     # exp_id = int(sys.argv[1])
-    Parallel(n_jobs=4)(delayed(experiments)(0,0,exp_id) for exp_id in range(60))
+    for exp_id in range(10,60):
+        experiments(0,0,exp_id)
         # print(exp_id)
         # experiments(0,0,exp_id)
 

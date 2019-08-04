@@ -68,7 +68,7 @@ def read_usps():
         y_te = test.get('target')[:]
     a,b = np.vstack((X_tr, X_te)), np.hstack((y_tr, y_te))
     ids = [i for i in range(len(b)) if b[i] == 3 or b[i] == 5]
-    b = np.array([[b[i]] for i in ids])
+    b = np.array([[b[i]-4] for i in ids])
     a = np.array([a[i] for i in ids])
     n = len(a)
     m = len(a[0])

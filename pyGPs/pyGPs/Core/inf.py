@@ -777,7 +777,7 @@ class EP(Inference):
                 # tnu[ii]  = old_div(( dlZ + (m[ii]-old_div(nu_ni,tau_ni))*d2lZ ),(1.+old_div(d2lZ,tau_ni)))
 
                 zi = y[ii] * nu_ni / np.sqrt(1 + tau_ni)
-                print(y[ii],Sigma[ii,ii],zi)
+                # print(y[ii],Sigma[ii,ii],zi)
                 # assert lZ == np.log(norm.cdf(zi)),(lZ, np.log(norm.cdf(zi)))
                 pdfdivcdf = norm.pdf(zi) / norm.cdf(zi)
                 sigma_ni2 = 1 / tau_ni
