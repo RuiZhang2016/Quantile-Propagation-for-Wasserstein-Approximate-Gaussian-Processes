@@ -1,7 +1,16 @@
 from read_data import *
 import numpy as np
-import pickle
+import pickle, sys, os
 np.random.seed(0)
+
+if sys.platform == 'darwin':
+    import matplotlib
+    matplotlib.use('TkAgg')
+    os.environ['proj'] = '/Users/ruizhang/PycharmProjects/WGPC'
+else:
+    os.environ['proj'] = '/home/rzhang/PycharmProjects/WGPC'
+sys.path.append(os.environ['proj']+'/pyGPs')
+sys.path.append(os.environ['proj'])
 
 def split_data(data,dataname):
     # data = read_ionosphere()
@@ -29,9 +38,9 @@ def save_obj(obj, name ):
 
 
 if __name__ == '__main__':
-    split_data(read_ionosphere(),'ionosphere')
-    split_data(read_breast_cancer(),'breast_cancer')
-    split_data(read_crabs(),'crabs')
-    split_data(read_pima(),'pima')
-    split_data(read_sonar(),'sonar')
+    # split_data(read_ionosphere(),'ionosphere')
+    # split_data(read_breast_cancer(),'breast_cancer')
+    # split_data(read_crabs(),'crabs')
+    # split_data(read_pima(),'pima')
+    # split_data(read_sonar(),'sonar')
     split_data(read_usps(),'usps')

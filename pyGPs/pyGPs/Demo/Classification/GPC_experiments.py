@@ -9,7 +9,11 @@ if sys.platform == 'darwin':
     matplotlib.use('TkAgg')
     os.environ['proj'] = '/Users/ruizhang/PycharmProjects/WGPC'
 else:
+<<<<<<< HEAD
     os.environ['proj'] = '/home/users/u5963436/Work/WGPC'
+=======
+    os.environ['proj'] = '/home/rzhang/PycharmProjects/WGPC'
+>>>>>>> f8c1746b3836f93b89a06f0e17739a7144fea0fb
 sys.path.append(os.environ['proj']+'/pyGPs')
 sys.path.append(os.environ['proj'])
 
@@ -44,13 +48,13 @@ def interp_fs():
     return f1, f2
 
 def run(x_train,y_train,x_test,y_test,f1,f2,dataname, id):
+    # print(x_train[1:10, 1:10], np.std(x_train, axis=0), np.std(x_test, axis=0))
     n_features = x_train.shape[1]
     n_test = len(x_test)
     xmean = np.mean(x_train, axis=0)
     xstd = np.std(x_train, axis=0)
     x_train = preproc(x_train, xmean, xstd)
     x_test = preproc(x_test, xmean, xstd)
-
     # define models
     modelEP = pyGPs.GPC()
     # modelQP = pyGPs.GPC()
@@ -59,8 +63,6 @@ def run(x_train,y_train,x_test,y_test,f1,f2,dataname, id):
     modelEP.setPrior(kernel=k)
     # modelQP.setPrior(kernel=k)
 
-    # EP
-        # nlZEP1 = modelEP.nlZ
     try: 
         # modelEP.getPosterior(x_train,y_train.reshape((-1,1)))
         modelEP.optimize(x_train, y_train.reshape((-1,1)), numIterations=40)
@@ -89,7 +91,6 @@ def run(x_train,y_train,x_test,y_test,f1,f2,dataname, id):
     # except Exception as e:
         # IQP = EQP = '-1000'
         # print(e)
-    # print results
     # print("Negative log marginal liklihood before and after optimization")
     # print("EP: {}, {}".format(round(nlZEP1, 7), round(nlZEP2, 7)))
     # print("QP: {}, {}".format(round(nlZQP1, 7), round(nlZQP2, 7)))
