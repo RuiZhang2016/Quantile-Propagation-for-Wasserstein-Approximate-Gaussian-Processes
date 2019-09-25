@@ -771,7 +771,7 @@ class EP(Inference):
                 tau_ni = old_div(1,Sigma[ii,ii]) - ttau[ii]#  first find the cavity distribution ..
                 nu_ni  = old_div(mu[ii],Sigma[ii,ii]) + m[ii]*tau_ni - tnu[ii]    # .. params tau_ni and nu_ni
                 # compute the desired derivatives of the indivdual log partition function
-                lZ,dlZ,d2lZ = likfunc.evaluate(y[ii], old_div(nu_ni,tau_ni), old_div(1,tau_ni), inffunc, None, 3)
+                # lZ,dlZ,d2lZ = likfunc.evaluate(y[ii], old_div(nu_ni,tau_ni), old_div(1,tau_ni), inffunc, None, 3)
                 ttau_old = copy(ttau[ii])         # then find the new tilde parameters, keep copy of old
                 ttau[ii] = old_div(-d2lZ,(1.+old_div(d2lZ,tau_ni)))
                 ttau[ii] = max(ttau[ii],0)      # enforce positivity i.e. lower bound ttau by zero
