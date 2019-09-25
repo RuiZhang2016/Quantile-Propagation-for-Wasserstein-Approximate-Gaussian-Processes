@@ -194,9 +194,11 @@ class Inference(object):
         tau_n = old_div(1,Dsigma) - ttau               # compute the log marginal likelihood
         nu_n  = old_div(mu,Dsigma)-tnu + m*tau_n       # vectors of cavity parameters
         lZ    = likfunc.evaluate(y, old_div(nu_n,tau_n), old_div(1,tau_n), inffunc)
-        nlZ   = np.log(np.diag(L)).sum() - lZ.sum() - old_div(np.dot(tnu.T,np.dot(Sigma,tnu)),2)  \
-                - old_div(np.dot((nu_n-m*tau_n).T,(old_div((ttau/tau_n*(nu_n-m*tau_n)-2*tnu), (ttau+tau_n)))),2) \
-                + old_div((old_div(tnu**2,(tau_n+ttau))).sum(),2.)- old_div(np.log(1.+old_div(ttau,tau_n)).sum(),2.)
+        nlZ   = np.log(np.diag(L)).sum()- old_div(np.log(1.+old_div(ttau,tau_n)).sum(),2.)\
+                - lZ.sum() - old_div(np.dot(tnu.T,np.dot(Sigma,tnu)),2) \
+                + old_div((old_div(tnu ** 2, (tau_n + ttau))).sum(), 2.) \
+                - old_div(np.dot((nu_n-m*tau_n).T,(old_div((ttau/tau_n*(nu_n-m*tau_n)-2*tnu), (ttau+tau_n)))),2)
+
         return Sigma, mu, nlZ[0], L
 
     def _logdetA(self,K,w,nargout):
@@ -770,24 +772,21 @@ class EP(Inference):
                 tau_ni = old_div(1,Sigma[ii,ii]) - ttau[ii]#  first find the cavity distribution ..
                 nu_ni  = old_div(mu[ii],Sigma[ii,ii]) + m[ii]*tau_ni - tnu[ii]    # .. params tau_ni and nu_ni
                 # compute the desired derivatives of the indivdual log partition function
-                # lZ,dlZ,d2lZ = likfunc.evaluate(y[ii], old_div(nu_ni,tau_ni), old_div(1,tau_ni), inffunc, None, 3)
+                # lZ,dlZ,d2lZ = likfunc.evaluate(y[ii], old_div(nu_ni,tau_ni), old_div(1,tau_ni), inffunc, None, 2)
                 ttau_old = copy(ttau[ii])         # then find the new tilde parameters, keep copy of old
                 # ttau[ii] = old_div(-d2lZ,(1.+old_div(d2lZ,tau_ni)))
                 # ttau[ii] = max(ttau[ii],0)        # enforce positivity i.e. lower bound ttau by zero
                 # tnu[ii]  = old_div(( dlZ + (m[ii]-old_div(nu_ni,tau_ni))*d2lZ ),(1.+old_div(d2lZ,tau_ni)))
 
-                zi = y[ii] * nu_ni / np.sqrt(1 + tau_ni)
-                # print(y[ii],Sigma[ii,ii],zi)
-                # assert lZ == np.log(norm.cdf(zi)),(lZ, np.log(norm.cdf(zi)))
-                pdfdivcdf = norm.pdf(zi) / norm.cdf(zi)
                 sigma_ni2 = 1 / tau_ni
-
-                hat_mu = nu_ni / tau_ni + y[ii] * pdfdivcdf / np.sqrt(1 + tau_ni)
+                mu_ni = nu_ni / tau_ni
+                zi = y[ii] * mu_ni / np.sqrt(1+sigma_ni2)
+                pdfdivcdf = norm.pdf(zi) / norm.cdf(zi)
+                hat_mu = mu_ni + y[ii] * sigma_ni2*pdfdivcdf / np.sqrt(1 + sigma_ni2)
                 sigma_hat2 = sigma_ni2 - sigma_ni2 / (1 + tau_ni) * pdfdivcdf * (zi + pdfdivcdf)
-                ttau2 = 1 / sigma_hat2 - tau_ni
-                tnu2 = 1 / sigma_hat2 * hat_mu - nu_ni
-                ttau[ii] = max(ttau2,1e-8)
-                tnu[ii] = tnu2
+                tnu[ii] = 1 / sigma_hat2 * hat_mu - nu_ni
+                ttau[ii] = max(1 / sigma_hat2 - tau_ni,0)
+
                 ds2 = ttau[ii] - ttau_old         # finally rank-1 update Sigma ..
                 si  = np.reshape(Sigma[:,ii],(Sigma.shape[0],1))
                 Sigma = Sigma - ds2/(1.+ds2*si[ii])*np.dot(si,si.T)   # takes 70# of total time
@@ -891,12 +890,19 @@ class QP(Inference):
                 # ttau[ii] = max(ttau[ii], 0)  # enforce positivity i.e. lower bound ttau by zero
                 # tnu[ii] = old_div((dlZ + (m[ii] - old_div(nu_ni, tau_ni)) * d2lZ), (1. + old_div(d2lZ, tau_ni)))
 
-                mu_wd, sigma_wd = nu_ni / tau_ni, np.sqrt(1 / tau_ni)
-                mu_hat, sigma_hat = self.fit_gauss_wd(y[ii][0], mu_wd[0], sigma_wd[0])
+                mu_ni, sigma_ni = nu_ni / tau_ni, np.sqrt(1 / tau_ni)
+                mu_hat, sigma_hat = self.fit_gauss_wd(y[ii][0], mu_ni[0], sigma_ni[0])
                 # print(v_wd,mu_wd,sigma_wd,mu_hat,sigma_hat)
                 sigma_hat2 = sigma_hat ** 2
-                ttau[ii] = max(1 / sigma_hat2 - tau_ni, 1e-8)
+                ttau[ii] = max(1 / sigma_hat2 - tau_ni,1e-6)
                 tnu[ii] = 1 / sigma_hat2 * mu_hat - nu_ni
+
+                # zi = y[ii] * mu_ni / np.sqrt(1 + sigma_ni2)
+                # pdfdivcdf = norm.pdf(zi) / norm.cdf(zi)
+                # hat_mu = mu_ni + y[ii] * sigma_ni2 * pdfdivcdf / np.sqrt(1 + sigma_ni2)
+                # sigma_hat2 = sigma_ni2 - sigma_ni2 / (1 + tau_ni) * pdfdivcdf * (zi + pdfdivcdf)
+                # tnu[ii] = 1 / sigma_hat2 * hat_mu - nu_ni
+                # ttau[ii] = max(1 / sigma_hat2 - tau_ni, 0)
 
                 ds2 = ttau[ii] - ttau_old  # finally rank-1 update Sigma ..
                 si = np.reshape(Sigma[:, ii], (Sigma.shape[0], 1))
@@ -956,14 +962,14 @@ class QP(Inference):
 
         # inverse_Fr = lambda y: inversefunc(lambda x: self._Fr(x, v, mu, sigma), y_values=y, accuracy=6)
         # inf_sigma =  self.sqrt2* integrate.quad(lambda x: inverse_Fr(x)*erfinv(2 * x - 1), 0, 1)[0]
-        if -5<=mu<=5 and 0.4<=sigma<= 5:
+        if -5<=mu<=5 and 0.5<=sigma<= 5:
             inf_sigma = (self.f1(mu, sigma) if v == 1 else self.f2(mu, sigma))[0]
-        elif sigma < 0.4:
+        elif sigma < 0.5:
             inf_sigma2 = sigma2 - sigma2 ** 2 * pdfdivcdf / (1 + sigma2) * (z + pdfdivcdf)
             inf_sigma = np.sqrt(inf_sigma2)
         else:
             mu = min(max(mu,-5),5)
-            sigma = min(max(sigma,0.4),5)
+            sigma = min(max(sigma,0.5),5)
             inf_mu, inf_sigma = self.fit_gauss_wd(v,mu,sigma)
             # inf_sigma2 = sigma2 - sigma2 ** 2 * pdfdivcdf / (1 + sigma2) * (
             #             z + pdfdivcdf)  # inf_sigma2 = sigma2 - sigma2 ** 2 * norm.pdf(z) / (v2 + sigma2) / norm.cdf(z) * (z + norm.pdf(z) / norm.cdf(z))

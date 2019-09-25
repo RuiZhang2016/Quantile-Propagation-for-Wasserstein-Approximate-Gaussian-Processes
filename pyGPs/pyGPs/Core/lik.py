@@ -295,7 +295,7 @@ class Erf(Likelihood):
             elif isinstance(inffunc, inf.EP) or isinstance(inffunc, inf.QP):
                 if der is None:                          # no derivative mode
                     z = old_div(mu,np.sqrt(1+s2))
-                    junk,lZ = self.cumGauss(y,z,2)       # log part function
+                    junk,lZ = self.cumGauss(y,z,2)       # log part function: cumulative Gaussian
                     if not y is None:
                          z = z*y
                     if nargout>1:
