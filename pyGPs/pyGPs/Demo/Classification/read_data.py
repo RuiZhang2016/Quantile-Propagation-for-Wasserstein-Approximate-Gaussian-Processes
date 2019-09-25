@@ -3,7 +3,7 @@ import numpy as np
 np.random.seed(0)
 import h5py
 import os
-
+import __init__
 
 def read_ionosphere():
     file = os.environ['proj']+'/data/ionosphere.data'
@@ -15,7 +15,7 @@ def read_ionosphere():
         reader = csv.reader(rf)
         lines = list(reader)
         n = len(lines[0])
-        z = [[float(l[i]) if i < n-1 else str2int(l[i])  for i in range(n)] for l in lines]
+        z = [[float(l[i]) if i < n-1 else str2int(l[i]) for i in range(n)] for l in lines]
     n = len(z)
     m = len(z[0])
     print("#features: ", m - 1)
@@ -32,7 +32,7 @@ def read_breast_cancer():
         reader = csv.reader(rf)
         lines = list(reader)
         n = len(lines[0])
-        z = [[float(l[i]) if i < n-1 else str2int(l[i])  for i in range(1,n)] for l in lines if '?' not in l]
+        z = [[float(l[i]) if i < n-1 else str2int(l[i]) for i in range(1,n)] for l in lines if '?' not in l]
     n = len(z)
     m = len(z[0])
     print("#features: ", m - 1)
@@ -77,6 +77,7 @@ def read_usps():
     return np.hstack((a,b))
 
 def read_crabs():
+
     file = os.environ['proj']+'/data/crabs.dat'
 
     str2int = {'M':1,'F':-1,'B':1,'O':-1}
@@ -125,5 +126,5 @@ def read_pima():
     return z
 
 if __name__ == '__main__':
-    z = read_pima()
-    print(z)
+    z = read_usps()
+    print(np.std(z,axis=0))

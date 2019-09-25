@@ -12,9 +12,25 @@ from __future__ import print_function
 #    Marion Neumann, Daniel Marthaler, Shan Huang & Kristian Kersting, 18/02/2014
 #================================================================================
 
+import sys
+import pickle
+import os
+
+
+# for Mac OS
+if sys.platform == 'darwin':
+    import matplotlib
+
+    matplotlib.use('TkAgg')
+    os.environ['proj'] = '/Users/ruizhang/PycharmProjects/WGPC'
+else:
+    os.environ['proj'] = '/home/rzhang/PycharmProjects/WGPC'
+sys.path.append(os.environ['proj'] + '/pyGPs')
+sys.path.append(os.environ['proj'])
+
 import pyGPs
 import numpy as np
-
+from pyGPs.Demo.Classification.GPC_experiments import *
 # This demo will not only introduce GP regression model,
 # but provides a gerneral insight of our tourbox.
 
@@ -44,8 +60,13 @@ z = demoData['xstar']        # test data
 #----------------------------------------------------------------------
 print('Basic Example')
 model = pyGPs.GPR()          # model
+# f1, f2 = None, None #interp_fs()
+# model.useInference('QP',f1,f2)
+model.useInference('EP')
 print('Before Optimization')
 model.setData(x,y)
+m = pyGPs.mean.Const() + pyGPs.mean.Linear() # pyGPs.mean.Zero()
+model.setPrior(mean=m)
 model.predict(z)             # predict test cases (before optimization)
 model.plot()                 # and plot result
 model.optimize(x, y)         # optimize hyperparamters (default optimizer: single run minimize)
@@ -63,7 +84,7 @@ model = pyGPs.GPR()           # start from a new model
 # SEE doc_kernel_mean for documentation of all kernels/means
 m = pyGPs.mean.Const() + pyGPs.mean.Linear()
 k = pyGPs.cov.Matern(d=7) # Approximates RBF kernel
-model.setPrior(mean=m, kernel=k)
+model.setPrior(mean=m,kernel=k)
 
 
 
