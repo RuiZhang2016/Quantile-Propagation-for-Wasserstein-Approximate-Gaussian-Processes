@@ -7,7 +7,7 @@ import sys
 if sys.platform == 'darwin':
     import matplotlib
     matplotlib.use('TkAgg')
-    sys.path.append('/Users/ruizhang/PycharmProjects/Wasserstein-GPC/pyGPs')
+    sys.path.append('/Users/ruizhang/PycharmProjects/WGPC/pyGPs')
 else:
     sys.path.append('/home/rzhang/PycharmProjects/WGPC/pyGPs')
 #================================================================================
@@ -26,6 +26,7 @@ else:
 import pyGPs
 from read_data import *
 from core.generate_table import *
+from GPC_experiments import *
 from scipy import interpolate
 # To have a gerneral idea,
 # you may want to read demo_GPR, demo_kernel and demo_optimization first!
@@ -44,8 +45,6 @@ xmean = np.mean(x)
 xstd = np.std(x)
 y = demoData['y']            # training target
 z = demoData['xstar']        # test data
-print([e for e in demoData.keys()])
-print(y,type(y[0,0]))
 # only needed for 2-d contour plotting 
 x1 = demoData['x1']          # x for class 1 (with label -1)
 x2 = demoData['x2']          # x for class 2 (with label +1)     
@@ -57,11 +56,10 @@ p2 = demoData['p2']          # prior for class 2 (with label +1)
 ## By Rui
 def preproc(x, m, s):
     return (x-m)/s
-x = preproc(x,xmean,xstd)
-z = preproc(z,xmean,xstd)
-x1 = preproc(x1,xmean,xstd)
-x2 = preproc(x2,xmean,xstd)
-
+# x = preproc(x,xmean,xstd)
+# z = preproc(z,xmean,xstd)
+# x1 = preproc(x1,xmean,xstd)
+# x2 = preproc(x2,xmean,xstd)
 
 #----------------------------------------------------------------------
 # First example -> state default values
@@ -93,14 +91,14 @@ k = pyGPs.cov.RBFard(log_ell_list=[0.05,0.17], log_sigma=1.)
 model.setPrior(kernel=k)
 
 model.getPosterior(x, y)
-print("Negative log marginal liklihood before:", round(model.nlZ,7))
+# print("Negative log marginal liklihood before:", round(model.nlZ,7))
 model.optimize(x, y)
 print("Negative log marginal liklihood optimized:", round(model.nlZ,7))
 
 # Prediction
-n = x.shape[0]
-ymu, ys2, fmu, fs2, lp = model.predict(x, ys=np.ones((n,1)))
-
+n = z.shape[0]
+ymu, ys2, fmu, fs2, lp = model.predict(z, ys=np.ones((n,1)))
+model.plot(x1,x2,t1,t2)
 # pyGPs.GPC.plot() is a toy method for 2-d data
 # plot log probability distribution for class +1
 # model.plot(x1,x2,t1,t2)
@@ -117,10 +115,9 @@ def compute_I(ys, ps, ys_train):
 
 def compute_E(ys,ps):
     return np.mean([100 if (ps[i] > 0.5)^(ys[i] == 1) else 0 for i in range(len(ps))])
-print(y,lp)
-I = compute_I(y,np.exp(lp),y)
-E = compute_E(y,np.exp(lp))
-print(I,E)
+# I = compute_I(y,np.exp(lp),y)
+# E = compute_E(y,np.exp(lp))
+# print(I,E)
 # table1 = WR_table('/home/rzhang/PycharmProjects/WGPC/res/WD_GPC/sigma_new_1.csv', 'r')
 # table2 = WR_table('/home/rzhang/PycharmProjects/WGPC/res/WD_GPC/sigma_new_-1.csv', 'r')
 # x = [i * 0.001 - 5 for i in range(10000)]
@@ -129,7 +126,12 @@ print(I,E)
 # f2 = interpolate.interp2d(y, x, table2, kind='linear')
 #
 # model = pyGPs.GPC()
+# f1, f2 = interp_fs()
 # model.useInference('QP',f1,f2)
+# model.optimize(x, y)
+# n = z.shape[0]
+# ymu, ys2, fmu, fs2, lp = model.predict(z, ys=np.ones((n,1)))
+# model.plot(x1,x2,t1,t2)
 # # Analogously to GPR
 # k = pyGPs.cov.RBFard(log_ell_list=[0.05,0.17], log_sigma=1.)
 # model.setPrior(kernel=k)
@@ -140,15 +142,12 @@ print(I,E)
 # print("Negative log marginal liklihood optimized:", round(model.nlZ,7))
 #
 # # Prediction
-# n = z.shape[0]
-# ymu, ys2, fmu, fs2, lp = model.predict(z, ys=np.ones((n,1)))
+
 # print(np.exp(lp))
 # I = np.mean(lp)
 # E = np.mean([0 if np.exp(e)>0.5 else 1 for e in lp])
 # print(I,E)
-# # pyGPs.GPC.plot() is a toy method for 2-d data
-# # plot log probability distribution for class +1
-# model.plot(x1,x2,t1,t2)
+
 #
 # print('--------------------END OF DEMO-----------------------')
 

@@ -157,7 +157,7 @@ class Gauss(Likelihood):
             else:
                 return lp
         else:
-            if isinstance(inffunc, inf.EP):
+            if isinstance(inffunc, inf.EP) or isinstance(inffunc, inf.QP):
                 if der is None:                                  # no derivative mode
                     lZ = -(y-mu)**2/(sn2+s2)/2. - old_div(np.log(2*np.pi*(sn2+s2)),2.) # log part function
                     if nargout>1:

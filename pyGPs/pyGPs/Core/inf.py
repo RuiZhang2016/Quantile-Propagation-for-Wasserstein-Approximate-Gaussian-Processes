@@ -765,6 +765,7 @@ class EP(Inference):
                 mu = np.zeros((n,1))              # .. the Gaussian posterior approximation
                 nlZ = nlZ0
         nlZ_old = np.inf; sweep = 0               # converged, max. sweeps or min. sweeps?
+
         while (np.abs(nlZ-nlZ_old) > tol and sweep < max_sweep) or (sweep < min_sweep):
             nlZ_old = nlZ; sweep += 1
             rperm = range(n)                     # randperm(n)
@@ -774,19 +775,32 @@ class EP(Inference):
                 # compute the desired derivatives of the indivdual log partition function
                 # lZ,dlZ,d2lZ = likfunc.evaluate(y[ii], old_div(nu_ni,tau_ni), old_div(1,tau_ni), inffunc, None, 2)
                 ttau_old = copy(ttau[ii])         # then find the new tilde parameters, keep copy of old
-                # ttau[ii] = old_div(-d2lZ,(1.+old_div(d2lZ,tau_ni)))
-                # ttau[ii] = max(ttau[ii],0)        # enforce positivity i.e. lower bound ttau by zero
-                # tnu[ii]  = old_div(( dlZ + (m[ii]-old_div(nu_ni,tau_ni))*d2lZ ),(1.+old_div(d2lZ,tau_ni)))
+                ttau[ii] = old_div(-d2lZ,(1.+old_div(d2lZ,tau_ni)))
+                ttau[ii] = max(ttau[ii],0)      # enforce positivity i.e. lower bound ttau by zero
+                tnu[ii]  = old_div(( dlZ + (m[ii]-old_div(nu_ni,tau_ni))*d2lZ ),(1.+old_div(d2lZ,tau_ni)))
 
-                sigma_ni2 = 1 / tau_ni
-                mu_ni = nu_ni / tau_ni
-                zi = y[ii] * mu_ni / np.sqrt(1+sigma_ni2)
-                pdfdivcdf = norm.pdf(zi) / norm.cdf(zi)
-                hat_mu = mu_ni + y[ii] * sigma_ni2*pdfdivcdf / np.sqrt(1 + sigma_ni2)
-                sigma_hat2 = sigma_ni2 - sigma_ni2 / (1 + tau_ni) * pdfdivcdf * (zi + pdfdivcdf)
-                tnu[ii] = 1 / sigma_hat2 * hat_mu - nu_ni
-                ttau[ii] = max(1 / sigma_hat2 - tau_ni,0)
-
+                # if isinstance(likfunc,lik.Gauss):
+                #     sn2 = np.exp(2 * likfunc.hyp[0])
+                #     sigma2 = old_div(1, tau_ni)
+                #     mu = nu_ni / tau_ni
+                #     tau_i = 1/sn2+tau_ni[0]
+                #     # nu_i = 1/sn2*(y[ii]-m[ii])+nu_ni[0]-m[ii]*tau_ni[ii]
+                #     ttautmp = max(tau_i-tau_ni[0],0)
+                #     tnutmp =  1/sn2*(y[ii]-m[ii])# nu_i-nu_ni[0]+
+                # else:
+                #     print(m[ii])
+                #     sigma2 = old_div(1,tau_ni)
+                #     # v2 = 1
+                #     mu = nu_ni/tau_ni
+                #     z = mu / y[ii] / np.sqrt(1 + sigma2)  # z = (mu - m) / v / np.sqrt(1 + sigma2 / v2)
+                #     pdfdivcdf = norm.pdf(z) / norm.cdf(z)
+                #     inf_mu = mu + sigma2 * pdfdivcdf / y[ii] / np.sqrt(1 + sigma2)
+                #     inf_sigma2 = sigma2 - sigma2 ** 2 * pdfdivcdf / (1 + sigma2) * (z + pdfdivcdf)
+                #     tau_i = 1/inf_sigma2
+                #     nu_i = inf_mu*tau_i
+                #     ttautmp = max(tau_i[0] - tau_ni[0], 0)
+                #     tnutmp = nu_i[0] - nu_ni[0]
+                # print(ttautmp,ttau[ii],tnutmp,tnu[ii])
                 ds2 = ttau[ii] - ttau_old         # finally rank-1 update Sigma ..
                 si  = np.reshape(Sigma[:,ii],(Sigma.shape[0],1))
                 Sigma = Sigma - ds2/(1.+ds2*si[ii])*np.dot(si,si.T)   # takes 70# of total time
@@ -826,7 +840,7 @@ class EP(Inference):
                 dnlZ.mean[ii] = dnlZ.mean[ii][0,0]
             return post, nlZ[0], dnlZ
         else:
-            print(post,nlZ[0])
+            # print(post,nlZ[0])
             return post, nlZ[0]
 
 
@@ -890,11 +904,14 @@ class QP(Inference):
                 # ttau[ii] = max(ttau[ii], 0)  # enforce positivity i.e. lower bound ttau by zero
                 # tnu[ii] = old_div((dlZ + (m[ii] - old_div(nu_ni, tau_ni)) * d2lZ), (1. + old_div(d2lZ, tau_ni)))
 
-                mu_ni, sigma_ni = nu_ni / tau_ni, np.sqrt(1 / tau_ni)
-                mu_hat, sigma_hat = self.fit_gauss_wd(y[ii][0], mu_ni[0], sigma_ni[0])
+                mu_ni = nu_ni / tau_ni
+                sigma_ni = np.sqrt(1/tau_ni)
+                # print(y[ii][0], mu_ni[0], sigma_ni[0])
+                mu_hat,sigma_hat = self.fit_gauss_wd(y[ii][0], mu_ni[0], sigma_ni[0])
+                sigma_hat2 = sigma_hat**2
                 # print(v_wd,mu_wd,sigma_wd,mu_hat,sigma_hat)
-                sigma_hat2 = sigma_hat ** 2
-                ttau[ii] = max(1 / sigma_hat2 - tau_ni,1e-6)
+                # sigma_hat2 = sigma_hat ** 2
+                ttau[ii] = max(1 / sigma_hat2 - tau_ni, 0)
                 tnu[ii] = 1 / sigma_hat2 * mu_hat - nu_ni
 
                 # zi = y[ii] * mu_ni / np.sqrt(1 + sigma_ni2)
@@ -964,25 +981,25 @@ class QP(Inference):
         # inf_sigma =  self.sqrt2* integrate.quad(lambda x: inverse_Fr(x)*erfinv(2 * x - 1), 0, 1)[0]
         if -5<=mu<=5 and 0.5<=sigma<= 5:
             inf_sigma = (self.f1(mu, sigma) if v == 1 else self.f2(mu, sigma))[0]
-        elif sigma < 0.5:
+        elif sigma < 0.4 or abs(mu)>4*sigma:
             inf_sigma2 = sigma2 - sigma2 ** 2 * pdfdivcdf / (1 + sigma2) * (z + pdfdivcdf)
             inf_sigma = np.sqrt(inf_sigma2)
         else:
-            mu = min(max(mu,-5),5)
-            sigma = min(max(sigma,0.5),5)
-            inf_mu, inf_sigma = self.fit_gauss_wd(v,mu,sigma)
-            # inf_sigma2 = sigma2 - sigma2 ** 2 * pdfdivcdf / (1 + sigma2) * (
-            #             z + pdfdivcdf)  # inf_sigma2 = sigma2 - sigma2 ** 2 * norm.pdf(z) / (v2 + sigma2) / norm.cdf(z) * (z + norm.pdf(z) / norm.cdf(z))
-            # inf_sigma = np.sqrt(inf_sigma2)
-            # xs_Fr = self.samples*inf_sigma+inf_mu
-            #
-            # ys = np.array(self._Fr(xs_Fr, v, mu, sigma))
-            # ys[ys>=self._nugget1] = self._nugget1
-            # ys[ys<=self._nugget0] = self._nugget0
-            # dys = ys[1:] - ys[:-1]
-            # xs_erf = erfinv(2 * ys - 1)
-            # prod = xs_Fr * xs_erf
-            # inf_sigma = self.sqrt2 * np.nansum((prod[:-1] + prod[1:]) * dys) * 0.5
+            # mu = min(max(mu,-5),5)
+            # sigma = min(max(sigma,0.4),5)
+            # inf_mu, inf_sigma = self.fit_gauss_wd(v,mu,sigma)
+            inf_sigma2 = sigma2 - sigma2 ** 2 * pdfdivcdf / (1 + sigma2) * (
+                        z + pdfdivcdf)  # inf_sigma2 = sigma2 - sigma2 ** 2 * norm.pdf(z) / (v2 + sigma2) / norm.cdf(z) * (z + norm.pdf(z) / norm.cdf(z))
+            inf_sigma = np.sqrt(inf_sigma2)
+            xs_Fr = self.samples*inf_sigma+inf_mu
+
+            ys = np.array(self._Fr(xs_Fr, v, mu, sigma))
+            ys[ys>=self._nugget1] = self._nugget1
+            ys[ys<=self._nugget0] = self._nugget0
+            dys = ys[1:] - ys[:-1]
+            xs_erf = erfinv(2 * ys - 1)
+            prod = xs_Fr * xs_erf
+            inf_sigma = self.sqrt2 * np.nansum((prod[:-1] + prod[1:]) * dys) * 0.5
         return inf_mu, inf_sigma
 
         # inf_sigma2 = sigma2 - sigma2 ** 2 * pdfdivcdf / (1 + sigma2) * (z + pdfdivcdf)# inf_sigma2 = sigma2 - sigma2 ** 2 * norm.pdf(z) / (v2 + sigma2) / norm.cdf(z) * (z + norm.pdf(z) / norm.cdf(z))

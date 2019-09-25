@@ -1,5 +1,6 @@
 import matplotlib
 matplotlib.rcParams['text.usetex'] = True
+from . import __init__
 
 from core.quantile import *
 import matplotlib.pyplot as plt

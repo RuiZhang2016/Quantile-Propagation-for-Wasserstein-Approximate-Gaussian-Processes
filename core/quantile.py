@@ -73,9 +73,6 @@ def cal_C2(v,mu,sigma):
     return np.sum(np.sqrt(2)*0.5*(prod[:-1]+prod[1:]))*d
 
 
-
-
-
 xs_norm = np.random.normal(size=20000)
 # xs_disc = np.linspace(-1,1,20000)
 def fit_gauss_wd_sampling(v, mu, sigma):
@@ -105,7 +102,7 @@ def fit_gauss_wd_sampling(v, mu, sigma):
     return inf_mu, C2
 
 samples = np.linspace(-1,1,1024)
-def fit_gauss_wd_nature(v, mu, sigma):
+def fit_gauss_wd2_nature(v, mu, sigma):
     print('mu,sigma: ',mu,sigma)
     sigma2 = sigma ** 2
     # v2 = 1
@@ -134,7 +131,7 @@ def fit_gauss_wd_nature(v, mu, sigma):
     inf_sigma = np.sqrt(2) * np.nansum((prod[:-1] + prod[1:]) * dys) * 0.5
     return inf_mu, inf_sigma
 
-def fit_gauss_wd_minus_wd(v, mu, sigma):
+def fit_gauss_wd2_minus_wd(v, mu, sigma):
     sigma2 = sigma ** 2
     sqrtsigma = np.sqrt(sigma2 + 1)
     z = mu / v / sqrtsigma  # z = (mu - m) / v / np.sqrt(1 + sigma2 / v2)
@@ -147,7 +144,7 @@ def fit_gauss_wd_minus_wd(v, mu, sigma):
     inf_sigma = (sigma_q2+1-wd2)/2
     return inf_mu, inf_sigma
 
-def fit_gauss_wd_integral(v, mu, sigma):
+def fit_gauss_wd2_integral(v, mu, sigma):
     sigma2 = sigma ** 2
     sqrtsigma = np.sqrt(sigma2 + 1)
     z = mu / v / sqrtsigma  # z = (mu - m) / v / np.sqrt(1 + sigma2 / v2)
@@ -167,7 +164,7 @@ def fit_gauss_kl(v,mu,sigma):
     return inf_mu,np.sqrt(inf_sigma2)
 
 
-if __name__ == '__main__':
+def main1():
     v,mu,sigma = 1,1,10
     t1 = time.time()
     inf_mu_wd,inf_sigma_wd = fit_gauss_wd_nature(v,mu,sigma)
@@ -205,28 +202,30 @@ if __name__ == '__main__':
     print('sigma_q^2-sigma^*2: minus wd, integral: ', inf_sigma_kl ** 2 - inf_sigma_wd_minus_wd ** 2,
           inf_sigma_kl ** 2 - inf_sigma_wd_integral ** 2)
 
-    # plt.plot(xplot,yplot_true,label='True')
-    # plt.plot(xplot, wd_pdf(xplot), label='wd')
-    #
-    # plt.plot(xplot, kl_pdf(xplot), label='kl')
-    # plt.legend()
-    # plt.show()
-    #
-    # xplot = np.linspace(mu - 5, mu + 10, 100)
-    # yplot_true = np.array([Fr(e, v, mu, sigma) for e in xplot])
-    # yplot_wd = norm.cdf(xplot, loc=inf_mu_wd, scale=inf_sigma_wd)
-    # yplot_kl = norm.cdf(xplot, loc=inf_mu_kl, scale=inf_sigma_kl)
-    # plt.plot(xplot, yplot_true, label='True')
-    # plt.plot(xplot, yplot_wd, label='wd')
-    # plt.plot(xplot, yplot_kl, label='kl')
-    # plt.legend()
+def main2():
+    v = 1
+    sigma = 5
+    mus = [i for i in np.linspace(5,10,30)]
+    inf_mus = []
+    inf_sigmas = []
+    inf_sigmas2 = []
+    for mu in mus:
+        try:
+            tmp_mu, tmp_sigma = fit_gauss_wd_nature(v, mu, sigma)
+            tmp_mu, tmp_sigma2 = fit_gauss_kl(v, mu, sigma)
+        except Exception as e:
+            print(e)
+            tmp_mu, tmp_sigma = 0, 0
+            tmp_mu, tmp_sigma2 = 0, 0
+        inf_mus += [tmp_mu]
+        inf_sigmas += [tmp_sigma]
+        inf_sigmas2 += [tmp_sigma2]
+    # plt.plot(mus,inf_mus)
     # plt.show()
 
-    # xplot = np.linspace(1e-6,1-1e-6,1024)
-    # yplot = []
-    # for x in xplot:
-    #     yplot.append(inverse_Fr(x)*erfinv(2*x-1))
-    #     print(yplot[-1])
-    # plt.semilogy(xplot,yplot)
-    # # plt.semilogy(xplot, erfinv(2*xplot-1))
-    # plt.show()
+    plt.plot(mus,inf_sigmas,'*r')
+    plt.plot(mus, inf_sigmas2, '*b')
+    plt.show()
+
+if __name__ == '__main__':
+    main2()

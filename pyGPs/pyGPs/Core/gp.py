@@ -384,7 +384,6 @@ class GP(object):
         alpha = self.posterior.alpha
         L     = self.posterior.L
         sW    = self.posterior.sW
-
         nz = list(range(len(alpha[:,0])))         # non-sparse representation
         if len(L) == 0:                         # in case L is not provided, we compute it
             K = covfunc.getCovMatrix(x=x[nz,:], mode='train')
@@ -543,7 +542,6 @@ class GPR(GP):
         self.optimizer = opt.Minimize(self)                # default optimizer
 
 
-
     def setNoise(self,log_sigma):
         '''
         Set noise other than default noise value
@@ -608,7 +606,7 @@ class GPR(GP):
         plt.show()
 
 
-    def useInference(self, newInf):
+    def useInference(self, newInf,f1=None,f2=None):
         '''
         Use another inference techinique other than default exact inference.
 
@@ -618,6 +616,8 @@ class GPR(GP):
             self.inffunc = inf.Laplace()
         elif newInf == "EP":
             self.inffunc = inf.EP()
+        elif newInf == "QP":
+            self.inffunc = inf.QP(f1,f2)
         else:
             raise Exception('Possible inf values are "Laplace", "EP".')
 
@@ -648,6 +648,7 @@ class GPC(GP):
         self.covfunc = cov.RBF()                           # default prior covariance
         self.likfunc = lik.Erf()                           # erf likihood
         self.inffunc = inf.EP()                            # default inference method
+
         self.optimizer = opt.Minimize(self)                # default optimizer
 
 
