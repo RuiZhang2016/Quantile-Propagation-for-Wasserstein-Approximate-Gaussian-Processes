@@ -44,8 +44,8 @@ def plot_components():
 
     # plt.legend()
     fig.tight_layout()
-    plt.savefig('../plots/components.pdf')
-    # fig.show()
+    # plt.savefig('../plots/components.pdf')
+    fig.show()
 
 if __name__ == '__main__':
     plot_components()

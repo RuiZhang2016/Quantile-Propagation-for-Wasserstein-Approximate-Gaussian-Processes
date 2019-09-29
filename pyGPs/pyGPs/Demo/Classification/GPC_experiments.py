@@ -1,6 +1,6 @@
 from __future__ import print_function
 import pickle
-import os
+import os,sys
 # for Mac OS
 if sys.platform == 'darwin':
     import matplotlib
