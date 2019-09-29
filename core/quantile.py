@@ -197,7 +197,23 @@ class fit_gauss_wdp():
         der_sigma = -np.sum(tmp) / self.Z / N * p
         return der_mu, der_sigma
 
-    def inf(self,p):
+    def der_gauss2(self, mu,sigma,p):
+        xs = np.linspace(mu-10*sigma,mu+10*sigma,10000)
+        N = len(xs)
+        F_q = 2*self.Fq(xs)-1
+        _nugget0 = -1 + 1e-14
+        _nugget1 = 1 - 1e-14
+        F_q[F_q >= _nugget1] = _nugget1
+        F_q[F_q <= _nugget0] = _nugget0
+        xs_2 = erfinv(F_q)
+        tmp = abs(xs-mu-sigma*self.SQRT2*xs_2)**(p-1)\
+              * np.sign(xs- mu - sigma * self.SQRT2 * xs_2)
+        der_mu = -np.sum(tmp)/N*p
+        tmp = self.SQRT2*tmp*xs_2
+        der_sigma = -np.sum(tmp) / N * p
+        return der_mu, der_sigma
+
+    def inf(self,p,method=1):
         a1 = 0.1
         a2 = 0.1
         inf_mu = self.mu_q
@@ -206,7 +222,10 @@ class fit_gauss_wdp():
         while True:
             old_inf_mu = inf_mu
             old_inf_sigma = inf_sigma
-            der_mu, der_sigma = self.der_gauss(inf_mu,inf_sigma,p)
+            if method == 1:
+                der_mu, der_sigma = self.der_gauss(inf_mu,inf_sigma,p)
+            else:
+                der_mu, der_sigma = self.der_gauss2(inf_mu, inf_sigma, p)
             inf_mu -= a1*der_mu
             inf_sigma -= a2*der_sigma
             i+=1
@@ -215,7 +234,7 @@ class fit_gauss_wdp():
             elif i>1000:
                 break
             else:
-                if i%2== 0:
+                if i%4== 0:
                     print(i,inf_mu,inf_sigma)
         return inf_mu,inf_sigma
 

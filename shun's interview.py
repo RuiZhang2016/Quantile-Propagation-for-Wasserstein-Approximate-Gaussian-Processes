@@ -45,8 +45,24 @@ from queue import PriorityQueue as PQ
 #                 j+=1
 #         print(end+1)
 
+
+def sol(W,w,t):
+    total_t = 0
+    w_stack = [(w[0],0,t[0])]
+    for i in range(1,len(t)):
+        while len(w_stack)>0 and sum([e[0] for e in w_stack])+w[i] > W:
+            min_id = 0
+            min_v = w_stack[0][1]+w_stack[0][2]
+            for j in range(1,len(w_stack)):
+                if min_v > w_stack[j][1]+w_stack[j][2]:
+                    min_v = w_stack[j][1]+w_stack[j][2]
+                    min_id = j
+            total_t = min_v
+            w_stack.pop(min_id)
+        w_stack+=[(w[i],total_t,t[i])]
+    total_t = max([e[1]+e[2] for e in w_stack])
+    return total_t
+
 if __name__ == '__main__':
-    a = [1,2,3,4]
-    lrks = [[1,4,2],[1,3,2],[1,2,1]]
-    sol(a,lrks)
+    print(sol(2,[1,1,1,1],[2,1,2,2]))
 

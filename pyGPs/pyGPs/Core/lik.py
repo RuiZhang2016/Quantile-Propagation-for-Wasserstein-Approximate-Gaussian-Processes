@@ -2,6 +2,8 @@ from __future__ import division
 from __future__ import absolute_import
 from past.utils import old_div
 from builtins import object
+from scipy.stats import norm
+
 #    Marion Neumann [marion dot neumann at uni-bonn dot de]
 #    Daniel Marthaler [dan dot marthaler at gmail dot com]
 #    Shan Huang [shan dot huang at iais dot fraunhofer dot de]
@@ -573,6 +575,29 @@ class Laplace(Likelihood):
         y = np.log(np.array([np.sum(x,1)]).T) + max_logx
         return list(y.flatten())
 
+class Heaviside(Likelihood):
+
+    def evaluate(self, y=None, mu=None, s2=None, inffunc=None, der=None, nargout=1):
+        from . import inf
+        if isinstance(inffunc, inf.EP) or isinstance(inffunc, inf.QP):
+            if der is None:  # no derivative mode
+                Z = (1-y)/2+y*norm.cdf(mu,scale=np.sqrt(s2))
+                lZ = np.log(Z)
+                if nargout > 1:
+                    dZ = y*norm.pdf(mu,scale =np.sqrt(s2))
+                    dlZ = dZ/Z
+                    if nargout > 2:
+                        d2Z = -mu/s2*dZ# 2nd derivative wrt mean
+                        d2lZ = (d2Z*Z-dZ**2)/Z**2
+                        return lZ, dlZ,d2lZ
+                    else:
+                        return lZ, dlZ
+                else:
+                    return lZ
+            else:  # derivative mode
+                return []  # deriv. wrt hyp.lik
+        else:
+            raise Exception('Not Implemented')
 
 
 if __name__ == '__main__':
