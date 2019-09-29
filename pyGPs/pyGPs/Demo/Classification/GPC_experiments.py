@@ -1,32 +1,11 @@
 from __future__ import print_function
-<<<<<<< HEAD
-
-import sys
-
-=======
 import pickle
->>>>>>> a95a49d07844313d4a8ce8b1eb37c4dd68a9d075
 import os
-# for Mac OS
-if sys.platform == 'darwin':
-    import matplotlib
-    matplotlib.use('TkAgg')
-    os.environ['proj'] = '/Users/ruizhang/PycharmProjects/WGPC'
-else:
-    os.environ['proj'] = '/home/rzhang/PycharmProjects/WGPC'
-sys.path.append(os.environ['proj']+'/pyGPs')
-sys.path.append(os.environ['proj'])
 
 import pyGPs
 import numpy as np
 
-
 np.random.seed(0)
-<<<<<<< HEAD
-
-from core.util import *
-
-=======
 # from .read_data import *
 from core.generate_table import *
 from scipy import interpolate
