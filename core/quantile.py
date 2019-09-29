@@ -6,7 +6,7 @@ import time
 from scipy.special import erfinv
 from pynverse import inversefunc
 import matplotlib.pyplot as plt
-np.random.seed(0)
+
 
 def Fr(x, v, mu, sigma):
     sigma2 = sigma ** 2
@@ -154,6 +154,71 @@ def fit_gauss_wd2_integral(v, mu, sigma):
     inf_sigma = np.sqrt(2)*integrate.quad(lambda x: inverse_Fr(x)*erfinv(2*x-1), 0, 1)[0]
 
     return inf_mu, inf_sigma
+
+
+class fit_gauss_wdp():
+    def __init__(self,mu_q,sigma_q, Z, q, Fq, lik, samples):
+        self.mu_q = mu_q
+        self.sigma_q = sigma_q
+        self.Z = Z
+        self.q = q
+        self.Fq = Fq
+        self.lik = lik
+        self.SQRT2 = np.sqrt(2)
+        self.samples = samples
+        self.erf_F_q = None
+    # sigma2 = sigma ** 2
+    # sqrtsigma = np.sqrt(sigma2 + 1)
+    # z = mu / v / sqrtsigma  # z = (mu - m) / v / np.sqrt(1 + sigma2 / v2)
+    # pdfdivcdf = norm.pdf(z) / norm.cdf(z)
+    # mu_q = mu + sigma2 * pdfdivcdf / v / sqrtsigma
+    # sigma2_q = sigma2 - sigma2 ** 2 * norm.pdf(z) / (1 + sigma2) / norm.cdf(z) * (z + norm.pdf(z) / norm.cdf(z))
+    # sigma_q = np.sqrt(sigma2_q)
+    def der_gauss(self, mu,sigma,p):
+        # sigma2 = sigma ** 2
+        # sqrtsigma = np.sqrt(sigma2 + 1)
+        # z = mu / v / sqrtsigma  # z = (mu - m) / v / np.sqrt(1 + sigma2 / v2)
+        # Z = norm.cdf(z)
+
+        samples = self.samples
+        N = len(samples)
+        if self.erf_F_q is None:
+            F_q = self.Fq(samples)
+            F_q = 2*F_q-1
+            _nugget0 = -1 + 1e-14
+            _nugget1 = 1 - 1e-14
+            F_q[F_q >= _nugget1] = _nugget1
+            F_q[F_q <= _nugget0] = _nugget0
+            self.erf_F_q = erfinv(F_q)
+        tmp = np.abs(samples - mu -sigma*self.SQRT2*self.erf_F_q)**(p-1)*\
+              np.sign(samples - mu -sigma*self.SQRT2*self.erf_F_q)*self.lik(samples)
+        der_mu = -np.sum(tmp)/self.Z/N*p
+        tmp = self.SQRT2*tmp*self.erf_F_q
+        der_sigma = -np.sum(tmp) / self.Z / N * p
+        return der_mu, der_sigma
+
+    def inf(self,p):
+        a1 = 0.1
+        a2 = 0.1
+        inf_mu = self.mu_q
+        inf_sigma = self.sigma_q
+        i = 0
+        while True:
+            old_inf_mu = inf_mu
+            old_inf_sigma = inf_sigma
+            der_mu, der_sigma = self.der_gauss(inf_mu,inf_sigma,p)
+            inf_mu -= a1*der_mu
+            inf_sigma -= a2*der_sigma
+            i+=1
+            if abs(old_inf_mu - inf_mu)/old_inf_mu < 1e-6 or abs(old_inf_sigma - inf_sigma)/old_inf_sigma < 1e-6:
+                break
+            elif i>1000:
+                break
+            else:
+                if i%2== 0:
+                    print(i,inf_mu,inf_sigma)
+        return inf_mu,inf_sigma
+
 
 
 def fit_gauss_kl(v,mu,sigma):
