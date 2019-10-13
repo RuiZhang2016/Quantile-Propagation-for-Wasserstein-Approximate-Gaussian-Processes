@@ -1,6 +1,6 @@
 import matplotlib
 matplotlib.rcParams['text.usetex'] = True
-from . import __init__
+matplotlib.use('TkAgg')
 
 from core.quantile import *
 import matplotlib.pyplot as plt
@@ -46,8 +46,8 @@ def plot_components():
 
     # plt.legend()
     fig.tight_layout()
-    plt.savefig('../plots/components.pdf')
-    # fig.show()
+    # plt.savefig('../plots/components.pdf')
+    fig.show()
 
 
 def plot_wdp_solutions():
@@ -55,13 +55,14 @@ def plot_wdp_solutions():
     sigmas = np.array([0.5,2])
     p = 0.22
     eff = np.array([p,1-p])
-    xs_plot = np.linspace(0, 2, 100)
+    xs_plot = np.linspace(-5, 10, 100)
     # ps_plot = pr(xs_plot, v, mu, sigma)
     q = lambda x: p*norm.pdf(x,loc=mus[0],scale = sigmas[0])+(1-p)*norm.pdf(x,loc=mus[1],scale = sigmas[1])
     Fq = lambda x: p* norm.cdf(x,loc=mus[0],scale = sigmas[0]) + (1-p)*norm.cdf(x,loc=mus[1],scale = sigmas[1])
     mu_q = np.sum(eff*mus)
     sigma_q = np.sqrt(np.sum(eff*(mus**2+sigmas**2))-mu_q**2)
     lik = lambda x: 1
+
     sampleN = 20000
     samples1 = np.random.normal(mus[0],sigmas[0],int(p*sampleN))
     samples2 = np.random.normal(mus[1],sigmas[1],sampleN-int(p*sampleN))
@@ -72,26 +73,20 @@ def plot_wdp_solutions():
     print('mu_q, sigma_q, Z: ', mu_q, sigma_q, Z)
     ps_plot = q(xs_plot)
 
-    inf_mus, inf_sigmas = [], []
-    wdps = [1,1.25,1.5,1.75,2,4,10]
+    wdps = [1,1.25,1.5,1.75,2]
+    plt.plot(xs_plot, ps_plot, label='true')
     for wdp in wdps:
         print(wdp)
-        inf_mu, inf_sigma = fgw.inf(wdp)
-        inf_mus +=[ inf_mu]
-        inf_sigmas += [inf_sigma]
+        inf_mu, inf_sigma = fgw.inf(wdp,2)
+        print(inf_mu,inf_sigma)
+        plt.plot(xs_plot, norm.pdf(xs_plot, inf_mu, inf_sigma), '-.', label='p={}'.format(wdp))
+        plt.plot(inf_mu, norm.pdf(inf_mu, inf_mu, inf_sigma), '*')
 
-    plt.plot(xs_plot, ps_plot, label='true')
-    for i in range(len(wdps)):
-        wdp = wdps[i]
-        inf_mu = inf_mus[i]
-        inf_sigma = inf_sigmas[i]
-        plt.plot(xs_plot, norm.pdf(xs_plot,inf_mu,inf_sigma), '-.', label='p={}'.format(wdp))
-        plt.plot(inf_mu,norm.pdf(inf_mu,inf_mu,inf_sigma),'*')
     plt.plot(xs_plot, norm.pdf(xs_plot, mu_q, sigma_q),label='EP')
     plt.plot(mu_q, norm.pdf(mu_q, mu_q, sigma_q))
     plt.legend()
-    plt.savefig('../plots/mixture_gauss.pdf')
-
+    # plt.savefig('../plots/mixture_gauss.pdf')
+    plt.show()
 
 def calc_lks_is(f1,f2,exp_id):
     # import csv

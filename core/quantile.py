@@ -131,6 +131,37 @@ def fit_gauss_wd2_nature(v, mu, sigma):
     inf_sigma = np.sqrt(2) * np.nansum((prod[:-1] + prod[1:]) * dys) * 0.5
     return inf_mu, inf_sigma
 
+
+def fit_gauss_wd2_by_another_wd(v, mu, sigma):
+    print('mu,sigma: ',mu,sigma)
+    sigma2 = sigma ** 2
+    # v2 = 1
+    z = mu / v / np.sqrt(1 + sigma2)  # z = (mu - m) / v / np.sqrt(1 + sigma2 / v2)
+    pdfdivcdf = norm.pdf(z) / norm.cdf(z)
+    inf_mu = mu + sigma2 * pdfdivcdf/v/np.sqrt(1+sigma2)# inf_mu = mu + sigma ** 2 * norm.pdf(z) / norm.cdf(z) / v / np.sqrt(1 + sigma2 / v2)
+
+    # inverse_Fr = lambda y: inversefunc(lambda x: self._Fr(x, v, mu, sigma), y_values=y, accuracy=6)
+    # inf_sigma =  self.sqrt2* integrate.quad(lambda x: inverse_Fr(x)*erfinv(2 * x - 1), 0, 1)[0]
+
+    inf_sigma2 = sigma2 - sigma2 ** 2 * pdfdivcdf / (1 + sigma2) * (z + pdfdivcdf)# inf_sigma2 = sigma2 - sigma2 ** 2 * norm.pdf(z) / (v2 + sigma2) / norm.cdf(z) * (z + norm.pdf(z) / norm.cdf(z))
+    inf_sigma = np.sqrt(inf_sigma2)
+    xs_Fr = samples*5*inf_sigma + inf_mu # np.linspace(inf_mu - 5 * inf_sigma, inf_mu + 5 * inf_sigma, 512)
+
+    ys = np.array([Fr(x, v, mu, sigma) for x in xs_Fr])
+    #ys = np.array(Fr(xs_Fr, v, mu, sigma))
+    _nugget0 = -1+1e-14
+    _nugget1 = 1 - 1e-14
+    dys = ys[1:] - ys[:-1]
+    ys = 2 * ys - 1
+    ys[ys >= _nugget1] = _nugget1
+    ys[ys <= _nugget0] = _nugget0
+    xs_erf = erfinv(ys)
+    # prod = (xs_Fr -inf_mu-np.sqrt(2)*xs_erf)**2
+    prod = (xs_Fr - inf_mu - np.sqrt(2) /2* xs_erf) ** 2
+    w22 = np.nansum((prod[:-1] + prod[1:]) * dys) * 0.5
+    inf_sigma = inf_sigma2+0.25-w22 #(inf_sigma2+1-w22)/2
+    return inf_mu, inf_sigma
+
 def fit_gauss_wd2_minus_wd(v, mu, sigma):
     sigma2 = sigma ** 2
     sqrtsigma = np.sqrt(sigma2 + 1)
@@ -197,7 +228,23 @@ class fit_gauss_wdp():
         der_sigma = -np.sum(tmp) / self.Z / N * p
         return der_mu, der_sigma
 
-    def inf(self,p):
+    def der_gauss2(self, mu,sigma,p):
+        xs = np.linspace(mu-10*sigma,mu+10*sigma,10000)
+        N = len(xs)
+        F_q = 2*self.Fq(xs)-1
+        _nugget0 = -1 + 1e-14
+        _nugget1 = 1 - 1e-14
+        F_q[F_q >= _nugget1] = _nugget1
+        F_q[F_q <= _nugget0] = _nugget0
+        xs_2 = erfinv(F_q)
+        tmp = abs(xs-mu-sigma*self.SQRT2*xs_2)**(p-1)\
+              * np.sign(xs- mu - sigma * self.SQRT2 * xs_2)
+        der_mu = -np.sum(tmp)/N*p
+        tmp = self.SQRT2*tmp*xs_2
+        der_sigma = -np.sum(tmp) / N * p
+        return der_mu, der_sigma
+
+    def inf(self,p,method=1):
         a1 = 0.1
         a2 = 0.1
         inf_mu = self.mu_q
@@ -206,7 +253,10 @@ class fit_gauss_wdp():
         while True:
             old_inf_mu = inf_mu
             old_inf_sigma = inf_sigma
-            der_mu, der_sigma = self.der_gauss(inf_mu,inf_sigma,p)
+            if method == 1:
+                der_mu, der_sigma = self.der_gauss(inf_mu,inf_sigma,p)
+            else:
+                der_mu, der_sigma = self.der_gauss2(inf_mu, inf_sigma, p)
             inf_mu -= a1*der_mu
             inf_sigma -= a2*der_sigma
             i+=1
@@ -215,7 +265,7 @@ class fit_gauss_wdp():
             elif i>1000:
                 break
             else:
-                if i%2== 0:
+                if i%4== 0:
                     print(i,inf_mu,inf_sigma)
         return inf_mu,inf_sigma
 
@@ -228,11 +278,28 @@ def fit_gauss_kl(v,mu,sigma):
     inf_sigma2 = sigma2-sigma2**2*norm.pdf(z)/(1+sigma2)/norm.cdf(z)*(z+norm.pdf(z)/norm.cdf(z))
     return inf_mu,np.sqrt(inf_sigma2)
 
+def reliability_curve(y_true, y_score, bins=10, normalize=False):
+    if normalize:  # Normalize scores into bin [0, 1]
+        y_score = (y_score - y_score.min()) / (y_score.max() - y_score.min())
 
-def main1():
+    bin_width = 1.0 / bins
+    bin_centers = np.linspace(0, 1.0 - bin_width, bins) + bin_width / 2
+
+    y_score_bin_mean = np.empty(bins)
+    empirical_prob_pos = np.empty(bins)
+    for i, threshold in enumerate(bin_centers):
+        # determine all samples where y_score falls into the i-th bin
+        bin_idx = np.logical_and(threshold - bin_width / 2 < y_score,
+                                 y_score <= threshold + bin_width / 2)
+        # Store mean y_score and mean empirical probability of positive class
+        y_score_bin_mean[i] = y_score[bin_idx].mean()
+        empirical_prob_pos[i] = y_true[bin_idx].mean()
+    return y_score_bin_mean, empirical_prob_pos
+
+def compare_different_implementation():
     v,mu,sigma = 1,1,10
     t1 = time.time()
-    inf_mu_wd,inf_sigma_wd = fit_gauss_wd_nature(v,mu,sigma)
+    inf_mu_wd,inf_sigma_wd = fit_gauss_wd2_nature(v,mu,sigma)
     t2 = time.time()
     inf_mu_kl, inf_sigma_kl = fit_gauss_kl(v, mu, sigma)
     t3 = time.time()
@@ -250,9 +317,9 @@ def main1():
     print('sigma_q^2-sigma^*2: ', inf_sigma_kl**2-inf_sigma_wd**2)
 
     t1 = time.time()
-    inf_mu_wd, inf_sigma_wd_minus_wd = fit_gauss_wd_minus_wd(v, mu, sigma)
+    inf_mu_wd, inf_sigma_wd_minus_wd = fit_gauss_wd2_by_another_wd(v, mu, sigma)
     t2 = time.time()
-    inf_mu_wd, inf_sigma_wd_integral = fit_gauss_wd_integral(v, mu, sigma)
+    inf_mu_wd, inf_sigma_wd_integral = fit_gauss_wd2_integral(v, mu, sigma)
     t3 = time.time()
     print('wd minus wd time, wd integral time: ', t2 - t1, t3 - t2)
     print('sigma: minus wd ', inf_sigma_wd_minus_wd, ' integral: ', inf_sigma_wd_integral)
@@ -293,4 +360,4 @@ def main2():
     plt.show()
 
 if __name__ == '__main__':
-    main2()
+    compare_different_implementation()
