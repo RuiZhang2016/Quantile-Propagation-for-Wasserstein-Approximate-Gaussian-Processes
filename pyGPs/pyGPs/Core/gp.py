@@ -4,6 +4,7 @@ from builtins import str
 from builtins import range
 from builtins import object
 from past.utils import old_div
+from scipy.stats import multivariate_normal as norm
 #================================================================================
 #    Marion Neumann [marion dot neumann at uni-bonn dot de]
 #    Daniel Marthaler [dan dot marthaler at gmail dot com]
@@ -283,8 +284,6 @@ class GP(object):
         # apply optimal hyp to all mean/cov/lik functions here
         self.optimizer._apply_in_objects(optimalHyp)
         self.getPosterior()
-
-
 
     def getPosterior(self, x=None, y=None, der=True):
         '''
@@ -580,7 +579,7 @@ class GPR(GP):
             raise Exception('Optimization method is not set correctly in setOptimizer')
 
 
-    def plot(self,axisvals=None):
+    def plot(self,ax = None, show=False):
         '''
         Plot 1d GP regression result.
 
@@ -591,20 +590,44 @@ class GPR(GP):
         y = self.y
         ym = self.ym    # predictive test mean
         ys2 = self.ys2  # predictive test variance
-        plt.figure()
         xss  = np.reshape(xs,(xs.shape[0],))
         ymm  = np.reshape(ym,(ym.shape[0],))
         ys22 = np.reshape(ys2,(ys2.shape[0],))
-        plt.plot(x, y, color=DATACOLOR, ls='None', marker='+',ms=12, mew=2)
-        plt.plot(xs, ym, color=MEANCOLOR, ls='-', lw=3.)
-        plt.fill_between(xss,ymm + 2.*np.sqrt(ys22), ymm - 2.*np.sqrt(ys22), facecolor=SHADEDCOLOR,linewidths=0.0)
-        plt.grid()
-        if not axisvals is None:
-            plt.axis(axisvals)
-        plt.xlabel('input x')
-        plt.ylabel('target y')
-        plt.show()
+        ax.plot(x, y, color=DATACOLOR, ls='None', marker='+',ms=12, mew=2)
+        ax.plot(xs, ym, color=MEANCOLOR, ls='-', lw=3.)
+        ax.fill_between(xss,ymm + 2.*np.sqrt(ys22), ymm - 2.*np.sqrt(ys22), facecolor=SHADEDCOLOR,linewidths=0.0)
+        ax.grid()
+        # if not axisvals is None:
+        #     plt.axis(axisvals)
+        ax.set_xlabel('input x')
+        ax.set_ylabel('target y')
+        if show:
+            plt.show()
 
+    # def plot(self,axisvals=None):
+    #     '''
+    #     Plot 1d GP regression result.
+    #
+    #     :param list axisvals: [min_x, max_x, min_y, max_y] setting the plot range
+    #     '''
+    #     xs = self.xs    # test point
+    #     x = self.x
+    #     y = self.y
+    #     ym = self.ym    # predictive test mean
+    #     ys2 = self.ys2  # predictive test variance
+    #     plt.figure()
+    #     xss  = np.reshape(xs,(xs.shape[0],))
+    #     ymm  = np.reshape(ym,(ym.shape[0],))
+    #     ys22 = np.reshape(ys2,(ys2.shape[0],))
+    #     plt.plot(x, y, color=DATACOLOR, ls='None', marker='+',ms=12, mew=2)
+    #     plt.plot(xs, ym, color=MEANCOLOR, ls='-', lw=3.)
+    #     plt.fill_between(xss,ymm + 2.*np.sqrt(ys22), ymm - 2.*np.sqrt(ys22), facecolor=SHADEDCOLOR,linewidths=0.0)
+    #     plt.grid()
+    #     if not axisvals is None:
+    #         plt.axis(axisvals)
+    #     plt.xlabel('input x')
+    #     plt.ylabel('target y')
+    #     plt.show()
 
     def useInference(self, newInf,f1=None,f2=None):
         '''
@@ -628,9 +651,13 @@ class GPR(GP):
 
         :param str newLik: 'Laplace'
         '''
-        if newLik == "Laplace":
+        if newLik == "Laplace_EP":
             self.likfunc = lik.Laplace()
             self.inffunc = inf.EP()
+        elif newLik == "Laplace_QP":
+            self.likfunc = lik.Laplace()
+            f = lambda x:x
+            self.inffunc = inf.QP(f,f)
         else:
             raise Exception('Possible lik values are "Laplace".')
 
@@ -646,9 +673,8 @@ class GPC(GP):
         super(GPC, self).__init__()
         self.meanfunc = mean.Zero()                        # default prior mean
         self.covfunc = cov.RBF()                           # default prior covariance
-        self.likfunc = lik.Heaviside()                           # erf likihood
+        self.likfunc = lik.Erf()                           # erf likihood
         self.inffunc = inf.EP()                            # default inference method
-
         self.optimizer = opt.Minimize(self)                # default optimizer
 
 
@@ -704,6 +730,131 @@ class GPC(GP):
         plt.show()
 
 
+    def plot_f(self, true_pdf,cavity_f1,cavity_f2, axisvals=None):
+        '''
+        Plot 2d GP Classification result.
+
+        For plotting, we superimpose the data points with the posterior equi-probability contour
+        lines for the probability of class two given complete information about the generating mechanism.
+
+        :param x1: inputs for class +1
+        :param x2: inputs for class -1
+        :param t1: meshgrid array for the first axis
+        :param t2: meshgrid array for the second axis
+        :param list axisvals: [min_x, max_x, min_y, max_y] setting the plot range
+
+        Note these parameters are (only) used for our hard-coded data for classification demo.
+        '''
+        from mpl_toolkits.mplot3d import axes3d
+        import matplotlib.pyplot as plt
+
+        post_color = 'k'
+        tilt_color = '#0172B2'
+        approx_color = '#CC6600'
+        line_style = 'solid' #if self.inffunc.name == 'Expectation Propagation' else 'solid'
+
+        mu = self.inffunc.mu.flatten()
+        Sigma = self.inffunc.Sigma
+        xmin = mu[0] - 4 * np.sqrt(Sigma[0, 0])
+        xmax = mu[0] + 4 * np.sqrt(Sigma[0, 0])
+        ymin = mu[1] - 4 * np.sqrt(Sigma[1, 1])
+        ymax = mu[1] + 4 * np.sqrt(Sigma[1, 1])
+        print('[xmin, xmax]: [{}, {}], [ymin, ymax]: [{}, {}]'.format(xmin,xmax,ymin,ymax))
+        xs = np.linspace(xmin, xmax, 100)
+        ys = np.linspace(ymin, ymax, 100)
+
+        pdf = lambda x: norm.pdf(x=x, mean=mu, cov=Sigma)
+        Xs, Ys = np.meshgrid(xs, ys)
+        XYs = np.vstack((Xs.flatten(),Ys.flatten())).T
+
+        approx = np.array([pdf(XY) for XY in XYs]).reshape(len(xs), len(xs))
+        post = np.array([true_pdf(XY) for XY in XYs]).reshape(len(xs),len(xs)) # np.array([[true_pdf([xs[i], ys[j]]) for i in range(len(xs))] for j in range(len(ys))])
+        tilted = np.array([cavity_f1(XY[0])*cavity_f2(XY[1]) for XY in XYs]).reshape(len(xs),len(xs))
+        approx /= approx.sum()
+        post /= post.sum()
+        tilted /= tilted.sum()
+        dxy = np.diff(xs)[0]*np.diff(ys)[0]
+        approx /= dxy
+        post /= dxy
+        tilted /= dxy
+
+        d_ap = np.sqrt(np.sum((approx-post)**2))
+        d_tp = np.sqrt(np.sum((tilted-post)**2))
+        print('distance: AP {}, TP {}'.format(d_ap,d_tp))
+
+        # 3D plot
+        # ax = plt.subplot2grid((4, 3), (1, 0), colspan=3, rowspan=3, projection='3d')
+        # fig = plt.figure()
+        # ax = fig.add_subplot(111, projection='3d')
+        # ax = fig.gca(projection='3d')
+        ax = axisvals
+        contours = np.linspace(0, post.max(), 20)[1:]
+        ax.contour(Xs, Ys, post, contours, colors=post_color, linestyles=line_style)
+        contours = np.linspace(0, approx.max(), 20)[1:]
+        ax.contour(Xs, Ys, approx, contours, colors=approx_color, linestyles=line_style)
+        contours = np.linspace(0, tilted.max(), 20)[1:]
+        ax.contour(Xs, Ys, tilted, contours, colors=tilt_color, linestyles=line_style)
+
+        # marginal post
+        marg = post.sum(0)
+        marg/=marg.sum()
+        marg /= abs(xs[1]-xs[0])
+        ax.plot(xs,marg, ymax+1, zdir='y', color=post_color)
+        marg = post.sum(1)
+        marg/=marg.sum()
+        marg /= abs(ys[1]-ys[0])
+        ax.plot(ys,marg, xmax+1, zdir='x', color=post_color)
+
+        # marginal approx
+        marg = approx.sum(0)
+        marg /= marg.sum()
+        marg /= abs(xs[1] - xs[0])
+        ax.plot(xs,marg, ymax+1, zdir='y', color=approx_color)
+        marg = approx.sum(1)
+        marg /= marg.sum()
+        marg /= abs(ys[1] - ys[0])
+        ax.plot(ys,marg, xmax+1, zdir='x', color=approx_color)
+
+        # cavity
+        marg = np.array([cavity_f1(x) for x in xs])
+        marg /= marg.sum()
+        marg /= abs(xs[1] - xs[0])
+        ax.plot(xs,marg, ymax+1, zdir='y', color=tilt_color)
+        marg = np.array([cavity_f2(y) for y in ys])
+        marg /= marg.sum()
+        marg /= abs(ys[1] - ys[0])
+        ax.plot(ys,marg, xmax+1, zdir='x', color=tilt_color)
+
+        # true
+        # marg = np.array([true_f2(x) for x in ys])
+        # marg /= marg.sum()
+        # marg /= abs(ys[1] - ys[0])
+        # ax.plot(ys, marg, xmin - 1, zdir='x', color=tilt_color)
+
+        # marg = approx.sum(1)
+        # marg /= marg.sum()
+        # ax.plot(Ys[0], marg, ymax + 1, zdir='y', color=approx_color)
+        #
+        # contours = np.linspace(0, approx.max(), 20)[1:]
+        # ax.contour(Xs, Ys, np.clip(approx, 0, contours.max()), contours, colors=approx_color)
+        # contours = np.linspace(0, post.max(), 20)[1:]
+        # ax.contour(Xs, Ys, np.clip(post, 0, contours.max()), contours, colors=post_color)
+        ax.set_zlim(0, post.max())
+        ax.set_xlim(xmin, xmax)
+        ax.set_ylim(ymin, ymax)
+        plt.tight_layout()
+        # plt.show(block=True)
+
+        # plt.plot(xs,marg)
+        # plt.show()
+
+        # fig.colorbar(pc)
+        # plt.grid()
+        # if not axisvals is None:
+        #     plt.axis(axisvals)
+        # plt.show()
+
+
 
     def useInference(self, newInf,f1=None,f2=None):
         '''
@@ -732,8 +883,30 @@ class GPC(GP):
         if newLik == "Logistic":
             raise Exception("Logistic likelihood is currently not implemented.")
             #self.likfunc = lik.Logistic()
+        elif newLik == 'Heaviside':
+            self.likfunc = lik.Heaviside()
+        elif newLik == 'Erf':
+            self.likfunc = lik.Erf()
         else:
             raise Exception('Possible lik values are "Logistic".')
+
+    def reliability_curve(self,y_true, y_score, bins=10, normalize=False):
+        if normalize:  # Normalize scores into bin [0, 1]
+            y_score = (y_score - y_score.min()) / (y_score.max() - y_score.min())
+
+        bin_width = 1.0 / bins
+        bin_centers = np.linspace(0, 1.0 - bin_width, bins) + bin_width / 2
+
+        y_score_bin_mean = np.empty(bins)
+        empirical_prob_pos = np.empty(bins)
+        for i, threshold in enumerate(bin_centers):
+            # determine all samples where y_score falls into the i-th bin
+            bin_idx = np.logical_and(threshold - bin_width / 2 < y_score,
+                                     y_score <= threshold + bin_width / 2)
+            # Store mean y_score and mean empirical probability of positive class
+            y_score_bin_mean[i] = y_score[bin_idx].mean()
+            empirical_prob_pos[i] = y_true[bin_idx].mean()
+        return y_score_bin_mean, empirical_prob_pos
 
 
 

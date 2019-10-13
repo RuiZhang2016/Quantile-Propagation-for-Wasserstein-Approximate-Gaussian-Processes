@@ -24,7 +24,6 @@ else:
 #================================================================================
 
 import pyGPs
-from read_data import *
 from core.generate_table import *
 from GPC_experiments import *
 from scipy import interpolate
@@ -34,6 +33,18 @@ from scipy import interpolate
 
 print('')
 print('---------------------GPC DEMO-------------------------')
+
+
+def compute_I(ys, ps, ys_train):
+    p1 = np.mean([e if e == 1 else 0 for e in ys_train])
+    p2 = 1-p1
+    H = -p1*np.log2(p1)-p2*np.log2(p2)
+    assert len(ys) == len(ps)
+    Is = (ys+1)/2*np.log2(ps)+(1-ys)/2*np.log2(1-ps)+H
+    return np.mean(Is)
+
+def compute_E(ys,ps):
+    return np.mean([100 if (ps[i] > 0.5)^(ys[i] == 1) else 0 for i in range(len(ps))])
 
 #----------------------------------------------------------------------
 # Load demo data (generated from Gaussians)
@@ -52,7 +63,7 @@ t1 = demoData['t1']          # y for class 1 (with label -1)
 t2 = demoData['t2']          # y for class 2 (with label +1)
 p1 = demoData['p1']          # prior for class 1 (with label -1)
 p2 = demoData['p2']          # prior for class 2 (with label +1)
-
+print(x1.shape,x2.shape,x.shape)
 ## By Rui
 def preproc(x, m, s):
     return (x-m)/s
@@ -66,7 +77,6 @@ def preproc(x, m, s):
 #----------------------------------------------------------------------
 # print('Basic Example - Data')
 # model = pyGPs.GPC()  # binary classification (default inference method: EP)
-# # model.inffunc = pyGPs.inf.QP()
 # # model.setOptimizer('BFGS')
 # model.plotData_2d(x1,x2,t1,t2,p1,p2)
 # print('Basic Example - Posterior')
@@ -85,39 +95,35 @@ def preproc(x, m, s):
 # print('More Advanced Example')
 # Start from a new model
 model = pyGPs.GPC()
-
+f1, f2 = lambda x: x, lambda x: x # interp_fs()
+model.useInference('QP',f1,f2)
 # Analogously to GPR
 k = pyGPs.cov.RBFard(log_ell_list=[0.05,0.17], log_sigma=1.)
 model.setPrior(kernel=k)
 
-model.getPosterior(x, y)
+# model.getPosterior(x, y)
 # print("Negative log marginal liklihood before:", round(model.nlZ,7))
-model.optimize(x, y)
+model.optimize(x, y,numIterations=10)
 print("Negative log marginal liklihood optimized:", round(model.nlZ,7))
 
 # Prediction
-n = z.shape[0]
-ymu, ys2, fmu, fs2, lp = model.predict(z, ys=np.ones((n,1)))
-model.plot(x1,x2,t1,t2)
+ymu, ys2, fmu, fs2, lp = model.predict(x, ys=np.ones((x.shape[0],1)))
+I = compute_I(y,np.exp(lp),y)
+E = compute_E(y,np.exp(lp))
+print(I,E)
+
+
+# model.plot(x1[:2],x2[:2],xplot,yplot)
+# xs = np.linspace(-10,10,100)
+# ys = np.linspace(-10,10,100)
+# model.plot_f(xs,ys)
 # pyGPs.GPC.plot() is a toy method for 2-d data
 # plot log probability distribution for class +1
 # model.plot(x1,x2,t1,t2)
 # print(x1.shape,x2.shape,z.shape,x.shape)
 
-def compute_I(ys, ps, ys_train):
-    p1 = np.mean([e if e == 1 else 0 for e in ys_train])
-    p2 = 1-p1
-    H = -p1*np.log2(p1)-p2*np.log2(p2)
-    assert len(ys) == len(ps)
-    Is = (ys+1)/2*np.log2(ps)+(1-ys)/2*np.log2(1-ps)+H
-    print((ys+1)/2*np.log2(ps)+(1-ys)/2*np.log2(1-ps))
-    return np.mean(Is)
 
-def compute_E(ys,ps):
-    return np.mean([100 if (ps[i] > 0.5)^(ys[i] == 1) else 0 for i in range(len(ps))])
-# I = compute_I(y,np.exp(lp),y)
-# E = compute_E(y,np.exp(lp))
-# print(I,E)
+
 # table1 = WR_table('/home/rzhang/PycharmProjects/WGPC/res/WD_GPC/sigma_new_1.csv', 'r')
 # table2 = WR_table('/home/rzhang/PycharmProjects/WGPC/res/WD_GPC/sigma_new_-1.csv', 'r')
 # x = [i * 0.001 - 5 for i in range(10000)]
@@ -126,8 +132,7 @@ def compute_E(ys,ps):
 # f2 = interpolate.interp2d(y, x, table2, kind='linear')
 #
 # model = pyGPs.GPC()
-# f1, f2 = interp_fs()
-# model.useInference('QP',f1,f2)
+
 # model.optimize(x, y)
 # n = z.shape[0]
 # ymu, ys2, fmu, fs2, lp = model.predict(z, ys=np.ones((n,1)))
@@ -135,18 +140,6 @@ def compute_E(ys,ps):
 # # Analogously to GPR
 # k = pyGPs.cov.RBFard(log_ell_list=[0.05,0.17], log_sigma=1.)
 # model.setPrior(kernel=k)
-#
-# model.getPosterior(x, y)
-# print("Negative log marginal liklihood before:", round(model.nlZ,7))
-# model.optimize(x, y)
-# print("Negative log marginal liklihood optimized:", round(model.nlZ,7))
-#
-# # Prediction
-
-# print(np.exp(lp))
-# I = np.mean(lp)
-# E = np.mean([0 if np.exp(e)>0.5 else 1 for e in lp])
-# print(I,E)
 
 #
 # print('--------------------END OF DEMO-----------------------')

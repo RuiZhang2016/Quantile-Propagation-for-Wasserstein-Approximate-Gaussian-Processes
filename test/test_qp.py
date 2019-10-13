@@ -53,28 +53,28 @@ class TestQp(TestCase):
     #                 print(e,mu,sigma)
 
 
-    def test_qp_fit_gauss2gauss_MC(self):
-        mus = np.linspace(-10,10,5)
-        sigmas = np.linspace(1,10,5)
-        for mu in mus:
-            for sigma in sigmas:
-                try:
-                    xs_Fr = np.linspace(mu-5*sigma,mu+5*sigma,1024)
-                    ys = np.array([norm.cdf(x,loc=mu,scale=sigma) for x in xs_Fr])
-                    dys = ys[1:]-ys[:-1]
-                    inf_mu = np.sum((xs_Fr[:-1]+xs_Fr[1:])*dys)*0.5
-                    xs_erf = erfinv(2 * ys - 1)
-                    prod = xs_Fr*xs_erf
-                    prod = prod[~np.isnan(prod)]
-                    C2 = np.sqrt(2)*np.sum((prod[:-1]+prod[1:])*dys)*0.5
-                    inf_sigma = C2
-                    # inf_sigma = cal_C2(0, v, mu, sigma)
-                    assert np.isclose(inf_mu,mu,rtol=1e-4),('inf_mu, mu:', inf_mu,mu)
-                    assert np.isclose(inf_sigma, sigma,rtol=1e-4), ('inf_sigma, sigma:', inf_sigma, sigma)
-                except Exception as e:
-                    print(e)
-                    print(mu,inf_mu)
-                    print(sigma, inf_sigma)
+    # def test_qp_fit_gauss2gauss_MC(self):
+    #     mus = np.linspace(-10,10,5)
+    #     sigmas = np.linspace(1,10,5)
+    #     for mu in mus:
+    #         for sigma in sigmas:
+    #             try:
+    #                 xs_Fr = np.linspace(mu-5*sigma,mu+5*sigma,1024)
+    #                 ys = np.array([norm.cdf(x,loc=mu,scale=sigma) for x in xs_Fr])
+    #                 dys = ys[1:]-ys[:-1]
+    #                 inf_mu = np.sum((xs_Fr[:-1]+xs_Fr[1:])*dys)*0.5
+    #                 xs_erf = erfinv(2 * ys - 1)
+    #                 prod = xs_Fr*xs_erf
+    #                 prod = prod[~np.isnan(prod)]
+    #                 C2 = np.sqrt(2)*np.sum((prod[:-1]+prod[1:])*dys)*0.5
+    #                 inf_sigma = C2
+    #                 inf_sigma = cal_C2(0, v, mu, sigma)
+                    # assert np.isclose(inf_mu,mu,rtol=1e-4),('inf_mu, mu:', inf_mu,mu)
+                    # assert np.isclose(inf_sigma, sigma,rtol=1e-4), ('inf_sigma, sigma:', inf_sigma, sigma)
+                # except Exception as e:
+                #     print(e)
+                #     print(mu,inf_mu)
+                #     print(sigma, inf_sigma)
 
     # def test_fit_gauss_wd(self):
     #     ms = [-2, -1, 1, 2]
@@ -89,3 +89,29 @@ class TestQp(TestCase):
     #             ys = np.array([f2(x) for x in xs])*(xs[1]-xs[0])/2
     #             C2_2 = np.sum(ys[:-1]+ys[1:])
     #             print(C2,C2_2)
+
+    def test_heaviside_quantile(self):
+        mu = 1
+        sigma = 1
+        xplot = np.linspace(mu - 5 * sigma, mu + 5 * sigma, 100)
+        fig = plt.figure()
+        for label in [-1,1]:
+            cdf0 = norm.cdf(0,loc=mu,scale = sigma)
+            Z = (1+label)/2-label*cdf0
+            print('cdf(0), Z: ',norm.cdf(0,loc=mu,scale = sigma),Z)
+            p = lambda x: norm.pdf(x,loc=mu,scale=sigma)*(2*(x>=0)-1 == label)/Z
+            F = lambda x: norm.cdf(x,loc=mu,scale=sigma)/Z-(label+1)/2*cdf0/Z if 2*(x>=0)-1 == label else (1-label)/2
+            qt = lambda y: mu + np.sqrt(2)*sigma*erfinv(2*(y*Z+(label+1)/2*cdf0)-1) if y > 0 else float('-inf')
+            ax = fig.add_subplot(1,2,int((label+1)/2)+1)
+            ys = [F(x) for x in xplot]
+            ax.plot(xplot,ys,label='F')
+            ax.plot(xplot,[p(x) for x in xplot],label='p')
+            ax.legend()
+            ax.set_title('label={}'.format( int((label + 1) / 2)))
+            for i in range(len(xplot)):
+                x_2 = qt(ys[i])
+                print('x, value, x_2: ', xplot[i],ys[i],x_2)
+
+        plt.show()
+
+
