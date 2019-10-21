@@ -3,8 +3,9 @@ from __future__ import absolute_import
 from past.utils import old_div
 from builtins import object
 from scipy.stats import norm
-from scipy.special import erfinv,owens_t
-
+# from scipy.special import erfinv,owens_t
+from scipy.special import owens_t
+# from mpmath import erfinv
 #    Marion Neumann [marion dot neumann at uni-bonn dot de]
 #    Daniel Marthaler [dan dot marthaler at gmail dot com]
 #    Shan Huang [shan dot huang at iais dot fraunhofer dot de]
@@ -123,33 +124,43 @@ class Likelihood(object):
         pass
 
     def fit_gauss_wd2(self, v, mu, sigma,mu_q,sigma_q,Z=None):
+        return mu_q, sigma_q*0.99
         # if sigma_q < 8e-3:
         #     return mu_q,8e-3
 
         # if sigma_q >1e4:
         #     return mu_q,1e4
 
-        if abs(mu)>4*sigma or sigma_q < 0.4:
-            return mu_q,sigma_q*0.99
-        xs_Fr = self.samples * 5 * sigma_q + mu_q
-        if isinstance(self,Laplace):
-            ys = np.array([self._Fr(x, v, mu, sigma,Z) for x in xs_Fr])
-        else:
-            ys = np.array([self._Fr(x, v, mu, sigma) for x in xs_Fr])
+        # if abs(mu)>4*sigma or sigma_q < 0.4:
+        #     return mu_q,sigma_q
+        # xs_Fr = self.samples * 5 * sigma_q + mu_q
+        # if isinstance(self,Laplace):
+        #     ys = np.array(self._Fr(xs_Fr, v, mu, sigma,Z))# np.array([self._Fr(x, v, mu, sigma,Z) for x in xs_Fr])
+        # else:
+        #     ys = np.array(self._Fr(xs_Fr, v, mu, sigma))# np.array([self._Fr(x, v, mu, sigma) for x in xs_Fr])
+        # ys = ys.flatten()
+        #
+        # _nugget0 = 1e-14
+        # _nugget1 = 1-1e-14
+        # ys[ys >= _nugget1] = _nugget1
+        # ys[ys <= _nugget0] = _nugget0
+        # dys = ys[1:] - ys[:-1]
+        # # ys = 2 * ys - 1
+        # xs_erf = self.erfinv(2*ys-1)
+        # s = sigma_q
+        # prod = (xs_Fr - mu_q - np.sqrt(2)*s*xs_erf) ** 2
+        # w22 = np.nansum((prod[:-1] + prod[1:]) * dys) * 0.5
+        # inf_sigma = (sigma_q[0] ** 2 + s**2 - w22)/2/s
+        # assert inf_sigma>0
+        # return mu_q, inf_sigma
 
-        _nugget0 = -1 + 1e-14
-        _nugget1 = 1 - 1e-14
-        dys = ys[1:] - ys[:-1]
-        ys = 2 * ys - 1
-        ys[ys >= _nugget1] = _nugget1
-        ys[ys <= _nugget0] = _nugget0
-        xs_erf = erfinv(ys)
-        prod = (xs_Fr - mu_q - np.sqrt(2)/2 * xs_erf) ** 2
-        w22 = np.nansum((prod[:-1] + prod[1:]) * dys) * 0.5
-        inf_sigma = (sigma_q ** 2 + 1/4 - w22) #/ 2
-        if inf_sigma<0:
-            return mu_q,sigma_q*0.99
-        return mu_q, inf_sigma
+    def erfinv(self,x):
+        a = 0.147
+        u = np.log((1 - x)*(1+x))
+        u1 = 2 / (np.pi * a) + u / 2
+        u2 = u / a
+        y = np.sign(x)*np.sqrt(-u1 + np.sqrt(u1**2-u2))
+        return y
 
 
 class Gauss(Likelihood):
@@ -685,7 +696,7 @@ class Laplace(Likelihood):
 class Heaviside(Likelihood):
     def __init__(self):
         self.hyp = []
-        self.samples = np.linspace(-1,1,1024)
+        self.samples = np.linspace(-1,1,256)
 
     def evaluate(self, y=None, mu=None, s2=None, inffunc=None, der=None, nargout=1):
         from . import inf
@@ -743,7 +754,7 @@ class Heaviside(Likelihood):
         F = lambda x: norm.cdf(x, loc=mu, scale=sigma) / Z - (v + 1) / 2 * cdf0 / Z if 2 * (
                     x >= 0) - 1 == v else (1 - v) / 2
         # qt = lambda y: mu + np.sqrt(2) * sigma * erfinv(2 * (y * Z + (label + 1) / 2 * cdf0) - 1) if y > 0 else float('-inf')
-        return F(x)
+        return np.array([F(e) for e in x])
 
 
 if __name__ == '__main__':

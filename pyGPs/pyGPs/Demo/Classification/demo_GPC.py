@@ -96,7 +96,7 @@ def preproc(x, m, s):
 # Start from a new model
 model = pyGPs.GPC()
 f1, f2 = lambda x: x, lambda x: x # interp_fs()
-model.useInference('QP',f1,f2)
+# model.useInference('QP',f1,f2)
 # Analogously to GPR
 k = pyGPs.cov.RBFard(log_ell_list=[0.05,0.17], log_sigma=1.)
 model.setPrior(kernel=k)
@@ -108,10 +108,10 @@ print("Negative log marginal liklihood optimized:", round(model.nlZ,7))
 
 # Prediction
 ymu, ys2, fmu, fs2, lp = model.predict(x, ys=np.ones((x.shape[0],1)))
-I = compute_I(y,np.exp(lp),y)
-E = compute_E(y,np.exp(lp))
-print(I,E)
-
+# I = compute_I(y,np.exp(lp),y)
+# E = compute_E(y,np.exp(lp))
+# print(I,E)
+print(lp)
 
 # model.plot(x1[:2],x2[:2],xplot,yplot)
 # xs = np.linspace(-10,10,100)
