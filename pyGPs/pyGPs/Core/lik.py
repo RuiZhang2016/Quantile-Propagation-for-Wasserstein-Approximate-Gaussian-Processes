@@ -2,6 +2,10 @@ from __future__ import division
 from __future__ import absolute_import
 from past.utils import old_div
 from builtins import object
+from scipy.stats import norm
+# from scipy.special import erfinv,owens_t
+from scipy.special import owens_t
+# from mpmath import erfinv
 #    Marion Neumann [marion dot neumann at uni-bonn dot de]
 #    Daniel Marthaler [dan dot marthaler at gmail dot com]
 #    Shan Huang [shan dot huang at iais dot fraunhofer dot de]
@@ -119,6 +123,45 @@ class Likelihood(object):
         '''
         pass
 
+    def fit_gauss_wd2(self, v, mu, sigma,mu_q,sigma_q,Z=None):
+        return mu_q, sigma_q*0.99
+        # if sigma_q < 8e-3:
+        #     return mu_q,8e-3
+
+        # if sigma_q >1e4:
+        #     return mu_q,1e4
+
+        # if abs(mu)>4*sigma or sigma_q < 0.4:
+        #     return mu_q,sigma_q
+        # xs_Fr = self.samples * 5 * sigma_q + mu_q
+        # if isinstance(self,Laplace):
+        #     ys = np.array(self._Fr(xs_Fr, v, mu, sigma,Z))# np.array([self._Fr(x, v, mu, sigma,Z) for x in xs_Fr])
+        # else:
+        #     ys = np.array(self._Fr(xs_Fr, v, mu, sigma))# np.array([self._Fr(x, v, mu, sigma) for x in xs_Fr])
+        # ys = ys.flatten()
+        #
+        # _nugget0 = 1e-14
+        # _nugget1 = 1-1e-14
+        # ys[ys >= _nugget1] = _nugget1
+        # ys[ys <= _nugget0] = _nugget0
+        # dys = ys[1:] - ys[:-1]
+        # # ys = 2 * ys - 1
+        # xs_erf = self.erfinv(2*ys-1)
+        # s = sigma_q
+        # prod = (xs_Fr - mu_q - np.sqrt(2)*s*xs_erf) ** 2
+        # w22 = np.nansum((prod[:-1] + prod[1:]) * dys) * 0.5
+        # inf_sigma = (sigma_q[0] ** 2 + s**2 - w22)/2/s
+        # assert inf_sigma>0
+        # return mu_q, inf_sigma
+
+    def erfinv(self,x):
+        a = 0.147
+        u = np.log((1 - x)*(1+x))
+        u1 = 2 / (np.pi * a) + u / 2
+        u2 = u / a
+        y = np.sign(x)*np.sqrt(-u1 + np.sqrt(u1**2-u2))
+        return y
+
 
 class Gauss(Likelihood):
     '''
@@ -142,7 +185,7 @@ class Gauss(Likelihood):
             if (not s2 is None) and np.linalg.norm(s2) > 0:
                 s2zero = False
             if s2zero:                   # log probability
-                lp = -(y-mu)**2 /sn2/2 - old_div(np.log(2.*np.pi*sn2),2.)
+                lp = -(y-mu)**2/sn2/2 - old_div(np.log(2.*np.pi*sn2),2.)
                 s2 = np.zeros_like(s2)
             else:
                 inf_func = inf.EP()   # prediction
@@ -157,7 +200,7 @@ class Gauss(Likelihood):
             else:
                 return lp
         else:
-            if isinstance(inffunc, inf.EP):
+            if isinstance(inffunc, inf.EP) or isinstance(inffunc, inf.QP):
                 if der is None:                                  # no derivative mode
                     lZ = -(y-mu)**2/(sn2+s2)/2. - old_div(np.log(2*np.pi*(sn2+s2)),2.) # log part function
                     if nargout>1:
@@ -242,6 +285,8 @@ class Erf(Likelihood):
     '''
     def __init__(self):
         self.hyp = []
+        self.samples = np.linspace(-1, 1, 1024)
+
 
     def evaluate(self, y=None, mu=None, s2=None, inffunc=None, der=None, nargout=1):
         from . import inf
@@ -262,9 +307,9 @@ class Erf(Likelihood):
                 lp = self.evaluate(y, mu, s2, inf.EP())
                 p = np.exp(lp)
             if nargout>1:
-                ymu = 2*p-1                              # first y moment
+                ymu = p*y+(1-p)*(-y)#2*p-1                              # first y moment
                 if nargout>2:
-                    ys2 = 4*p*(1-p)                      # second y moment
+                    ys2 = (y-ymu)**2*p+(-y-ymu)**2*(1-p)                      # second y moment
                     return lp,ymu,ys2
                 else:
                     return lp,ymu
@@ -295,7 +340,7 @@ class Erf(Likelihood):
             elif isinstance(inffunc, inf.EP) or isinstance(inffunc, inf.QP):
                 if der is None:                          # no derivative mode
                     z = old_div(mu,np.sqrt(1+s2))
-                    junk,lZ = self.cumGauss(y,z,2)       # log part function
+                    junk,lZ = self.cumGauss(y,z,2)       # log part function: cumulative Gaussian
                     if not y is None:
                          z = z*y
                     if nargout>1:
@@ -365,6 +410,61 @@ class Erf(Likelihood):
         lp[ip] = (1-lam)*lp[ip] + lam*np.log( p[ip] )
         return lp
 
+    # def fit_gauss_wd2(self, v, mu, sigma,mu_q,sigma_q):
+    #     # sigma2 = sigma ** 2
+    #     # # v2 = 1
+    #     # z = mu / v / np.sqrt(1 + sigma2)  # z = (mu - m) / v / np.sqrt(1 + sigma2 / v2)
+    #     # pdfdivcdf = norm.pdf(z) / norm.cdf(z)
+    #     # inf_mu = mu + sigma2 * pdfdivcdf / v / np.sqrt(1 + sigma2)
+    #     #
+    #     # inf_sigma2 = sigma2 - sigma2 ** 2 * pdfdivcdf / (1 + sigma2) * (z + pdfdivcdf)
+    #     # inf_sigma = np.sqrt(inf_sigma2)
+    #     xs_Fr = self.samples * 5 * sigma_q + mu_q
+    #     ys = np.array([self._Fr(x, v, mu, sigma) for x in xs_Fr])
+    #
+    #     _nugget0 = -1 + 1e-14
+    #     _nugget1 = 1 - 1e-14
+    #     dys = ys[1:] - ys[:-1]
+    #     ys = 2 * ys - 1
+    #     ys[ys >= _nugget1] = _nugget1
+    #     ys[ys <= _nugget0] = _nugget0
+    #     xs_erf = erfinv(ys)
+    #     prod = (xs_Fr - mu_q - np.sqrt(2) * xs_erf) ** 2
+    #     w22 = np.nansum((prod[:-1] + prod[1:]) * dys) * 0.5
+    #     inf_sigma = (sigma_q**2 + 1 - w22) / 2
+    #     return mu_q, inf_sigma
+
+    def _Fr(self, x, v, mu, sigma):
+        sigma2 = sigma ** 2
+        sqrtsigma = np.sqrt(sigma2+1)
+        Z = norm.cdf(mu / v / sqrtsigma) # Z = norm.cdf((mu - m) / v / np.sqrt(1 + sigma2 / v2))
+        A = 1 / Z
+        k = mu / sqrtsigma# k = (mu - m) / np.sqrt(sigma2 + v2)
+        h = (x - mu) / sigma
+        rho = sigma / sqrtsigma # rho = 1 / np.sqrt(1 + v2 / sigma2)
+        cdfk = norm.cdf(k)
+        res = [0]*len(x) if np.ndim(x) else [0]
+        hs = h if np.ndim(h)>0 else [h]
+        for i in range(len(hs)):
+            h = hs[i]
+            eta = 0 if h * k > 0 or (h * k == 0 and h + k >= 0) else -0.5
+            if k == 0 and h == 0:
+                res[i] = A * (0.25 + 1 / np.sin(-rho))
+            # OT1 = owens_t(h,(k+rho*h)/h/np.sqrt(1-rho**2))
+            # OT2 = owens_t(k,(h+rho*k)/k/np.sqrt(1-rho**2))
+            OT1 = self._my_owens_t(h, k, rho)
+            OT2 = self._my_owens_t(k, h, rho)
+            res[i] = A*(0.5*norm.cdf(h)+0.5*v*cdfk - v*OT1 - v*OT2 + v*eta)
+        return np.array(res) if np.ndim(hs)>0 else res[0]
+
+    def _my_owens_t(self, x1, x2, rho):
+        if x1 == 0 and x2 > 0:
+            return 0.25
+        elif x1 == 0 and x2 < 0:
+            return -0.25
+        else:
+            return owens_t(x1, (x2 + rho * x1) / x1 / np.sqrt(1 - rho ** 2))
+
 
 class Laplace(Likelihood):
     '''
@@ -377,6 +477,7 @@ class Laplace(Likelihood):
     '''
     def __init__(self, log_sigma=np.log(0.1) ):
         self.hyp = [ log_sigma ]
+        self.samples = np.linspace(-1, 1, 1024)
 
     def evaluate(self, y=None, mu=None, s2=None, inffunc=None, der=None, nargout=1):
         from . import inf
@@ -391,7 +492,7 @@ class Laplace(Likelihood):
                 if np.linalg.norm(s2)>0:
                     s2zero = False                       # s2==0?
             if s2zero:                                   # log probability evaluation
-                lp = old_div(-np.abs(y-mu),b) -np.log(2*b); s2 = 0
+                lp = old_div(-np.abs(y-mu),b)-np.log(2*b); s2 = 0
             else:                                        # prediction
                 lp = self.evaluate(y, mu, s2, inf.EP())
             if nargout>1:
@@ -428,7 +529,8 @@ class Laplace(Likelihood):
                     dlp_dhyp = old_div(np.sign(mu-y),b)              # first derivative,
                     d2lp_dhyp = np.zeros(mu.shape)         # and also of the second mu derivative
                     return lp_dhyp, dlp_dhyp, d2lp_dhyp
-            elif isinstance(inffunc, inf.EP):
+
+            elif isinstance(inffunc, inf.EP) or isinstance(inffunc, inf.QP):
                 n = np.max([len(y.flatten()),len(mu.flatten()),len(s2.flatten()),len(sn.flatten())])
                 on = np.ones((n,1))
                 y = y*on; mu = mu*on; s2 = s2*on; sn = sn*on;
@@ -439,19 +541,27 @@ class Laplace(Likelihood):
                 idlik = (fac*sn) < np.sqrt(s2)
                 idgau = (fac*np.sqrt(s2)) < sn
                 id    = np.logical_and(np.logical_not(idgau),np.logical_not(idlik)) # interesting case in between
-
                 if der is None:                          # no derivative mode
                     lZ = np.zeros((n,1))
                     dlZ = np.zeros((n,1))
                     d2lZ = np.zeros((n,1))
+                    # if np.any(idlik):
+                    #     l = Gauss(log_sigma=old_div(np.log(s2[idlik]),2))
+                    #     a = l.evaluate(mu=mu[idlik], y=y[idlik])
+                    #     lZ[idlik] = a[0]; dlZ[idlik] = a[1]; d2lZ[idlik] = a[2]
+                    # if np.any(idgau):
+                    #     l = Laplace(log_sigma=np.log(sn[idgau]))
+                    #     a = l.evaluate(mu=mu[idgau], y=y[idgau]).flatten()
+                    #     lZ[idgau] = a[0].flatten(); dlZ[idgau] = a[1]; d2lZ[idgau] = a[2].flatten()
+
                     if np.any(idlik):
                         l = Gauss(log_sigma=old_div(np.log(s2[idlik]),2))
-                        a = l.evaluate(mu[idlik], y[idlik])
+                        a = l.evaluate(y=mu[idlik], mu=y[idlik],nargout=3)
                         lZ[idlik] = a[0]; dlZ[idlik] = a[1]; d2lZ[idlik] = a[2]
                     if np.any(idgau):
-                        l = Laplace(log_hyp=np.log(sn[idgau]))
-                        a = l.evaluate(mu=mu[idgau], y=y[idgau])
-                        lZ[idgau] = a[0]; dlZ[idgau] = a[1]; d2lZ[idgau] = a[2]
+                        l = Laplace(log_sigma=np.log(sn[idgau]))
+                        a = l.evaluate(y=mu[idgau], mu=y[idgau],nargout=3)
+                        lZ[idgau] = a[0].flatten(); dlZ[idgau] = a[1]; d2lZ[idgau] = a[2].flatten()
                     if np.any(id):
                         # substitution to obtain unit variance, zero mean Laplacian
                         tvar = old_div(s2[id],(sn[id]**2+1e-16))
@@ -573,6 +683,78 @@ class Laplace(Likelihood):
         y = np.log(np.array([np.sum(x,1)]).T) + max_logx
         return list(y.flatten())
 
+    def _Fr(self,x,v,mu,sigma,Z):
+        sn = np.exp(self.hyp)
+        b = old_div(sn, np.sqrt(2))
+        # from . import inf
+        # lZ = self.evaluate(y=v, mu=mu, s2=sigma**2, nargout=1)
+        # Z = np.exp(lZ)
+        F = lambda x: norm.pdf(x, loc=mu, scale=sigma)*np.exp(-np.abs(v-x)/b)/2/b/Z
+        return F(x)
+
+
+class Heaviside(Likelihood):
+    def __init__(self):
+        self.hyp = []
+        self.samples = np.linspace(-1,1,256)
+
+    def evaluate(self, y=None, mu=None, s2=None, inffunc=None, der=None, nargout=1):
+        from . import inf
+
+        if not y is None:
+            y = np.sign(y)
+            y[y==0] = 1
+        else:
+            y = 1                                        # allow only +/- 1 values
+        if inffunc is None:                              # prediction mode if inf is not present
+            y = y*np.ones_like(mu)                       # make y a vector
+            s2zero = True;
+            if not s2 is None:
+                if np.linalg.norm(s2)>0:
+                    s2zero = False                       # s2==0?
+            if s2zero:                                   # log probability evaluation
+                p = (1+y)/2*(mu>=0) + (1-y)/2*(mu<0)
+                lp = np.log(p)
+            else:                                        # prediction
+                lp = self.evaluate(y, mu, s2, inf.EP())
+                p = np.exp(lp)
+            if nargout>1:
+                ymu = p*y+(1-p)*(-y)#2*p-1                              # first y moment
+                if nargout>2:
+                    ys2 = (y-ymu)**2*p+(-y-ymu)**2*(1-p)                      # second y moment
+                    return lp,ymu,ys2
+                else:
+                    return lp,ymu
+            else:
+                return lp
+        elif isinstance(inffunc, inf.EP) or isinstance(inffunc, inf.QP):
+            if der is None:  # no derivative mode
+                Z = (1-y)/2+y*norm.cdf(mu,scale=np.sqrt(s2))
+                lZ = np.log(Z)
+                if nargout > 1:
+                    dZ = y*norm.pdf(mu,scale =np.sqrt(s2))
+                    dlZ = dZ/Z
+                    if nargout > 2:
+                        d2Z = -mu/s2*dZ #2nd derivative wrt mean
+                        d2lZ = (d2Z*Z-dZ**2)/Z**2
+                        return lZ, dlZ,d2lZ
+                    else:
+                        return lZ, dlZ
+                else:
+                    return lZ
+            else:  # derivative mode
+                return []  # deriv. wrt hyp.lik
+        else:
+            raise Exception('Not Implemented')
+
+    def _Fr(self,x,v,mu,sigma):
+        cdf0 = norm.cdf(0, loc=mu, scale=sigma)
+        Z = (1 + v) / 2 - v * cdf0
+        # p = lambda x: norm.pdf(x, loc=mu, scale=sigma) * (2 * (x >= 0) - 1 == y) / Z
+        F = lambda x: norm.cdf(x, loc=mu, scale=sigma) / Z - (v + 1) / 2 * cdf0 / Z if 2 * (
+                    x >= 0) - 1 == v else (1 - v) / 2
+        # qt = lambda y: mu + np.sqrt(2) * sigma * erfinv(2 * (y * Z + (label + 1) / 2 * cdf0) - 1) if y > 0 else float('-inf')
+        return np.array([F(e) for e in x])
 
 
 if __name__ == '__main__':

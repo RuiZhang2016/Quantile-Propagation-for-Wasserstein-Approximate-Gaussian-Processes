@@ -5,11 +5,7 @@ from builtins import str
 from builtins import range
 from past.utils import old_div
 from builtins import object
-from scipy.special import owens_t
-from scipy.special import erfinv
-from scipy.stats import norm
-from core import generate_table as GT
-from scipy import interpolate
+
 
 #================================================================================
 #    Marion Neumann [marion dot neumann at uni-bonn dot de]
@@ -181,9 +177,8 @@ class Inference(object):
     def _epComputeParams(self, K, y, ttau, tnu, likfunc, m, inffunc):
         n     = len(y)                                                # number of training cases
         ssi   = np.sqrt(ttau)                                         # compute Sigma and mu
-        # if any([np.isnan(col) for row in ssi for col in row]):
-        #     print(ttau,ssi)
         #L     = np.linalg.cholesky(np.eye(n)+np.dot(ssi,ssi.T)*K).T   # L'*L=B=eye(n)+sW*K*sW
+        # print(ttau)
         L     = jitchol(np.eye(n)+np.dot(ssi,ssi.T)*K).T   # L'*L=B=eye(n)+sW*K*sW
         V     = np.linalg.solve(L.T,np.tile(ssi,(1,n))*K)
         # print(any([np.isnan(col) for row in L for col in row]),
@@ -194,9 +189,11 @@ class Inference(object):
         tau_n = old_div(1,Dsigma) - ttau               # compute the log marginal likelihood
         nu_n  = old_div(mu,Dsigma)-tnu + m*tau_n       # vectors of cavity parameters
         lZ    = likfunc.evaluate(y, old_div(nu_n,tau_n), old_div(1,tau_n), inffunc)
-        nlZ   = np.log(np.diag(L)).sum() - lZ.sum() - old_div(np.dot(tnu.T,np.dot(Sigma,tnu)),2)  \
-                - old_div(np.dot((nu_n-m*tau_n).T,(old_div((ttau/tau_n*(nu_n-m*tau_n)-2*tnu), (ttau+tau_n)))),2) \
-                + old_div((old_div(tnu**2,(tau_n+ttau))).sum(),2.)- old_div(np.log(1.+old_div(ttau,tau_n)).sum(),2.)
+        nlZ   = np.log(np.diag(L)).sum()- old_div(np.log(1.+old_div(ttau,tau_n)).sum(),2.)\
+                - lZ.sum() - old_div(np.dot(tnu.T,np.dot(Sigma,tnu)),2) \
+                + old_div((old_div(tnu ** 2, (tau_n + ttau))).sum(), 2.) \
+                - old_div(np.dot((nu_n-m*tau_n).T,(old_div((ttau/tau_n*(nu_n-m*tau_n)-2*tnu), (ttau+tau_n)))),2)
+
         return Sigma, mu, nlZ[0], L
 
     def _logdetA(self,K,w,nargout):
@@ -755,6 +752,7 @@ class EP(Inference):
         else:
             ttau = self.last_ttau                 # try the tilde values from previous call
             tnu  = self.last_tnu
+            # print(ttau)
             Sigma, mu, nlZ, L = self._epComputeParams(K, y, ttau, tnu, likfunc, m, inffunc)
             if nlZ > nlZ0:                        # if zero is better ..
                 ttau = np.zeros((n,1))            # .. then initialize with zero instead
@@ -763,31 +761,23 @@ class EP(Inference):
                 mu = np.zeros((n,1))              # .. the Gaussian posterior approximation
                 nlZ = nlZ0
         nlZ_old = np.inf; sweep = 0               # converged, max. sweeps or min. sweeps?
+        k = 1
         while (np.abs(nlZ-nlZ_old) > tol and sweep < max_sweep) or (sweep < min_sweep):
             nlZ_old = nlZ; sweep += 1
             rperm = range(n)                     # randperm(n)
             for ii in rperm:                      # iterate EP updates (in random order) over examples
                 tau_ni = old_div(1,Sigma[ii,ii]) - ttau[ii]#  first find the cavity distribution ..
+                tau_ni *= k**2
                 nu_ni  = old_div(mu[ii],Sigma[ii,ii]) + m[ii]*tau_ni - tnu[ii]    # .. params tau_ni and nu_ni
+                nu_ni *= k**2
                 # compute the desired derivatives of the indivdual log partition function
-                # lZ,dlZ,d2lZ = likfunc.evaluate(y[ii], old_div(nu_ni,tau_ni), old_div(1,tau_ni), inffunc, None, 3)
+                lZ,dlZ,d2lZ = likfunc.evaluate(y[ii], old_div(nu_ni,tau_ni), old_div(1,tau_ni), inffunc, None, 3)
                 ttau_old = copy(ttau[ii])         # then find the new tilde parameters, keep copy of old
-                # ttau[ii] = old_div(-d2lZ,(1.+old_div(d2lZ,tau_ni)))
-                # ttau[ii] = max(ttau[ii],0)        # enforce positivity i.e. lower bound ttau by zero
-                # tnu[ii]  = old_div(( dlZ + (m[ii]-old_div(nu_ni,tau_ni))*d2lZ ),(1.+old_div(d2lZ,tau_ni)))
+                ttau[ii] = old_div(-d2lZ,(1.+old_div(d2lZ,tau_ni)))
+                ttau[ii] = max(ttau[ii],0)/k**2   # enforce positivity i.e. lower bound ttau by zero
+                tnu[ii]  = old_div(( dlZ + (m[ii]-old_div(nu_ni,tau_ni))*d2lZ ),(1.+old_div(d2lZ,tau_ni)))*1.02
+                tnu[ii] /= k**2
 
-                zi = y[ii] * nu_ni / np.sqrt(1 + tau_ni)
-                # print(y[ii],Sigma[ii,ii],zi)
-                # assert lZ == np.log(norm.cdf(zi)),(lZ, np.log(norm.cdf(zi)))
-                pdfdivcdf = norm.pdf(zi) / norm.cdf(zi)
-                sigma_ni2 = 1 / tau_ni
-
-                hat_mu = nu_ni / tau_ni + y[ii] * pdfdivcdf / np.sqrt(1 + tau_ni)
-                sigma_hat2 = sigma_ni2 - sigma_ni2 / (1 + tau_ni) * pdfdivcdf * (zi + pdfdivcdf)
-                ttau2 = 1 / sigma_hat2 - tau_ni
-                tnu2 = 1 / sigma_hat2 * hat_mu - nu_ni
-                ttau[ii] = max(ttau2,1e-8)
-                tnu[ii] = tnu2
                 ds2 = ttau[ii] - ttau_old         # finally rank-1 update Sigma ..
                 si  = np.reshape(Sigma[:,ii],(Sigma.shape[0],1))
                 Sigma = Sigma - ds2/(1.+ds2*si[ii])*np.dot(si,si.T)   # takes 70# of total time
@@ -795,8 +785,8 @@ class EP(Inference):
             # recompute since repeated rank-one updates can destroy numerical precision
             Sigma, mu, nlZ, L = self._epComputeParams(K, y, ttau, tnu, likfunc, m, inffunc)
         if sweep == max_sweep:
-            logging.warning("maximum number of sweeps ({}) reached in function infEP".format(max_sweep))
-            
+            logging.warning("maximum number of sweeps reached in function infEP")
+        self.Sigma = Sigma; self.mu = mu
         self.last_ttau = ttau; self.last_tnu = tnu          # remember for next call
         sW = np.sqrt(ttau); alpha = tnu-sW*solve_chol(L,sW*np.dot(K,tnu))
         post = postStruct()
@@ -827,7 +817,7 @@ class EP(Inference):
                 dnlZ.mean[ii] = dnlZ.mean[ii][0,0]
             return post, nlZ[0], dnlZ
         else:
-            print(post,nlZ[0])
+            # print(post,nlZ[0])
             return post, nlZ[0]
 
 
@@ -840,10 +830,11 @@ class QP(Inference):
         self.name = 'Quantile Propagation'
         self.last_ttau = None
         self.last_tnu = None
-        self._nugget0 = 1e-14
+        self._nugget0 = -1+1e-14
         self._nugget1 = 1-1e-14
         self.sqrt2 = np.sqrt(2)
-        self.samples = np.linspace(-5,5,1024)
+        self.samples = np.linspace(-4,4,1024)
+        self.samples_gauss = np.random.normal(loc=0,scale=1,size=20000)
         self.f1 = f1
         self.f2 = f2
 
@@ -885,17 +876,26 @@ class QP(Inference):
                 # print(Sigma[ii,ii],ttau[ii])
                 nu_ni = old_div(mu[ii], Sigma[ii, ii]) + m[ii] * tau_ni - tnu[ii]  # .. params tau_ni and nu_ni
                 # compute the desired derivatives of the indivdual log partition function
-                # lZ, dlZ, d2lZ = likfunc.evaluate(y[ii], old_div(nu_ni, tau_ni), old_div(1, tau_ni), inffunc, None, 3)
+                lZ, dlZ, d2lZ = likfunc.evaluate(y[ii], old_div(nu_ni, tau_ni), old_div(1, tau_ni), inffunc, None, 3)
                 ttau_old = copy(ttau[ii])  # then find the new tilde parameters, keep copy of old
                 # ttau[ii] = old_div(-d2lZ, (1. + old_div(d2lZ, tau_ni)))
                 # ttau[ii] = max(ttau[ii], 0)  # enforce positivity i.e. lower bound ttau by zero
                 # tnu[ii] = old_div((dlZ + (m[ii] - old_div(nu_ni, tau_ni)) * d2lZ), (1. + old_div(d2lZ, tau_ni)))
-
-                mu_wd, sigma_wd = nu_ni / tau_ni, np.sqrt(1 / tau_ni)
-                mu_hat, sigma_hat = self.fit_gauss_wd(y[ii][0], mu_wd[0], sigma_wd[0])
-                # print(v_wd,mu_wd,sigma_wd,mu_hat,sigma_hat)
-                sigma_hat2 = sigma_hat ** 2
-                ttau[ii] = max(1 / sigma_hat2 - tau_ni, 1e-8)
+                # ttau_tmp = old_div(-d2lZ, (1. + old_div(d2lZ, tau_ni)))
+                # ttau_tmp = max(ttau_tmp, 0)  # enforce positivity i.e. lower bound ttau by zero
+                # tnu_tmp = old_div((dlZ + (m[ii] - old_div(nu_ni, tau_ni)) * d2lZ), (1. + old_div(d2lZ, tau_ni)))
+                mu_ni = nu_ni / tau_ni
+                sigma_ni = np.sqrt(1/tau_ni)
+                mu_i = sigma_ni**2*dlZ+mu_ni
+                sigma_i = np.sqrt(sigma_ni**4*(d2lZ+dlZ**2)+sigma_ni**2-(mu_ni-mu_i)**2)
+                if isinstance(likfunc,lik.Laplace):
+                    mu_hat, sigma_hat = likfunc.fit_gauss_wd2(y[ii][0], mu_ni[0], sigma_ni[0],mu_i,sigma_i,np.exp(lZ))
+                else:
+                    mu_hat, sigma_hat = likfunc.fit_gauss_wd2(y[ii][0], mu_ni[0], sigma_ni[0], mu_i, sigma_i)
+                # print("mu_ni,mu_i,mu_hat,sigma_ni,sigma_i,sigma_hat:",mu_ni,mu_i,mu_hat,sigma_ni,sigma_i,sigma_hat)
+                sigma_hat2 = sigma_hat**2
+                ttau[ii] = max(1 / sigma_hat2 - tau_ni, 0)
+                # ttau[ii] = min(ttau[ii],1e6)
                 tnu[ii] = 1 / sigma_hat2 * mu_hat - nu_ni
 
                 ds2 = ttau[ii] - ttau_old  # finally rank-1 update Sigma ..
@@ -913,6 +913,8 @@ class QP(Inference):
 
         self.last_ttau = ttau
         self.last_tnu = tnu  # remember for next call
+        self.Sigma = Sigma
+        self.mu = mu
         sW = np.sqrt(ttau)
         alpha = tnu - sW * solve_chol(L, sW * np.dot(K, tnu))
         post = postStruct()
@@ -946,83 +948,69 @@ class QP(Inference):
             # print(post,nlZ[0])
             return post, nlZ[0]
 
-    def fit_gauss_wd(self, v, mu, sigma):
-        # if abs(mu)>2 or abs(sigma)>5: print(v,mu,sigma)
-        sigma2 = sigma ** 2
-        # v2 = 1
-        z = mu / v / np.sqrt(1 + sigma2)  # z = (mu - m) / v / np.sqrt(1 + sigma2 / v2)
-        pdfdivcdf = norm.pdf(z) / norm.cdf(z)
-        inf_mu = mu + sigma2 * pdfdivcdf/v/np.sqrt(1+sigma2)# inf_mu = mu + sigma ** 2 * norm.pdf(z) / norm.cdf(z) / v / np.sqrt(1 + sigma2 / v2)
+    # def fit_gauss_wd(self, v, mu, sigma):
+    #     # if abs(mu)>2 or abs(sigma)>5: print(v,mu,sigma)
+    #     sigma2 = sigma ** 2
+    #     # v2 = 1
+    #     z = mu / v / np.sqrt(1 + sigma2)  # z = (mu - m) / v / np.sqrt(1 + sigma2 / v2)
+    #     pdfdivcdf = norm.pdf(z) / norm.cdf(z)
+    #     inf_mu = mu + sigma2 * pdfdivcdf/v/np.sqrt(1+sigma2)# inf_mu = mu + sigma ** 2 * norm.pdf(z) / norm.cdf(z) / v / np.sqrt(1 + sigma2 / v2)
+    #     inf_sigma2 = sigma2 - sigma2 ** 2 * pdfdivcdf / (1 + sigma2) * (z + pdfdivcdf)-0.1
+    #     inf_sigma = np.sqrt(inf_sigma2)
+    #
+    #
+    #
+    #
+    #     return inf_mu, inf_sigma
+    #     # inverse_Fr = lambda y: inversefunc(lambda x: self._Fr(x, v, mu, sigma), y_values=y, accuracy=6)
+    #     # inf_sigma =  self.sqrt2* integrate.quad(lambda x: inverse_Fr(x)*erfinv(2 * x - 1), 0, 1)[0]
+    #     if -5<=mu<=5 and 0.5<=sigma<= 5:
+    #         inf_sigma = (self.f1(mu, sigma) if v == 1 else self.f2(mu, sigma))[0]
+    #     elif sigma < 0.4 or abs(mu)>4*sigma:
+    #         inf_sigma2 = sigma2 - sigma2 ** 2 * pdfdivcdf / (1 + sigma2) * (z + pdfdivcdf)
+    #         inf_sigma = np.sqrt(inf_sigma2)
+    #     else:
+    #         # mu = min(max(mu,-5),5)
+    #         # sigma = min(max(sigma,0.4),5)
+    #         # inf_mu, inf_sigma = self.fit_gauss_wd(v,mu,sigma)
+    #         inf_sigma2 = sigma2 - sigma2 ** 2 * pdfdivcdf / (1 + sigma2) * (z + pdfdivcdf)  # inf_sigma2 = sigma2 - sigma2 ** 2 * norm.pdf(z) / (v2 + sigma2) / norm.cdf(z) * (z + norm.pdf(z) / norm.cdf(z))
+    #         inf_sigma = np.sqrt(inf_sigma2)
+    #         xs_Fr = self.samples*inf_sigma+inf_mu
+    #         ys = np.array(self._Fr(xs_Fr, v, mu, sigma))
+    #         dys = ys[1:] - ys[:-1]
+    #         ys = 2*ys-1
+    #         ys[ys>=self._nugget1] = self._nugget1
+    #         ys[ys<=self._nugget0] = self._nugget0
+    #         xs_erf = erfinv(ys)
+    #         prod = xs_Fr * xs_erf
+    #         inf_sigma = self.sqrt2 * np.nansum((prod[:-1] + prod[1:]) * dys) * 0.5
+    #     return inf_mu, inf_sigma
+    #
+    #
+    #
+    # def fit_wd_by_sampling(self,v,mu,sigma):
+    #     sigma2 = sigma ** 2
+    #     sqrtsigma = np.sqrt(sigma2 + 1)
+    #     z = mu / v / sqrtsigma  # z = (mu - m) / v / np.sqrt(1 + sigma2 / v2)
+    #     Z = norm.cdf(z)
+    #     pdfdivcdf = norm.pdf(z) / norm.cdf(z)
+    #     inf_mu = mu + sigma2 * pdfdivcdf / v / sqrtsigma  # inf_mu = mu + sigma ** 2 * norm.pdf(z) / norm.cdf(z) / v / np.sqrt(1 + sigma2 / v2)
+    #     # inf_sigma2 = sigma2 - sigma2 ** 2 * pdfdivcdf / (1 + sigma2) * (z + pdfdivcdf)
+    #     # inf_sigma = np.sqrt(inf_sigma2)
+    #     xs_norm = self.samples_gauss*sigma + mu
+    #     F_q = np.array([2*self._Fr(x,v,mu,sigma)-1 for x in xs_norm])
+    #     _nugget0 = -1 + 1e-14
+    #     _nugget1 = 1 - 1e-14
+    #     F_q[F_q >= _nugget1] = _nugget1
+    #     F_q[F_q <= _nugget0] = _nugget0
+    #
+    #     xs_erf = erfinv(F_q)
+    #     prod = xs_norm * xs_erf * norm.cdf(xs_norm * v)
+    #     inf_sigma = np.sqrt(2) * np.mean(prod) / Z
+    #     return inf_mu,inf_sigma
 
-        # inverse_Fr = lambda y: inversefunc(lambda x: self._Fr(x, v, mu, sigma), y_values=y, accuracy=6)
-        # inf_sigma =  self.sqrt2* integrate.quad(lambda x: inverse_Fr(x)*erfinv(2 * x - 1), 0, 1)[0]
-        if -5<=mu<=5 and 0.4<=sigma<= 5:
-            inf_sigma = (self.f1(mu, sigma) if v == 1 else self.f2(mu, sigma))[0]
-        elif sigma < 0.4:
-            inf_sigma2 = sigma2 - sigma2 ** 2 * pdfdivcdf / (1 + sigma2) * (z + pdfdivcdf)
-            inf_sigma = np.sqrt(inf_sigma2)
-        else:
-            mu = min(max(mu,-5),5)
-            sigma = min(max(sigma,0.4),5)
-            inf_mu, inf_sigma = self.fit_gauss_wd(v,mu,sigma)
-            # inf_sigma2 = sigma2 - sigma2 ** 2 * pdfdivcdf / (1 + sigma2) * (
-            #             z + pdfdivcdf)  # inf_sigma2 = sigma2 - sigma2 ** 2 * norm.pdf(z) / (v2 + sigma2) / norm.cdf(z) * (z + norm.pdf(z) / norm.cdf(z))
-            # inf_sigma = np.sqrt(inf_sigma2)
-            # xs_Fr = self.samples*inf_sigma+inf_mu
-            #
-            # ys = np.array(self._Fr(xs_Fr, v, mu, sigma))
-            # ys[ys>=self._nugget1] = self._nugget1
-            # ys[ys<=self._nugget0] = self._nugget0
-            # dys = ys[1:] - ys[:-1]
-            # xs_erf = erfinv(2 * ys - 1)
-            # prod = xs_Fr * xs_erf
-            # inf_sigma = self.sqrt2 * np.nansum((prod[:-1] + prod[1:]) * dys) * 0.5
-        return inf_mu, inf_sigma
-
-        # inf_sigma2 = sigma2 - sigma2 ** 2 * pdfdivcdf / (1 + sigma2) * (z + pdfdivcdf)# inf_sigma2 = sigma2 - sigma2 ** 2 * norm.pdf(z) / (v2 + sigma2) / norm.cdf(z) * (z + norm.pdf(z) / norm.cdf(z))
-        # inf_sigma = np.sqrt(inf_sigma2)
-        # xs_Fr = self.samples*inf_sigma+inf_mu # np.linspace(inf_mu - 5 * inf_sigma, inf_mu + 5 * inf_sigma, int(512*inf_sigma))
-        #
-        # ys = np.array(self._Fr(xs_Fr, v, mu, sigma))
-        # ys[ys>=self._nugget1] = self._nugget1
-        # ys[ys<=self._nugget0] = self._nugget0
-        # dys = ys[1:] - ys[:-1]
-        # xs_erf = erfinv(2 * ys - 1)
-        # prod = xs_Fr * xs_erf
-        # C2 = self.sqrt2 * np.nansum((prod[:-1] + prod[1:]) * dys) * 0.5
-        # return inf_mu, C2
 
 
-    def _Fr(self, x, v, mu, sigma):
-        sigma2 = sigma ** 2
-        sqrtsigma = np.sqrt(sigma2+1)
-        Z = norm.cdf(mu / v / sqrtsigma)# Z = norm.cdf((mu - m) / v / np.sqrt(1 + sigma2 / v2))
-        A = 1 / Z
-        k = mu / sqrtsigma# k = (mu - m) / np.sqrt(sigma2 + v2)
-        h = (x - mu) / sigma
-        rho = sigma / sqrtsigma # rho = 1 / np.sqrt(1 + v2 / sigma2)
-        cdfk = norm.cdf(k)
-        res = [0]*len(x) if np.ndim(x) else [0]
-        hs = h if np.ndim(h)>0 else [h]
-        for i in range(len(hs)):
-            h = hs[i]
-            eta = 0 if h * k > 0 or (h * k == 0 and h + k >= 0) else -0.5
-            if k == 0 and h == 0:
-                res[i] = A * (0.25 + 1 / np.sin(-rho))
-            # OT1 = owens_t(h,(k+rho*h)/h/np.sqrt(1-rho**2))
-            # OT2 = owens_t(k,(h+rho*k)/k/np.sqrt(1-rho**2))
-            OT1 = self._my_owens_t(h, k, rho)
-            OT2 = self._my_owens_t(k, h, rho)
-            res[i] = A*(0.5*norm.cdf(h)+0.5*v*cdfk - v*OT1 - v*OT2 + v*eta)
-        return np.array(res) if np.ndim(hs)>0 else res[0]
-
-    def _my_owens_t(self, x1, x2, rho):
-        if x1 == 0 and x2 > 0:
-            return 0.25
-        elif x1 == 0 and x2 < 0:
-            return -0.25
-        else:
-            return owens_t(x1, (x2 + rho * x1) / x1 / np.sqrt(1 - rho ** 2))
 
 class FITC_EP(Inference):
     '''
