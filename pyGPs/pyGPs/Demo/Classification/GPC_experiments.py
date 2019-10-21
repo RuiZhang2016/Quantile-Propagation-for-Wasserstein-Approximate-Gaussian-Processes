@@ -9,11 +9,7 @@ if sys.platform == 'darwin':
     matplotlib.use('TkAgg')
     os.environ['proj'] = '/Users/ruizhang/PycharmProjects/WGPC'
 else:
-<<<<<<< HEAD
     os.environ['proj'] = '/home/users/u5963436/Work/WGPC'
-=======
-    os.environ['proj'] = '/home/rzhang/PycharmProjects/WGPC'
->>>>>>> f8c1746b3836f93b89a06f0e17739a7144fea0fb
 sys.path.append(os.environ['proj']+'/pyGPs')
 sys.path.append(os.environ['proj'])
 
@@ -32,8 +28,8 @@ def compute_I(ys, ps, ys_train):
     p2 = 1-p1
     H = -p1*np.log2(p1)-p2*np.log2(p2)
     assert ys.shape == ps.shape
-    Is = (ys+1)/2*np.log2(ps)+(1-ys)/2*np.log2(1-ps)+H
-    return np.mean(Is)
+    I =np.mean([np.log2(ps[i]) if ys[i]==1 else np.log2(1-ps[i]) for i in range(len(ys))])+H
+    return I
 
 def compute_E(ys,ps):
     return np.mean([100 if (ps[i] > 0.5)^(ys[i] == 1) else 0 for i in range(len(ps))])
@@ -59,12 +55,13 @@ def run(x_train,y_train,x_test,y_test,f1,f2,dataname, id):
     modelEP = pyGPs.GPC()
     # modelQP = pyGPs.GPC()
     # modelQP.useInference('QP', f1, f2)
-    k = pyGPs.cov.RBFard(log_ell_list=[np.log(n_features)/10] * n_features, log_sigma=1.)  # kernel
+    k = pyGPs.cov.RBFard(log_ell_list=[2] * n_features, log_sigma=1.)  # kernel
     modelEP.setPrior(kernel=k)
+    modelEP.setOptimizer('BFGS')
     # modelQP.setPrior(kernel=k)
 
     try: 
-        # modelEP.getPosterior(x_train,y_train.reshape((-1,1)))
+        modelEP.getPosterior(x_train,y_train.reshape((-1,1)))
         modelEP.optimize(x_train, y_train.reshape((-1,1)), numIterations=40)
         ymu, ys2, fmu, fs2, lp = modelEP.predict(x_test, ys=np.ones((n_test,1)))
         IEP = compute_I(y_test, np.exp(lp.flatten()), y_train)
@@ -76,37 +73,35 @@ def run(x_train,y_train,x_test,y_test,f1,f2,dataname, id):
 
     # nlZEP2 = modelEP.nlZ
 
-    # ymu, ys2, fmu, fs2, lp = modelEP.predict(x_test, ys=y_test.reshape((-1, 1)))
-   
-    # QP
     # modelQP.getPosterior(x_train, y_train)
     # nlZQP1 = modelQP.nlZ
-    # try:
-        # modelQP.optimize(x_train, y_train, numIterations=40)
+    modelEP.useInference('QP',f1,f2)
+    try:
+        modelEP.optimize(x_train, y_train.reshape((-1,1)), numIterations=40)
     # nlZQP2 = modelQP.nlZ
 
-        # ymu, ys2, fmu, fs2, lp = modelQP.predict(x_test, ys=np.ones((n_test,1)))
-        # IQP =  compute_I(y_test, np.exp(lp.flatten()), y_train)
-        # EQP =  compute_E(y_test, np.exp(lp.flatten()))
-    # except Exception as e:
-        # IQP = EQP = '-1000'
-        # print(e)
+        ymu, ys2, fmu, fs2, lp = modelEP.predict(x_test, ys=np.ones((n_test,1)))
+        IQP =  compute_I(y_test, np.exp(lp.flatten()), y_train)
+        EQP =  compute_E(y_test, np.exp(lp.flatten()))
+    except Exception as e:
+        IQP = EQP = '-1000'
+        print(e)
     # print("Negative log marginal liklihood before and after optimization")
     # print("EP: {}, {}".format(round(nlZEP1, 7), round(nlZEP2, 7)))
     # print("QP: {}, {}".format(round(nlZQP1, 7), round(nlZQP2, 7)))
     # print('I E: EP {} {} QP {} {}'.format(IEP, EEP, IQP, EQP))
-    f = open(os.environ['proj']+"/res/{}_output_EP.txt".format(dataname), "a")
+    f = open(os.environ['proj']+"/res/{}_output.txt".format(dataname), "a")
     # f.write("Negative log marginal liklihood before and after optimization:\n")
     # f.write("EP: {}, {}\n".format(round(nlZEP1, 7), round(nlZEP2, 7)))
     # f.write("QP: {}, {}\n".format(round(nlZQP1, 7), round(nlZQP2, 7)))
-    f.write('{} I E: {} {}\n'.format(id, IEP, EEP))
+    f.write('{} I E: {} {} {} {}\n'.format(id, IEP, EEP, IQP, EQP))
     f.close()
 
 def experiments(f1,f2,exp_id):
     data_id, piece_id = divmod(exp_id,10)
     datanames = ['ionosphere','breast_cancer','crabs','pima','usps','sonar']
     dic = load_obj('{}_{}'.format(datanames[data_id],piece_id))
-    print('finish loading')
+    print('finish loading ', datanames[data_id])
     run(dic['x_train'],dic['y_train'],dic['x_test'],dic['y_test'],f1,f2,datanames[data_id],exp_id)
 
 def load_obj(name):
@@ -114,10 +109,12 @@ def load_obj(name):
         return pickle.load(f)
 
 if __name__ == '__main__':
-    # f1, f2 = interp_fs()
+    f1, f2 = interp_fs()
     # exp_id = int(sys.argv[1])
 
-    Parallel(n_jobs=30)(delayed(experiments)(0,0,exp_id) for exp_id in range(60))
+    # Parallel(n_jobs=30)(delayed(experiments)(f1,f2,exp_id) for exp_id in range(60))
+    for exp_id in range(20,30):
+        experiments(f1,f2,exp_id)
         # print(exp_id)
         # experiments(0,0,exp_id)
 

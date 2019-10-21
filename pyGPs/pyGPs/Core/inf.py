@@ -740,7 +740,7 @@ class EP(Inference):
         self.last_ttau = None
         self.last_tnu = None
     def evaluate(self, meanfunc, covfunc, likfunc, x, y, nargout=1):
-        tol = 1e-4; max_sweep = 10; min_sweep = 2 # tolerance to stop EP iterations
+        tol = 1e-4; max_sweep = 20; min_sweep = 2 # tolerance to stop EP iterations
         n = x.shape[0]
         inffunc = self
         K = covfunc.getCovMatrix(x=x, mode='train') # evaluate the covariance matrix
@@ -795,7 +795,7 @@ class EP(Inference):
             # recompute since repeated rank-one updates can destroy numerical precision
             Sigma, mu, nlZ, L = self._epComputeParams(K, y, ttau, tnu, likfunc, m, inffunc)
         if sweep == max_sweep:
-            logging.warning("maximum number of sweeps reached in function infEP")
+            logging.warning("maximum number of sweeps ({}) reached in function infEP".format(max_sweep))
             
         self.last_ttau = ttau; self.last_tnu = tnu          # remember for next call
         sW = np.sqrt(ttau); alpha = tnu-sW*solve_chol(L,sW*np.dot(K,tnu))
@@ -849,7 +849,7 @@ class QP(Inference):
 
     def evaluate(self, meanfunc, covfunc, likfunc, x, y, nargout=1):
         tol = 1e-4
-        max_sweep = 10
+        max_sweep = 30
         min_sweep = 2  # tolerance to stop EP iterations
         n = x.shape[0]
         inffunc = self
@@ -909,7 +909,7 @@ class QP(Inference):
             # print(K, ttau, tnu)
             # print(Sigma,mu,nlZ,L)
         if sweep == max_sweep:
-            logging.warning("maximum number of sweeps reached in function infQP")
+            logging.warning("maximum number of sweeps ({}) reached in function infQP".format(max_sweep))
 
         self.last_ttau = ttau
         self.last_tnu = tnu  # remember for next call
