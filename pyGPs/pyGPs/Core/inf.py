@@ -752,7 +752,6 @@ class EP(Inference):
         else:
             ttau = self.last_ttau                 # try the tilde values from previous call
             tnu  = self.last_tnu
-            # print(ttau)
             Sigma, mu, nlZ, L = self._epComputeParams(K, y, ttau, tnu, likfunc, m, inffunc)
             if nlZ > nlZ0:                        # if zero is better ..
                 ttau = np.zeros((n,1))            # .. then initialize with zero instead
@@ -761,23 +760,19 @@ class EP(Inference):
                 mu = np.zeros((n,1))              # .. the Gaussian posterior approximation
                 nlZ = nlZ0
         nlZ_old = np.inf; sweep = 0               # converged, max. sweeps or min. sweeps?
-        k = 1
         while (np.abs(nlZ-nlZ_old) > tol and sweep < max_sweep) or (sweep < min_sweep):
             nlZ_old = nlZ; sweep += 1
             rperm = range(n)                     # randperm(n)
             for ii in rperm:                      # iterate EP updates (in random order) over examples
                 tau_ni = old_div(1,Sigma[ii,ii]) - ttau[ii]#  first find the cavity distribution ..
-                tau_ni *= k**2
                 nu_ni  = old_div(mu[ii],Sigma[ii,ii]) + m[ii]*tau_ni - tnu[ii]    # .. params tau_ni and nu_ni
-                nu_ni *= k**2
                 # compute the desired derivatives of the indivdual log partition function
                 lZ,dlZ,d2lZ = likfunc.evaluate(y[ii], old_div(nu_ni,tau_ni), old_div(1,tau_ni), inffunc, None, 3)
                 ttau_old = copy(ttau[ii])         # then find the new tilde parameters, keep copy of old
                 ttau[ii] = old_div(-d2lZ,(1.+old_div(d2lZ,tau_ni)))
-                ttau[ii] = max(ttau[ii],0)/k**2   # enforce positivity i.e. lower bound ttau by zero
-                tnu[ii]  = old_div(( dlZ + (m[ii]-old_div(nu_ni,tau_ni))*d2lZ ),(1.+old_div(d2lZ,tau_ni)))*1.02
-                tnu[ii] /= k**2
-
+                ttau[ii] = max(ttau[ii],0)        # enforce positivity i.e. lower bound ttau by zero
+                tnu[ii]  = old_div(( dlZ + (m[ii]-old_div(nu_ni,tau_ni))*d2lZ ),(1.+old_div(d2lZ,tau_ni)))
+                
                 ds2 = ttau[ii] - ttau_old         # finally rank-1 update Sigma ..
                 si  = np.reshape(Sigma[:,ii],(Sigma.shape[0],1))
                 Sigma = Sigma - ds2/(1.+ds2*si[ii])*np.dot(si,si.T)   # takes 70# of total time
@@ -909,7 +904,7 @@ class QP(Inference):
             # print(K, ttau, tnu)
             # print(Sigma,mu,nlZ,L)
         if sweep == max_sweep:
-            logging.warning("maximum number of sweeps ({}) reached in function infQP".format(max_sweep))
+            logging.warning("maximum number of sweeps reached in function infQP".format(max_sweep))
 
         self.last_ttau = ttau
         self.last_tnu = tnu  # remember for next call

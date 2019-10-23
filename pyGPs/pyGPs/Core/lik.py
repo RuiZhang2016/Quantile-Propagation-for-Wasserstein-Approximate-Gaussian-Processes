@@ -124,7 +124,7 @@ class Likelihood(object):
         pass
 
     def fit_gauss_wd2(self, v, mu, sigma,mu_q,sigma_q,Z=None):
-        return mu_q, sigma_q
+        return mu_q, sigma_q*0.99
         # if sigma_q < 8e-3:
         #     return mu_q,8e-3
 

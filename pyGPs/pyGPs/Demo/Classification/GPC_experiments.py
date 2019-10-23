@@ -77,7 +77,11 @@ def run(x_train,y_train,x_test,y_test,f1,f2,dataname,expid):
     # modelEP.setOptimizer('BFGS')
     if not f1 is None and not f2 is None:
         modelQP.useInference('QP', f1, f2)
-    k = pyGPs.cov.RBFard(log_ell_list=[0.01] * n_features, log_sigma=1.)  # kernel
+    kEP = pyGPs.cov.RBFard(log_ell_list=[0.01] * n_features, log_sigma=1.)  # kernel
+    kQP = pyGPs.cov.RBFard(log_ell_list=[0.01] * n_features, log_sigma=1.)  # kernel
+    modelEP.setPrior(kernel=kEP)
+    modelQP.setPrior(kernel=kQP)
+
     # print('kernel params: ', k.hyp)
 
     #setup plots
@@ -92,11 +96,10 @@ def run(x_train,y_train,x_test,y_test,f1,f2,dataname,expid):
     lps = []
     for i in range(2):
         model = models[i]
-        model.setPrior(kernel=k)
 
         try:
         # model.getPosterior(x_train, y_train)
-            model.optimize(x_train, y_train.reshape((-1,1)), numIterations=10)
+            model.optimize(x_train, y_train.reshape((-1,1)), numIterations=40)
         except:
             Is += [None]
             Es += [None]
