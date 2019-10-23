@@ -7,7 +7,7 @@ if sys.platform == 'darwin':
     sys.path.append('/Users/ruizhang/PycharmProjects/WGPC/pyGPs')
     os.environ['proj'] = '/Users/ruizhang/PycharmProjects/WGPC'
 else:
-    os.environ['proj'] = '/home/users/u5963436/Work/WGPC'
+    os.environ['proj'] = '/home/rzhang/work/WGPC' 
 sys.path.append(os.environ['proj']+'/pyGPs')
 sys.path.append(os.environ['proj'])
 import pyGPs
@@ -39,7 +39,7 @@ def compute_testll(ys, ps):
     return np.mean(Is)
 
 def compute_E(ys, ps):
-    return np.mean([100 if (ps[i] > 0.5) ^ (ys[i] == 1) else 0 for i in range(len(ps))])
+    return np.nanmean([100 if (ps[i] > 0.5) ^ (ys[i] == 1) else 0 for i in range(len(ps))])
 
 
 def interp_fs():
@@ -96,7 +96,7 @@ def run(x_train,y_train,x_test,y_test,f1,f2,dataname,expid):
 
         try:
         # model.getPosterior(x_train, y_train)
-            model.optimize(x_train, y_train.reshape((-1,1)), numIterations=20)
+            model.optimize(x_train, y_train.reshape((-1,1)), numIterations=10)
         except:
             Is += [None]
             Es += [None]
@@ -137,9 +137,9 @@ def run(x_train,y_train,x_test,y_test,f1,f2,dataname,expid):
         ymu, ys2, fmu, fs2, lp = model.predict(x_test, ys=np.ones(y_test.shape))
         lp = lp.flatten()
         y_test = y_test.flatten()
-        lp2_ = (1+y_test)/2*lp+(1-y_test)/2*(np.log(1-np.exp(lp)))
+        lp2 = (1+y_test)/2*lp+(1-y_test)/2*(np.log(1-np.exp(lp)))
         lps += [lp2]
-        Is += [np.sum(lp2)]
+        Is += [np.nansum(lp2)]
         # print('{} Inference Method: '.format(expid),model.inffunc.name,' ','Likelihood Function: ', model.likfunc)
         # print('test ll: ', np.sum(lp),np.exp(lp).flatten())
         # I = compute_I(y_test, np.exp(lp.flatten()), y_train)
@@ -210,6 +210,13 @@ if __name__ == '__main__':
     f1, f2 = lambda x:x, lambda x:x #interp_fs()
     # synthetic(f1, f2)
     # experiments(f1,f2,1)
+    x = input('delete *_output_2.txt?Y/N')
+    if x == 'Y':
+        for dataname in datanames:
+            filename = os.environ['proj'] + "/res/{}_output_2.txt".format(dataname)
+            if os.path.exists(filename):
+                os.remove(filename)
+
     Parallel(n_jobs=30)(delayed(experiments)(f1,f2,expid) for expid in range(60))
     for dataname in datanames:
         lines = read_output_table(os.environ['proj']+'/res/{}_output_2.txt'.format(dataname))

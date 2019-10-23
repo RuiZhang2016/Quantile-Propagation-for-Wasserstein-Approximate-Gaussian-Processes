@@ -895,7 +895,7 @@ class QP(Inference):
                 # print("mu_ni,mu_i,mu_hat,sigma_ni,sigma_i,sigma_hat:",mu_ni,mu_i,mu_hat,sigma_ni,sigma_i,sigma_hat)
                 sigma_hat2 = sigma_hat**2
                 ttau[ii] = max(1 / sigma_hat2 - tau_ni, 0)
-                ttau[ii] = min(ttau[ii],1e6)
+                # ttau[ii] = min(ttau[ii],1e6)
                 tnu[ii] = 1 / sigma_hat2 * mu_hat - nu_ni
 
                 ds2 = ttau[ii] - ttau_old  # finally rank-1 update Sigma ..
