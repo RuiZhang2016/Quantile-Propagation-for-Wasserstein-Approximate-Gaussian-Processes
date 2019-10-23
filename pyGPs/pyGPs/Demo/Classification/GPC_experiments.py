@@ -81,7 +81,7 @@ def run(x_train,y_train,x_test,y_test,f1,f2,dataname,expid):
     # print('kernel params: ', k.hyp)
 
     #setup plots
-    fig = plt.figure()
+    # fig = plt.figure()
 
     # ax = fig.gca(projection='3d')
 
@@ -89,12 +89,18 @@ def run(x_train,y_train,x_test,y_test,f1,f2,dataname,expid):
     models =  [modelEP, modelQP]
     Es = []
     Is = []
+    lps = []
     for i in range(2):
         model = models[i]
         model.setPrior(kernel=k)
 
+        try:
         # model.getPosterior(x_train, y_train)
-        model.optimize(x_train, y_train.reshape((-1,1)), numIterations=10)
+            model.optimize(x_train, y_train.reshape((-1,1)), numIterations=20)
+        except:
+            Is += [None]
+            Es += [None]
+            continue
         # print('kernel params: ', model.covfunc.hyp)
         #model.getPosterior(x_train, y_train)
         # print('negative log likelihood: ',model.nlZ)
@@ -128,8 +134,12 @@ def run(x_train,y_train,x_test,y_test,f1,f2,dataname,expid):
     # plt.show(block=True)
     # return
 
-        ymu, ys2, fmu, fs2, lp = model.predict(x_test, ys=y_test)
-        Is += [np.exp(lp.flatten())]
+        ymu, ys2, fmu, fs2, lp = model.predict(x_test, ys=np.ones(y_test.shape))
+        lp = lp.flatten()
+        y_test = y_test.flatten()
+        lp2_ = (1+y_test)/2*lp+(1-y_test)/2*(np.log(1-np.exp(lp)))
+        lps += [lp2]
+        Is += [np.sum(lp2)]
         # print('{} Inference Method: '.format(expid),model.inffunc.name,' ','Likelihood Function: ', model.likfunc)
         # print('test ll: ', np.sum(lp),np.exp(lp).flatten())
         # I = compute_I(y_test, np.exp(lp.flatten()), y_train)
@@ -140,7 +150,7 @@ def run(x_train,y_train,x_test,y_test,f1,f2,dataname,expid):
         # line_style = '-' if i == 0 else '-.'
         # plt.plot(y_score_bin_mean[scores_not_nan],
         #          empirical_prob_pos[scores_not_nan],linestyle=line_style,label=model.inffunc.name)
-        Es+=[compute_E(y_test, np.exp(lp.flatten()))]
+        Es+=[compute_E(y_test, np.exp(lp))]
 
     # plt.plot(np.linspace(0,1,20),np.linspace(0,1,20),'-.')
     # plt.xlabel('Predictive Probability')
@@ -151,7 +161,8 @@ def run(x_train,y_train,x_test,y_test,f1,f2,dataname,expid):
 
     # print results
     # print("Negative log marginal liklihood before and after optimization")
-    f = open(os.environ['proj'] + "/res/{}_output.txt".format(dataname), "a")
+    np.save(os.environ['proj'] + "/res/lps_{}_2.npy".format(expid),lps)
+    f = open(os.environ['proj'] + "/res/{}_output_2.txt".format(dataname), "a")
     # f.write("Negative log marginal liklihood before and after optimization:\n")
     # f.write('{} I E: EP {} {} QP {} {}\n'.format(id, IEP, EEP, IQP, EQP))
     f.write('{} Es: EP {} QP {}; Is: EP {} QP {} \n'.format(expid, Es[0], Es[1], Is[0],Is[1]))
@@ -182,20 +193,29 @@ def load_obj(name):
         return pickle.load(f)
 
 def read_output_table(file_path):
+    def str2float(s):
+        return None if s == 'None' else float(s)
+
     with open(file_path,'r') as file:
         lines = file.readlines()
-        lines = np.array([l.replace('\n','').split() for l in lines])
-        lines = np.array([[float(l[-3]),float(l[-1])] for l in lines if 'Es:' in l])
+        for re in ['\n',';']:
+            lines = np.array([l.replace(re,'') for l in lines])
+        lines = np.array([l.split() for l in lines])
+
+        lines = np.array([[str2float(l[3]),str2float(l[5]),str2float(l[8]),str2float(l[-1])] for l in lines if 'Es:' in l])
         return lines
 
 if __name__ == '__main__':
 
     f1, f2 = lambda x:x, lambda x:x #interp_fs()
     # synthetic(f1, f2)
-    experiments(f1,f2,1)
-    #Parallel(n_jobs=30)(delayed(experiments)(f1,f2,expid) for expid in range(60))
-    # for dataname in datanames:
-    #     lines = read_output_table('/home/rzhang/PycharmProjects/WGPC/res/{}_output.txt'.format(dataname))
-    #     print('data: ',dataname,np.mean(lines,axis=0))
-    #     print(lines)
-    # print('I E: ', np.mean(lines,axis=0))
+    # experiments(f1,f2,1)
+    Parallel(n_jobs=30)(delayed(experiments)(f1,f2,expid) for expid in range(60))
+    for dataname in datanames:
+        lines = read_output_table(os.environ['proj']+'/res/{}_output_2.txt'.format(dataname))
+        # print(lines)
+        lines_E = np.array([l for l in lines[:,:2] if None not in l])
+        lines_Q = np.array([l for l in lines[:,2:] if None not in l]) 
+        print('data: ',dataname,np.mean(lines_E,axis=0),np.mean(lines_Q,axis=0))
+        # print(lines)
+        # print('I E: ', np.mean(lines,axis=0))

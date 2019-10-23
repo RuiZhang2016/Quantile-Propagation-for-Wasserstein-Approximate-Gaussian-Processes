@@ -737,7 +737,7 @@ class EP(Inference):
         self.last_ttau = None
         self.last_tnu = None
     def evaluate(self, meanfunc, covfunc, likfunc, x, y, nargout=1):
-        tol = 1e-4; max_sweep = 20; min_sweep = 2 # tolerance to stop EP iterations
+        tol = 1e-4; max_sweep = 10; min_sweep = 2 # tolerance to stop EP iterations
         n = x.shape[0]
         inffunc = self
         K = covfunc.getCovMatrix(x=x, mode='train') # evaluate the covariance matrix
@@ -840,7 +840,7 @@ class QP(Inference):
 
     def evaluate(self, meanfunc, covfunc, likfunc, x, y, nargout=1):
         tol = 1e-4
-        max_sweep = 30
+        max_sweep = 10
         min_sweep = 2  # tolerance to stop EP iterations
         n = x.shape[0]
         inffunc = self
@@ -895,7 +895,7 @@ class QP(Inference):
                 # print("mu_ni,mu_i,mu_hat,sigma_ni,sigma_i,sigma_hat:",mu_ni,mu_i,mu_hat,sigma_ni,sigma_i,sigma_hat)
                 sigma_hat2 = sigma_hat**2
                 ttau[ii] = max(1 / sigma_hat2 - tau_ni, 0)
-                # ttau[ii] = min(ttau[ii],1e6)
+                ttau[ii] = min(ttau[ii],1e6)
                 tnu[ii] = 1 / sigma_hat2 * mu_hat - nu_ni
 
                 ds2 = ttau[ii] - ttau_old  # finally rank-1 update Sigma ..
