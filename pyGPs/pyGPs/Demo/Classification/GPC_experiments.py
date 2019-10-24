@@ -33,12 +33,14 @@ def compute_I(ys, ps, ys_train):
     I =np.mean([np.log2(ps[i]) if ys[i]==1 else np.log2(1-ps[i]) for i in range(len(ys))])+H
     return I
 
+
 def compute_testll(ys, ps):
     p1 = np.mean([e if e == 1 else 0 for e in ys])
     p2 = 1 - p1
     assert ys.shape == ps.shape
     Is = (ys + 1) / 2 * np.log2(ps) + (1 - ys) / 2 * np.log2(1 - ps)
     return np.mean(Is)
+
 
 def compute_E(ys, ps):
     return np.nanmean([100 if (ps[i] > 0.5) ^ (ys[i] == 1) else 0 for i in range(len(ps))])
@@ -197,6 +199,25 @@ def load_obj(name):
     with open(os.environ['proj'] + '/data/split_data/' + name + '.pkl', 'rb') as f:
         return pickle.load(f)
 
+
+def reliability_curve(y_true, y_score, bins=10, normalize=False):
+    if normalize:  # Normalize scores into bin [0, 1]
+        y_score = (y_score - y_score.min()) / (y_score.max() - y_score.min())
+
+    bin_width = 1.0 / bins
+    bin_centers = np.linspace(0, 1.0 - bin_width, bins) + bin_width / 2
+
+    y_score_bin_mean = np.empty(bins)
+    empirical_prob_pos = np.empty(bins)
+    for i, threshold in enumerate(bin_centers):
+        # determine all samples where y_score falls into the i-th bin
+        bin_idx = np.logical_and(threshold - bin_width / 2 < y_score,
+                                 y_score <= threshold + bin_width / 2)
+        # Store mean y_score and mean empirical probability of positive class
+        y_score_bin_mean[i] = y_score[bin_idx].mean()
+        empirical_prob_pos[i] = y_true[bin_idx].mean()
+    return y_score_bin_mean, empirical_prob_pos
+
 def read_output_table(file_path):
     def str2float(s):
         return None if s == 'None' else float(s)
@@ -209,6 +230,7 @@ def read_output_table(file_path):
 
         lines = np.array([[str2float(l[3]),str2float(l[5]),str2float(l[8]),str2float(l[-1])] for l in lines if 'Es:' in l])
         return lines
+
 
 if __name__ == '__main__':
 

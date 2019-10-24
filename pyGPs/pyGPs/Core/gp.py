@@ -890,23 +890,6 @@ class GPC(GP):
         else:
             raise Exception('Possible lik values are "Logistic".')
 
-    def reliability_curve(self,y_true, y_score, bins=10, normalize=False):
-        if normalize:  # Normalize scores into bin [0, 1]
-            y_score = (y_score - y_score.min()) / (y_score.max() - y_score.min())
-
-        bin_width = 1.0 / bins
-        bin_centers = np.linspace(0, 1.0 - bin_width, bins) + bin_width / 2
-
-        y_score_bin_mean = np.empty(bins)
-        empirical_prob_pos = np.empty(bins)
-        for i, threshold in enumerate(bin_centers):
-            # determine all samples where y_score falls into the i-th bin
-            bin_idx = np.logical_and(threshold - bin_width / 2 < y_score,
-                                     y_score <= threshold + bin_width / 2)
-            # Store mean y_score and mean empirical probability of positive class
-            y_score_bin_mean[i] = y_score[bin_idx].mean()
-            empirical_prob_pos[i] = y_true[bin_idx].mean()
-        return y_score_bin_mean, empirical_prob_pos
 
 
 
