@@ -7,9 +7,8 @@ if sys.platform == 'darwin':
     sys.path.append('/Users/ruizhang/PycharmProjects/WGPC/pyGPs')
     os.environ['proj'] = '/Users/ruizhang/PycharmProjects/WGPC'
 else:
+    sys.path.append('/home/rzhang/PycharmProjects/WGPC/pyGPs')
     os.environ['proj'] = '/home/rzhang/PycharmProjects/WGPC'
-sys.path.append(os.environ['proj']+'/pyGPs')
-sys.path.append(os.environ['proj'])
 import pyGPs
 import numpy as np
 
@@ -28,8 +27,8 @@ def compute_I(ys, ps, ys_train):
     p2 = 1 - p1
     H = -p1 * np.log2(p1) - p2 * np.log2(p2)
     assert ys.shape == ps.shape
-    I =np.mean([np.log2(ps[i]) if ys[i]==1 else np.log2(1-ps[i]) for i in range(len(ys))])+H
-    return I
+    Is = (ys + 1) / 2 * np.log2(ps) + (1 - ys) / 2 * np.log2(1 - ps) + H
+    return np.mean(Is)
 
 def compute_testll(ys, ps):
     p1 = np.mean([e if e == 1 else 0 for e in ys])
@@ -39,23 +38,22 @@ def compute_testll(ys, ps):
     return np.mean(Is)
 
 def compute_E(ys, ps):
-    return np.nanmean([100 if (ps[i] > 0.5) ^ (ys[i] == 1) else 0 for i in range(len(ps))])
+    return np.mean([100 if (ps[i] > 0.5) ^ (ys[i] == 1) else 0 for i in range(len(ps))])
 
+def read_usps():
+    import h5py
+    path = os.environ['proj'] + '/data/usps.h5'
 
-def interp_fs():
-    table1 = WR_table(os.environ['proj'] + '/res/WD_GPC/sigma_new_1.csv', 'r')
-    table2 = WR_table(os.environ['proj'] + '/res/WD_GPC/sigma_new_-1.csv', 'r')
-    x = [i * 0.001 - 5 for i in range(10000)]
-    y = [0.4 + 0.001 * i for i in range(4601)]
-    f1 = interpolate.interp2d(y, x, table1, kind='cubic')
-    f2 = interpolate.interp2d(y, x, table2, kind='cubic')
-    return f1, f2
-
-datanames = ['ionosphere', 'breast_cancer', 'crabs', 'pima', 'usps', 'sonar']
-def experiments(f1, f2, exp_id):
-    data_id, piece_id = divmod(exp_id, 10)
-    dic = load_obj('{}_{}'.format(datanames[data_id], piece_id))
-    run(dic['x_train'], dic['y_train'], dic['x_test'], dic['y_test'], f1, f2, datanames[data_id], exp_id)
+    with h5py.File(path, 'r') as hf:
+        train = hf.get('train')
+        X_tr = train.get('data')[:]
+        y_tr = train.get('target')[:]
+        test = hf.get('test')
+        X_te = test.get('data')[:]
+        y_te = test.get('target')[:]
+    X,y= np.vstack((X_tr,X_te)), np.hstack((y_tr,y_te))
+    X_split = [X[np.where(y == i)[0]] for i in range(10)]
+    return X_split
 
 
 def run(x_train,y_train,x_test,y_test,f1,f2,dataname,expid):
@@ -81,7 +79,7 @@ def run(x_train,y_train,x_test,y_test,f1,f2,dataname,expid):
     # print('kernel params: ', k.hyp)
 
     #setup plots
-    # fig = plt.figure()
+    fig = plt.figure()
 
     # ax = fig.gca(projection='3d')
 
@@ -89,18 +87,12 @@ def run(x_train,y_train,x_test,y_test,f1,f2,dataname,expid):
     models =  [modelEP, modelQP]
     Es = []
     Is = []
-    lps = []
     for i in range(2):
         model = models[i]
         model.setPrior(kernel=k)
 
-        try:
         # model.getPosterior(x_train, y_train)
-            model.optimize(x_train, y_train.reshape((-1,1)), numIterations=1)
-        except:
-            Is += [None]
-            Es += [None]
-            continue
+        model.optimize(x_train, y_train.reshape((-1,1)), numIterations=10)
         # print('kernel params: ', model.covfunc.hyp)
         #model.getPosterior(x_train, y_train)
         # print('negative log likelihood: ',model.nlZ)
@@ -134,14 +126,9 @@ def run(x_train,y_train,x_test,y_test,f1,f2,dataname,expid):
     # plt.show(block=True)
     # return
 
-        ymu, ys2, fmu, fs2, lp = model.predict(x_test, ys=np.ones(y_test.shape))
-        lp = lp.flatten()
-        y_test = y_test.flatten()
-        lp2 = (1+y_test)/2*lp+(1-y_test)/2*(np.log(1-np.exp(lp)))
-        lps += [lp2]
-        Is += [np.nansum(lp2)]
-        # print('{} Inference Method: '.format(expid),model.inffunc.name,' ','Likelihood Function: ', model.likfunc)
-        # print('test ll: ', np.sum(lp),np.exp(lp).flatten())
+        ymu, ys2, fmu, fs2, lp = model.predict(x_test, ys=y_test)
+        print('{} Inference Method: '.format(expid),model.inffunc.name,' ','Likelihood Function: ', model.likfunc)
+        print('test ll: ', np.sum(lp),np.exp(lp).flatten())
         # I = compute_I(y_test, np.exp(lp.flatten()), y_train)
         # pred = np.exp(lp.flatten())
         # y_test = y_test>0
@@ -150,7 +137,7 @@ def run(x_train,y_train,x_test,y_test,f1,f2,dataname,expid):
         # line_style = '-' if i == 0 else '-.'
         # plt.plot(y_score_bin_mean[scores_not_nan],
         #          empirical_prob_pos[scores_not_nan],linestyle=line_style,label=model.inffunc.name)
-        Es+=[compute_E(y_test, np.exp(lp))]
+        # Es+=[compute_E(y_test, np.exp(lp.flatten()))]
 
     # plt.plot(np.linspace(0,1,20),np.linspace(0,1,20),'-.')
     # plt.xlabel('Predictive Probability')
@@ -161,68 +148,35 @@ def run(x_train,y_train,x_test,y_test,f1,f2,dataname,expid):
 
     # print results
     # print("Negative log marginal liklihood before and after optimization")
-    np.save(os.environ['proj'] + "/res/lps_{}_2.npy".format(expid),lps)
-    f = open(os.environ['proj'] + "/res/{}_output_2.txt".format(dataname), "a")
+    # f = open(os.environ['proj'] + "/res/{}_output.txt".format(dataname), "a")
     # f.write("Negative log marginal liklihood before and after optimization:\n")
     # f.write('{} I E: EP {} {} QP {} {}\n'.format(id, IEP, EEP, IQP, EQP))
-    f.write('{} Es: EP {} QP {}; Is: EP {} QP {} \n'.format(expid, Es[0], Es[1], Is[0],Is[1]))
-    f.close()
+    # f.write('{} Es: EP {} QP {}\n'.format(expid, Es[0], Es[1]))
+    # f.close()
 
-
-def synthetic(f1, f2):
-    print('generating data ...')
-    n = 300
-    data_n1 = np.random.multivariate_normal([-0.4], [[1]], int(n / 2))
-    # data_n1 = np.vstack((np.random.multivariate_normal([-2], [[1]], int(n / 4)),np.random.multivariate_normal([2], [[1]], int(n / 4))))
-    data_n1 = np.array([np.append(e, -1) for e in data_n1])
-    data_p1 = np.random.multivariate_normal([0.4], [[1]], int(n / 2))
-    # data_p1 = np.vstack((np.random.multivariate_normal([-0.4], [[1]], int(n / 4)),np.random.multivariate_normal([0.4], [[1]], int(n / 4))))
-    data_p1 = np.array([np.append(e, 1) for e in data_p1])
-    data = np.vstack((data_n1, data_p1))
-    train_id = np.random.choice(len(data), int(n * 0.5),replace=False)
-    train = np.array([data[i] for i in train_id])
-    test = np.array([data[i] for i in range(n) if i not in train_id])
-    print('done')
-    # run(np.array([[-0.4],[0.4]]), np.array([[-1],[1]]), test[:, 0:-1], test[:, -1].reshape((-1,1)), f1, f2)
-    print('train,test.shape:',train.shape,test.shape)
-    print(train_id,test)
-    run(train[:, 0:-1], train[:, -1].reshape((-1, 1)),test[:, 0:-1], test[:, -1].reshape((-1, 1)), f1, f2)
-
-def load_obj(name):
-    with open(os.environ['proj'] + '/data/split_data/' + name + '.pkl', 'rb') as f:
-        return pickle.load(f)
 
 def read_output_table(file_path):
-    def str2float(s):
-        return None if s == 'None' else float(s)
-
     with open(file_path,'r') as file:
         lines = file.readlines()
-        for re in ['\n',';']:
-            lines = np.array([l.replace(re,'') for l in lines])
-        lines = np.array([l.split() for l in lines])
-
-        lines = np.array([[str2float(l[3]),str2float(l[5]),str2float(l[8]),str2float(l[-1])] for l in lines if 'Es:' in l])
+        lines = np.array([l.replace('\n','').split() for l in lines])
+        lines = np.array([[float(l[-3]),float(l[-1])] for l in lines if 'Es:' in l])
         return lines
 
 if __name__ == '__main__':
+    X_split = read_usps()
+    ns = [len(X_split[i]) for i in range(10)]
+    f1, f2 = lambda x:x, lambda x:x
+    for i in range(9):
+        for j in range(i+1,10):
+            y_ij = np.hstack((np.ones(len(X_split[i])),0-np.ones(len(X_split[j]))))
+            X_ij = np.vstack((X_split[i],X_split[j]))
+            n = len(X_ij)
+            train_ids = np.random.choice(n,int(n*0.05),replace=False)
+            X_train = np.array([X_ij[ii] for ii in train_ids])
+            y_train = np.array([y_ij[ii] for ii in train_ids])
+            X_test = np.array([X_ij[ii] for ii in range(n) if not ii in train_ids])
+            y_test = np.array([y_ij[ii] for ii in range(n) if not ii in train_ids])
+            run(X_train, y_train, X_test, y_test, f1, f2, 'usps', '{}-{}'.format(i,j))
 
-    f1, f2 = lambda x:x, lambda x:x #interp_fs()
-    # synthetic(f1, f2)
-    # experiments(f1,f2,1)
-    x = input('delete *_output_2.txt?Y/N')
-    if x == 'Y':
-        for dataname in datanames:
-            filename = os.environ['proj'] + "/res/{}_output_2.txt".format(dataname)
-            if os.path.exists(filename):
-                os.remove(filename)
 
-    Parallel(n_jobs=30)(delayed(experiments)(f1,f2,expid) for expid in range(60))
-    for dataname in datanames:
-        lines = read_output_table(os.environ['proj']+'/res/{}_output_2.txt'.format(dataname))
-        # print(lines)
-        lines_E = np.array([l for l in lines[:,:2] if None not in l])
-        lines_Q = np.array([l for l in lines[:,2:] if None not in l]) 
-        print('data: ',dataname,np.mean(lines_E,axis=0),np.mean(lines_Q,axis=0))
-        # print(lines)
-        # print('I E: ', np.mean(lines,axis=0))
+
