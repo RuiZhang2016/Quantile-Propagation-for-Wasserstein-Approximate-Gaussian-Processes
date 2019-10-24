@@ -18,6 +18,8 @@ import numpy as np
 from core.generate_table import *
 from scipy import interpolate
 from mpl_toolkits.mplot3d import axes3d
+from scipy.stats import ttest_ind
+
 
 def preproc(x, m, s):
     return (x - m) / s
@@ -77,7 +79,11 @@ def run(x_train,y_train,x_test,y_test,f1,f2,dataname,expid):
     # modelEP.setOptimizer('BFGS')
     if not f1 is None and not f2 is None:
         modelQP.useInference('QP', f1, f2)
-    k = pyGPs.cov.RBFard(log_ell_list=[0.01] * n_features, log_sigma=1.)  # kernel
+    kEP = pyGPs.cov.RBFard(log_ell_list=[0.01] * n_features, log_sigma=1.)  # kernel
+    kQP = pyGPs.cov.RBFard(log_ell_list=[0.01] * n_features, log_sigma=1.)  # kernel
+    modelEP.setPrior(kernel=kEP)
+    modelQP.setPrior(kernel=kQP)
+
     # print('kernel params: ', k.hyp)
 
     #setup plots
@@ -92,11 +98,10 @@ def run(x_train,y_train,x_test,y_test,f1,f2,dataname,expid):
     lps = []
     for i in range(2):
         model = models[i]
-        model.setPrior(kernel=k)
 
         try:
         # model.getPosterior(x_train, y_train)
-            model.optimize(x_train, y_train.reshape((-1,1)), numIterations=1)
+            model.optimize(x_train, y_train.reshape((-1,1)), numIterations=40)
         except:
             Is += [None]
             Es += [None]
@@ -210,19 +215,33 @@ if __name__ == '__main__':
     f1, f2 = lambda x:x, lambda x:x #interp_fs()
     # synthetic(f1, f2)
     # experiments(f1,f2,1)
-    x = input('delete *_output_2.txt?Y/N')
-    if x == 'Y':
-        for dataname in datanames:
-            filename = os.environ['proj'] + "/res/{}_output_2.txt".format(dataname)
-            if os.path.exists(filename):
-                os.remove(filename)
+    # x =input('delete *_output_2.txt?Y/N')
+    # if x == 'Y':
+    #     for dataname in datanames:
+    #         filename = os.environ['proj'] + "/res/{}_output_2.txt".format(dataname)
+    #         if os.path.exists(filename):
+    #             os.remove(filename)
 
-    Parallel(n_jobs=30)(delayed(experiments)(f1,f2,expid) for expid in range(60))
-    for dataname in datanames:
-        lines = read_output_table(os.environ['proj']+'/res/{}_output_2.txt'.format(dataname))
-        # print(lines)
-        lines_E = np.array([l for l in lines[:,:2] if None not in l])
-        lines_Q = np.array([l for l in lines[:,2:] if None not in l]) 
-        print('data: ',dataname,np.mean(lines_E,axis=0),np.mean(lines_Q,axis=0))
+    # Parallel(n_jobs=30)(delayed(experiments)(f1,f2,expid) for expid in range(60))
+    for dn_id in range(len(datanames)):
+        dataname = datanames[dn_id]
+        filename = os.environ['proj'] + "/res/{}_output_2.txt".format(dataname)
+        if os.path.exists(filename):
+            lines = read_output_table(filename)
+            try:
+                lines_E = np.array([l for l in lines[:,:2] if None not in l])
+                lines_Q = np.array([l for l in lines[:,2:] if None not in l]) 
+                print(dataname,': ',np.mean(lines_E,axis=0),np.mean(lines_Q,axis=0))
+                lps = None
+                for exp_id in range(dn_id*10,dn_id*10+10):
+                    tmp = np.load(os.environ['proj']+'/res/lps_{}_2.npy'.format(exp_id))
+                    if lps is None:
+                        lps = tmp # np.load(os.environ['proj']+'/res/lps_{}_2.npy'.format(exp_id))
+                    elif len(tmp)>1:
+                        lps = np.hstack((lps,tmp))
+                    
+                print('p-value:', ttest_ind(lps[0],lps[1]))
+            except Exception as e:
+                print(e)
         # print(lines)
         # print('I E: ', np.mean(lines,axis=0))
