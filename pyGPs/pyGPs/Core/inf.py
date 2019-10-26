@@ -775,7 +775,7 @@ class EP(Inference):
                 ttau_old = copy(ttau[ii])         # then find the new tilde parameters, keep copy of old
                 ttau[ii] = old_div(-d2lZ,(1.+old_div(d2lZ,tau_ni)))
                 ttau[ii] = max(ttau[ii],0)/k**2   # enforce positivity i.e. lower bound ttau by zero
-                tnu[ii]  = old_div(( dlZ + (m[ii]-old_div(nu_ni,tau_ni))*d2lZ ),(1.+old_div(d2lZ,tau_ni)))*1.02
+                tnu[ii]  = old_div(( dlZ + (m[ii]-old_div(nu_ni,tau_ni))*d2lZ ),(1.+old_div(d2lZ,tau_ni)))
                 tnu[ii] /= k**2
 
                 ds2 = ttau[ii] - ttau_old         # finally rank-1 update Sigma ..
@@ -909,7 +909,7 @@ class QP(Inference):
             # print(K, ttau, tnu)
             # print(Sigma,mu,nlZ,L)
         if sweep == max_sweep:
-            logging.warning("maximum number of sweeps ({}) reached in function infQP".format(max_sweep))
+            logging.warning("maximum number of sweeps reached in function infQP")
 
         self.last_ttau = ttau
         self.last_tnu = tnu  # remember for next call
