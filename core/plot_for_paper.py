@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from scipy.stats import norm
 from core.util import *
 import pyGPs
-os.environ['proj'] = "/home/rzhang/PycharmProjects/WGPC/"
+os.environ['proj'] = "/home/rzhang/PycharmProjects/WGPC"
 
 
 def plot_components():
@@ -211,6 +211,41 @@ def plot_lk_Is(filename):
     # CS = plt.contour(X, Y, Es)
     # plt.show()
 
+def draw_reliability_diagram():
+    datanames = ['ionosphere', 'breast_cancer', 'crabs', 'pima', 'usps', 'sonar']
+
+
+    for data_id in range(len(datanames)):
+        dn = datanames[data_id]
+        lps = None
+        y_test = None
+        for piece_id in range(10):
+            dic = load_obj('{}_{}'.format(datanames[data_id], piece_id))
+            lps_fn = os.environ['proj'] + '/res/lps_{}_2.npy'.format(data_id*10+piece_id)
+            tmp = np.load(lps_fn)
+            if len(tmp)>1:
+                if lps is None:
+                    lps = tmp
+                    y_test = dic['y_test'] > 0
+                else:
+                    lps = np.hstack((lps,tmp))
+                    y_test = np.hstack((y_test,dic['y_test'] > 0))
+        ps = np.exp(lps)
+        for i in range(2):
+            tmp_scores = y_test * ps[i] + (1-y_test)*(1-ps[i])
+            y_score_bin_mean, empirical_prob_pos = reliability_curve(y_test,tmp_scores,bins=50)
+            scores_not_nan = np.logical_not(np.isnan(empirical_prob_pos))
+
+            # marker = '*' if i == 0 else 'o'
+            print('y scores, empirical prob:', y_score_bin_mean[scores_not_nan],empirical_prob_pos[scores_not_nan])
+            plt.plot(y_score_bin_mean[scores_not_nan],
+                     empirical_prob_pos[scores_not_nan],'*',label='EP' if i == 0 else 'QP')
+        plt.plot(np.linspace(0,1,100),np.linspace(0,1,100))
+        plt.title(data_id)
+        plt.xlabel('predictive probability')
+        plt.ylabel('true probability')
+        plt.legend()
+        plt.show()
 
 if __name__ == '__main__':
     # plot_components()
@@ -218,4 +253,6 @@ if __name__ == '__main__':
     # calc_lks_is(f1, f2, 1)
     # plot_lk_Is('../res/ll_I_E_EP_restrict_boundary.npy')
     # plot_lk_Is('../res/ll_I_E_QP_restrict_boundary.npy')
-    plot_wdp_solutions()
+    # plot_wdp_solutions()
+
+    draw_reliability_diagram()

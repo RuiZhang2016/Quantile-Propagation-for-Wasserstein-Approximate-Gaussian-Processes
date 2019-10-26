@@ -7,7 +7,7 @@ if sys.platform == 'darwin':
     sys.path.append('/Users/ruizhang/PycharmProjects/WGPC/pyGPs')
     os.environ['proj'] = '/Users/ruizhang/PycharmProjects/WGPC'
 else:
-    os.environ['proj'] = '/home/users/u5963436/Work/WGPC'
+    os.environ['proj'] = '/home/rzhang/PycharmProjects/WGPC'
 sys.path.append(os.environ['proj']+'/pyGPs')
 sys.path.append(os.environ['proj'])
 import pyGPs
@@ -18,6 +18,8 @@ import numpy as np
 from core.generate_table import *
 from scipy import interpolate
 from mpl_toolkits.mplot3d import axes3d
+from scipy.stats import ttest_ind
+
 
 def preproc(x, m, s):
     return (x - m) / s
@@ -31,6 +33,7 @@ def compute_I(ys, ps, ys_train):
     I =np.mean([np.log2(ps[i]) if ys[i]==1 else np.log2(1-ps[i]) for i in range(len(ys))])+H
     return I
 
+
 def compute_testll(ys, ps):
     p1 = np.mean([e if e == 1 else 0 for e in ys])
     p2 = 1 - p1
@@ -38,8 +41,9 @@ def compute_testll(ys, ps):
     Is = (ys + 1) / 2 * np.log2(ps) + (1 - ys) / 2 * np.log2(1 - ps)
     return np.mean(Is)
 
+
 def compute_E(ys, ps):
-    return np.mean([100 if (ps[i] > 0.5) ^ (ys[i] == 1) else 0 for i in range(len(ps))])
+    return np.nanmean([100 if (ps[i] > 0.5) ^ (ys[i] == 1) else 0 for i in range(len(ps))])
 
 
 def interp_fs():
@@ -77,7 +81,11 @@ def run(x_train,y_train,x_test,y_test,f1,f2,dataname,expid):
     # modelEP.setOptimizer('BFGS')
     if not f1 is None and not f2 is None:
         modelQP.useInference('QP', f1, f2)
-    k = pyGPs.cov.RBFard(log_ell_list=[0.01] * n_features, log_sigma=1.)  # kernel
+    kEP = pyGPs.cov.RBFard(log_ell_list=[0.01] * n_features, log_sigma=1.)  # kernel
+    kQP = pyGPs.cov.RBFard(log_ell_list=[0.01] * n_features, log_sigma=1.)  # kernel
+    modelEP.setPrior(kernel=kEP)
+    modelQP.setPrior(kernel=kQP)
+
     # print('kernel params: ', k.hyp)
 
     #setup plots
@@ -92,11 +100,10 @@ def run(x_train,y_train,x_test,y_test,f1,f2,dataname,expid):
     lps = []
     for i in range(2):
         model = models[i]
-        model.setPrior(kernel=k)
 
         try:
         # model.getPosterior(x_train, y_train)
-            model.optimize(x_train, y_train.reshape((-1,1)), numIterations=20)
+            model.optimize(x_train, y_train.reshape((-1,1)), numIterations=40)
         except:
             Is += [None]
             Es += [None]
@@ -137,9 +144,9 @@ def run(x_train,y_train,x_test,y_test,f1,f2,dataname,expid):
         ymu, ys2, fmu, fs2, lp = model.predict(x_test, ys=np.ones(y_test.shape))
         lp = lp.flatten()
         y_test = y_test.flatten()
-        lp2_ = (1+y_test)/2*lp+(1-y_test)/2*(np.log(1-np.exp(lp)))
+        lp2 = (1+y_test)/2*lp+(1-y_test)/2*(np.log(1-np.exp(lp)))
         lps += [lp2]
-        Is += [np.sum(lp2)]
+        Is += [np.nansum(lp2)]
         # print('{} Inference Method: '.format(expid),model.inffunc.name,' ','Likelihood Function: ', model.likfunc)
         # print('test ll: ', np.sum(lp),np.exp(lp).flatten())
         # I = compute_I(y_test, np.exp(lp.flatten()), y_train)
@@ -192,6 +199,25 @@ def load_obj(name):
     with open(os.environ['proj'] + '/data/split_data/' + name + '.pkl', 'rb') as f:
         return pickle.load(f)
 
+
+def reliability_curve(y_true, y_score, bins=10, normalize=False):
+    if normalize:  # Normalize scores into bin [0, 1]
+        y_score = (y_score - y_score.min()) / (y_score.max() - y_score.min())
+
+    bin_width = 1.0 / bins
+    bin_centers = np.linspace(0, 1.0 - bin_width, bins) + bin_width / 2
+
+    y_score_bin_mean = np.empty(bins)
+    empirical_prob_pos = np.empty(bins)
+    for i, threshold in enumerate(bin_centers):
+        # determine all samples where y_score falls into the i-th bin
+        bin_idx = np.logical_and(threshold - bin_width / 2 < y_score,
+                                 y_score <= threshold + bin_width / 2)
+        # Store mean y_score and mean empirical probability of positive class
+        y_score_bin_mean[i] = y_score[bin_idx].mean()
+        empirical_prob_pos[i] = y_true[bin_idx].mean()
+    return y_score_bin_mean, empirical_prob_pos
+
 def read_output_table(file_path):
     def str2float(s):
         return None if s == 'None' else float(s)
@@ -205,17 +231,39 @@ def read_output_table(file_path):
         lines = np.array([[str2float(l[3]),str2float(l[5]),str2float(l[8]),str2float(l[-1])] for l in lines if 'Es:' in l])
         return lines
 
+
 if __name__ == '__main__':
 
     f1, f2 = lambda x:x, lambda x:x #interp_fs()
     # synthetic(f1, f2)
     # experiments(f1,f2,1)
-    Parallel(n_jobs=30)(delayed(experiments)(f1,f2,expid) for expid in range(60))
-    for dataname in datanames:
-        lines = read_output_table(os.environ['proj']+'/res/{}_output_2.txt'.format(dataname))
-        # print(lines)
-        lines_E = np.array([l for l in lines[:,:2] if None not in l])
-        lines_Q = np.array([l for l in lines[:,2:] if None not in l]) 
-        print('data: ',dataname,np.mean(lines_E,axis=0),np.mean(lines_Q,axis=0))
+    # x =input('delete *_output_2.txt?Y/N')
+    # if x == 'Y':
+    #     for dataname in datanames:
+    #         filename = os.environ['proj'] + "/res/{}_output_2.txt".format(dataname)
+    #         if os.path.exists(filename):
+    #             os.remove(filename)
+
+    # Parallel(n_jobs=30)(delayed(experiments)(f1,f2,expid) for expid in range(60))
+    for dn_id in range(len(datanames)):
+        dataname = datanames[dn_id]
+        filename = os.environ['proj'] + "/res/{}_output_2.txt".format(dataname)
+        if os.path.exists(filename):
+            lines = read_output_table(filename)
+            try:
+                lines_E = np.array([l for l in lines[:,:2] if None not in l])
+                lines_Q = np.array([l for l in lines[:,2:] if None not in l]) 
+                print(dataname,': ',np.mean(lines_E,axis=0),np.mean(lines_Q,axis=0))
+                lps = None
+                for exp_id in range(dn_id*10,dn_id*10+10):
+                    tmp = np.load(os.environ['proj']+'/res/lps_{}_2.npy'.format(exp_id))
+                    if lps is None:
+                        lps = tmp # np.load(os.environ['proj']+'/res/lps_{}_2.npy'.format(exp_id))
+                    elif len(tmp)>1:
+                        lps = np.hstack((lps,tmp))
+                    
+                print('p-value:', ttest_ind(lps[0],lps[1]))
+            except Exception as e:
+                print(e)
         # print(lines)
         # print('I E: ', np.mean(lines,axis=0))
