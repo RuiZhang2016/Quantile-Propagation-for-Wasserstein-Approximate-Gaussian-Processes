@@ -75,60 +75,35 @@ def run(x_train,y_train,x_test,y_test,f1,f2,dataname,expid):
     # modelEP.setOptimizer('BFGS')
     if not f1 is None and not f2 is None:
         modelQP.useInference('QP', f1, f2)
-    k = pyGPs.cov.RBFard(log_ell_list=[0.01] * n_features, log_sigma=1.)  # kernel
-    # print('kernel params: ', k.hyp)
-
-    #setup plots
-    fig = plt.figure()
-
-    # ax = fig.gca(projection='3d')
+    kEP = pyGPs.cov.RBFard(log_ell_list=[0.01] * n_features, log_sigma=1.)  # kernel
+    kQP = pyGPs.cov.RBFard(log_ell_list=[0.01] * n_features, log_sigma=1.)  # kernel
+    modelEP.setPrior(kernel=kEP)
+    modelQP.setPrior(kernel=kQP)
 
     # calculations of EP and QP
     models =  [modelEP, modelQP]
     Es = []
     Is = []
+    lps = []
     for i in range(2):
         model = models[i]
-        model.setPrior(kernel=k)
-
-        # model.getPosterior(x_train, y_train)
-        model.optimize(x_train, y_train.reshape((-1,1)), numIterations=10)
-        # print('kernel params: ', model.covfunc.hyp)
-        #model.getPosterior(x_train, y_train)
-        # print('negative log likelihood: ',model.nlZ)
-
-        K = model.covfunc.getCovMatrix(x=x_train, mode='train')
-        # print('K: ',K)
-        from scipy.stats import multivariate_normal as norm
-
-        tau_ni0 = 1 / model.inffunc.Sigma[0, 0] - model.inffunc.last_ttau[0]  # first find the cavity distribution ..
-        nu_ni0 = model.inffunc.mu[0] / model.inffunc.Sigma[0, 0] - model.inffunc.last_tnu[0]
-        tau_ni1 = 1 / model.inffunc.Sigma[1, 1] - model.inffunc.last_ttau[1]  # first find the cavity distribution ..
-        nu_ni1 = model.inffunc.mu[1] / model.inffunc.Sigma[1, 1] - model.inffunc.last_tnu[1]
-        c2 = False
-        if c2:
-            if isinstance(modelEP.likfunc,pyGPs.lik.Heaviside):
-                true_pdf = lambda x: norm.pdf(x,mean=np.zeros(2),cov = K)*\
-                                 (((x[0]>=0)*2-1)==y_train[0,0])*(((x[1]>=0)*2-1)==y_train[1,0])*4
-                cavity_f1 = lambda x: norm.pdf(x, mean=nu_ni0 / tau_ni0, cov=1 / tau_ni0) * (
-                            ((x >= 0) * 2 - 1) == y_train[0, 0])
-                cavity_f2 = lambda x: norm.pdf(x, mean=nu_ni1 / tau_ni1, cov=1 / tau_ni1) * (
-                            ((x >= 0) * 2 - 1) == y_train[1, 0])
-            elif isinstance(modelEP.likfunc,pyGPs.lik.Erf):
-                true_pdf = lambda x: norm.pdf(x,mean=np.zeros(2),cov = K)*norm.cdf(x[0]*y_train[0,0])*norm.cdf(x[1]*y_train[1,0])
-                cavity_f1 = lambda x: norm.pdf(x, mean=nu_ni0 / tau_ni0, cov=1 / tau_ni0) * norm.cdf(x * y_train[0, 0])
-                cavity_f2 = lambda x: norm.pdf(x, mean=nu_ni1 / tau_ni1, cov=1 / tau_ni1) * norm.cdf(x * y_train[1, 0])
-        # print('mu1,sigma1,mu2,sigma2:',nu_ni0 / tau_ni0,1 / tau_ni0,nu_ni1 / tau_ni1,1 / tau_ni1)
-        # ax = fig.add_subplot(1, 2, i+1, projection='3d')
-        # ax = fig.add_subplot(1, 2, i + 1)
-        # model.plot_f(true_pdf,cavity_f1,cavity_f2,ax)
-        # ax.set_title(model.inffunc.name)
-    # plt.show(block=True)
-    # return
+        try:
+            # model.getPosterior(x_train, y_train)
+            model.optimize(x_train, y_train.reshape((-1, 1)), numIterations=1)
+        except Exception as e:
+            print(e)
+            Is += [None]
+            Es += [None]
+            continue
 
         ymu, ys2, fmu, fs2, lp = model.predict(x_test, ys=y_test)
-        print('{} Inference Method: '.format(expid),model.inffunc.name,' ','Likelihood Function: ', model.likfunc)
-        print('test ll: ', np.sum(lp),np.exp(lp).flatten())
+        lp = lp.flatten()
+        print('lp:', np.exp(lp))
+        y_test = y_test.flatten()
+        lp2 = (1 + y_test) / 2 * lp + (1 - y_test) / 2 * (np.log(1 - np.exp(lp)))
+        print('lp2:', np.exp(lp2))
+        lps += [lp2]
+        Is += [np.nansum(lp2)]
         # I = compute_I(y_test, np.exp(lp.flatten()), y_train)
         # pred = np.exp(lp.flatten())
         # y_test = y_test>0
@@ -137,7 +112,7 @@ def run(x_train,y_train,x_test,y_test,f1,f2,dataname,expid):
         # line_style = '-' if i == 0 else '-.'
         # plt.plot(y_score_bin_mean[scores_not_nan],
         #          empirical_prob_pos[scores_not_nan],linestyle=line_style,label=model.inffunc.name)
-        # Es+=[compute_E(y_test, np.exp(lp.flatten()))]
+        Es += [compute_E(y_test, np.exp(lp))]
 
     # plt.plot(np.linspace(0,1,20),np.linspace(0,1,20),'-.')
     # plt.xlabel('Predictive Probability')
@@ -147,12 +122,10 @@ def run(x_train,y_train,x_test,y_test,f1,f2,dataname,expid):
     # plt.show()
 
     # print results
-    # print("Negative log marginal liklihood before and after optimization")
-    # f = open(os.environ['proj'] + "/res/{}_output.txt".format(dataname), "a")
-    # f.write("Negative log marginal liklihood before and after optimization:\n")
-    # f.write('{} I E: EP {} {} QP {} {}\n'.format(id, IEP, EEP, IQP, EQP))
-    # f.write('{} Es: EP {} QP {}\n'.format(expid, Es[0], Es[1]))
-    # f.close()
+    np.save(os.environ['proj'] + "/res/lps_{}_2.npy".format(expid), lps)
+    f = open(os.environ['proj'] + "/res/{}_output_2.txt".format(dataname), "a")
+    f.write('{} Es: EP {} QP {}; Is: EP {} QP {} \n'.format(expid, Es[0], Es[1], Is[0], Is[1]))
+    f.close()
 
 
 def read_output_table(file_path):
