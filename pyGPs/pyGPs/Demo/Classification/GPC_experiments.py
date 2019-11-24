@@ -7,7 +7,7 @@ if sys.platform == 'darwin':
     sys.path.append('/Users/ruizhang/PycharmProjects/WGPC/pyGPs')
     os.environ['proj'] = '/Users/ruizhang/PycharmProjects/WGPC'
 else:
-    os.environ['proj'] = '/home/rzhang/PycharmProjects/WGPC'
+    os.environ['proj'] = '/home/users/u5963436/Work/WGPC'#'/home/rzhang/PycharmProjects/WGPC'
 sys.path.append(os.environ['proj']+'/pyGPs')
 sys.path.append(os.environ['proj'])
 import pyGPs
@@ -55,7 +55,7 @@ def interp_fs():
     f2 = interpolate.interp2d(y, x, table2, kind='cubic')
     return f1, f2
 
-datanames = ['ionosphere', 'breast_cancer', 'crabs', 'pima', 'usps', 'sonar']
+datanames = dict(0:'ionosphere',1:'breast_cancer',2:'crabs',3:'pima',4:'usps35',5:'usps47',6:'usps28',7:'sonar',8:'iris12',9:'iris13',10:'iris23')
 def experiments(f1, f2, exp_id):
     data_id, piece_id = divmod(exp_id, 10)
     dic = load_obj('{}_{}'.format(datanames[data_id], piece_id))
@@ -81,8 +81,8 @@ def run(x_train,y_train,x_test,y_test,f1,f2,dataname,expid):
     # modelEP.setOptimizer('BFGS')
     if not f1 is None and not f2 is None:
         modelQP.useInference('QP', f1, f2)
-    kEP = pyGPs.cov.RBFard(log_ell_list=[0.01] * n_features, log_sigma=1.)  # kernel
-    kQP = pyGPs.cov.RBFard(log_ell_list=[0.01] * n_features, log_sigma=1.)  # kernel
+    kEP = pyGPs.cov.RBFard(log_ell_list=[0.1] * n_features, log_sigma=1.)  # kernel
+    kQP = pyGPs.cov.RBFard(log_ell_list=[0.1] * n_features, log_sigma=1.)  # kernel
     modelEP.setPrior(kernel=kEP)
     modelQP.setPrior(kernel=kQP)
 
@@ -100,11 +100,11 @@ def run(x_train,y_train,x_test,y_test,f1,f2,dataname,expid):
     lps = []
     for i in range(2):
         model = models[i]
-
         try:
         # model.getPosterior(x_train, y_train)
             model.optimize(x_train, y_train.reshape((-1,1)), numIterations=40)
-        except:
+        except Exception as e:
+            print(e)
             Is += [None]
             Es += [None]
             continue
@@ -158,7 +158,6 @@ def run(x_train,y_train,x_test,y_test,f1,f2,dataname,expid):
         # plt.plot(y_score_bin_mean[scores_not_nan],
         #          empirical_prob_pos[scores_not_nan],linestyle=line_style,label=model.inffunc.name)
         Es+=[compute_E(y_test, np.exp(lp))]
-
     # plt.plot(np.linspace(0,1,20),np.linspace(0,1,20),'-.')
     # plt.xlabel('Predictive Probability')
     # plt.ylabel('Empirical Probability')
@@ -170,8 +169,6 @@ def run(x_train,y_train,x_test,y_test,f1,f2,dataname,expid):
     # print("Negative log marginal liklihood before and after optimization")
     np.save(os.environ['proj'] + "/res/lps_{}_2.npy".format(expid),lps)
     f = open(os.environ['proj'] + "/res/{}_output_2.txt".format(dataname), "a")
-    # f.write("Negative log marginal liklihood before and after optimization:\n")
-    # f.write('{} I E: EP {} {} QP {} {}\n'.format(id, IEP, EEP, IQP, EQP))
     f.write('{} Es: EP {} QP {}; Is: EP {} QP {} \n'.format(expid, Es[0], Es[1], Is[0],Is[1]))
     f.close()
 
@@ -237,19 +234,20 @@ if __name__ == '__main__':
     f1, f2 = lambda x:x, lambda x:x #interp_fs()
     # synthetic(f1, f2)
     # experiments(f1,f2,1)
-    # x =input('delete *_output_2.txt?Y/N')
-    # if x == 'Y':
-    #     for dataname in datanames:
-    #         filename = os.environ['proj'] + "/res/{}_output_2.txt".format(dataname)
-    #         if os.path.exists(filename):
-    #             os.remove(filename)
+    x =input('delete *_output_2.txt?Y/N')
+    if x == 'Y':
+        for dataname in datanames:
+            filename = os.environ['proj'] + "/res/{}_output_2.txt".format(dataname)
+            if os.path.exists(filename):
+                os.remove(filename)
 
-    # Parallel(n_jobs=30)(delayed(experiments)(f1,f2,expid) for expid in range(60))
+    Parallel(n_jobs=40)(delayed(experiments)(f1,f2,expid) for expid in range(80,100))
     for dn_id in range(len(datanames)):
         dataname = datanames[dn_id]
         filename = os.environ['proj'] + "/res/{}_output_2.txt".format(dataname)
         if os.path.exists(filename):
             lines = read_output_table(filename)
+            lines = np.array([l for l in lines if None not in l])
             try:
                 lines_E = np.array([l for l in lines[:,:2] if None not in l])
                 lines_Q = np.array([l for l in lines[:,2:] if None not in l]) 
