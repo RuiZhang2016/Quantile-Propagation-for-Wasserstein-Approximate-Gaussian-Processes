@@ -167,10 +167,9 @@ def run(x_train,y_train,x_test,y_test,f1,f2,dataname,expid):
     # print results
     # print("Negative log marginal liklihood before and after optimization")
     # np.save(os.environ['proj'] + "/res/lps_{}_2.npy".format(expid),lps)
-    # f = open(os.environ['proj'] + "/res/{}_output_2.txt".format(dataname), "a")
-    # f.write("Negative log marginal liklihood before and after optimization:\n")
-    # f.write('{} Es: EP {} QP {}; Is: EP {} QP {} \n'.format(expid, Es[0], Es[1], Is[0],Is[1]))
-    # f.close()
+    f = open(os.environ['proj'] + "/res/{}_output_2.txt".format(dataname), "a")
+    f.write('{} Es: EP {} QP {}; Is: EP {} QP {} \n'.format(expid, Es[0], Es[1], Is[0],Is[1]))
+    f.close()
 
 
 def synthetic(f1, f2):
@@ -241,31 +240,33 @@ if __name__ == '__main__':
     #         if os.path.exists(filename):
     #             os.remove(filename)
 
-    Parallel(n_jobs=4)(delayed(experiments)(f1,f2,expid) for expid in range(60,70))
+    # Parallel(n_jobs=4)(delayed(experiments)(f1,f2,expid) for expid in range(60,70))
     # for i in range(6):
     #     experiments(f1,f2,i*10)
-    # for dn_id in range(len(datanames)):
-    #     dataname = datanames[dn_id]
-    #     filename = os.environ['proj'] + "/res/{}_output_2.txt".format(dataname)
-    #     if os.path.exists(filename):
-    #         lines = read_output_table(filename)
-    #         try:
-    #             lines_E = np.array([l for l in lines[:,:2] if None not in l])
-    #             lines_Q = np.array([l for l in lines[:,2:] if None not in l])
-    #             print(dataname,': ',np.mean(lines_E,axis=0),np.mean(lines_Q,axis=0))
-    #             lps = None
-    #             for exp_id in range(dn_id*10,dn_id*10+10):
-    #                 tmp = np.load(os.environ['proj']+'/res/lps_{}_2.npy'.format(exp_id))
-    #                 if lps is None:
-    #                     lps = tmp # np.load(os.environ['proj']+'/res/lps_{}_2.npy'.format(exp_id))
-    #                 elif len(tmp)>1:
-    #                     lps = np.hstack((lps,tmp))
-    #
-    #             print('p-value:', ttest_ind(lps[0],lps[1]))
-    #         except Exception as e:
-    #             print(e)
+    ##
+    for dn_id in range(6,7):
+        dataname = datanames[dn_id]
+        filename = os.environ['proj'] + "/res/{}_output_2.txt".format(dataname)
+        if os.path.exists(filename):
+            lines = read_output_table(filename)
+            try:
+                lines_E = np.array([l for l in lines[:,:2] if None not in l])
+                lines_Q = np.array([l for l in lines[:,2:] if None not in l])
+                print(dataname,': ',np.mean(lines_E,axis=0),np.mean(lines_Q,axis=0))
+                lps = None
+                for exp_id in range(dn_id*10,dn_id*10+10):
+                    tmp = np.load(os.environ['proj']+'/res/lps_{}_2.npy'.format(exp_id))
+                    if lps is None:
+                        lps = tmp # np.load(os.environ['proj']+'/res/lps_{}_2.npy'.format(exp_id))
+                    elif len(tmp)>1:
+                        lps = np.hstack((lps,tmp))
 
-    # for did in range(6):
+                print('p-value:', ttest_ind(lps[0],lps[1]))
+            except Exception as e:
+                print(e)
+
+    ## reliability diagram
+    # for did in range(6,7):
     #     lps = None
     #     testy = None
     #     for exp_id in range(did*10,(did+1)*10):
@@ -273,15 +274,18 @@ if __name__ == '__main__':
     #         dic = load_obj('{}_{}'.format(datanames[data_id], piece_id))
     #         filename = os.environ['proj'] + "/res/lps_{}_2.npy".format(exp_id)
     #         if os.path.exists(filename):
-    #             tmp = np.load(filename)
-    #             if tmp.shape[0] ==2:
-    #                 if lps is None:
-    #                     lps = tmp
-    #                     testy = dic['y_test']
-    #                 else:
-    #                     lps = np.hstack((lps,tmp))
-    #                     testy = np.hstack((testy,dic['y_test']))
-    #
+    #             try:
+    #                 tmp = np.load(filename,allow_pickle=True)
+    #                 if tmp.shape[0] ==2:
+    #                     if lps is None:
+    #                         lps = tmp
+    #                         testy = dic['y_test']
+    #                     else:
+    #                         lps = np.hstack((lps,tmp))
+    #                         testy = np.hstack((testy,dic['y_test']))
+    #             except Exception as e:
+    #                 print(e)
+
     #     from sklearn.calibration import calibration_curve
     #     testy = testy>0.5
     #     lps = np.exp(lps)
