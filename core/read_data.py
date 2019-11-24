@@ -125,6 +125,17 @@ def read_pima():
     print("#data: ", n)
     return z
 
+def read_iris():
+    file = os.environ['proj'] + '/data/iris.data'
+    str2int = {'Iris-setosa': 1, 'Iris-versicolor': -1 }
+    with open(file, 'r') as rf:
+        reader = csv.reader(rf)
+        lines = list(reader)
+        n = len(lines[0])
+        lines = [[str2int[l[i]] if i == n - 1 else float(l[i]) for i in range(n)] for l in lines if len(l)==5 and l[-1] in str2int.keys()]
+        return np.array(lines)
+
 if __name__ == '__main__':
-    z = read_usps()
-    print(np.std(z,axis=0))
+    # z = read_usps()
+    # print(np.std(z,axis=0))
+    read_iris()

@@ -885,7 +885,6 @@ class QP(Inference):
                 sigma_ni = np.sqrt(1/tau_ni)
                 mu_i = sigma_ni**2*dlZ+mu_ni
                 sigma_i = np.sqrt(sigma_ni**4*(d2lZ+dlZ**2)+sigma_ni**2-(mu_ni-mu_i)**2)
-                
                 if isinstance(likfunc,lik.Laplace):
                     mu_hat, sigma_hat = likfunc.fit_gauss_wd2(y[ii][0], mu_ni[0], sigma_ni[0],mu_i,sigma_i,np.exp(lZ))
                 else:
@@ -895,7 +894,6 @@ class QP(Inference):
                 ttau[ii] = max(1 / sigma_hat2 - tau_ni, 0)
                 ttau[ii] = min(ttau[ii],1e6)
                 tnu[ii] = 1 / sigma_hat2 * mu_hat - nu_ni
-
                 ds2 = ttau[ii] - ttau_old  # finally rank-1 update Sigma ..
                 si = np.reshape(Sigma[:, ii], (Sigma.shape[0], 1))
                 Sigma = Sigma - ds2 / (1. + ds2 * si[ii]) * np.dot(si, si.T)  # takes 70# of total time

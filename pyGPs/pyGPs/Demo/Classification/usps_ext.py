@@ -76,8 +76,13 @@ def run(x_train,y_train,x_test,y_test,f1,f2,dataname,expid):
     # modelEP.setOptimizer('BFGS')
     if not f1 is None and not f2 is None:
         modelQP.useInference('QP', f1, f2)
+<<<<<<< HEAD
     kEP = pyGPs.cov.RBFard(log_ell_list=[0.1] * n_features, log_sigma=1.)  # kernel
     kQP = pyGPs.cov.RBFard(log_ell_list=[0.1] * n_features, log_sigma=1.)  # kernel
+=======
+    kEP = pyGPs.cov.RBFard(log_ell_list=[0.01] * n_features, log_sigma=1.)  # kernel
+    kQP = pyGPs.cov.RBFard(log_ell_list=[0.01] * n_features, log_sigma=1.)  # kernel
+>>>>>>> d5925421259c99614b4d5b55cc8d9c7dc33dc8c5
     modelEP.setPrior(kernel=kEP)
     modelQP.setPrior(kernel=kQP)
 
@@ -90,7 +95,11 @@ def run(x_train,y_train,x_test,y_test,f1,f2,dataname,expid):
         model = models[i]
         try:
             # model.getPosterior(x_train, y_train)
+<<<<<<< HEAD
             model.optimize(x_train, y_train.reshape((-1, 1)), numIterations=10)
+=======
+            model.optimize(x_train, y_train.reshape((-1, 1)), numIterations=1)
+>>>>>>> d5925421259c99614b4d5b55cc8d9c7dc33dc8c5
         except Exception as e:
             print(e)
             Is += [None]
@@ -99,8 +108,15 @@ def run(x_train,y_train,x_test,y_test,f1,f2,dataname,expid):
 
         ymu, ys2, fmu, fs2, lp = model.predict(x_test, ys=y_test)
         lp = lp.flatten()
+<<<<<<< HEAD
         y_test = y_test.flatten()
         lp2 = (1 + y_test) / 2 * lp + (1 - y_test) / 2 * (np.log(1 - np.exp(lp)))
+=======
+        print('lp:', np.exp(lp))
+        y_test = y_test.flatten()
+        lp2 = (1 + y_test) / 2 * lp + (1 - y_test) / 2 * (np.log(1 - np.exp(lp)))
+        print('lp2:', np.exp(lp2))
+>>>>>>> d5925421259c99614b4d5b55cc8d9c7dc33dc8c5
         lps += [lp2]
         Is += [np.nansum(lp2)]
         # I = compute_I(y_test, np.exp(lp.flatten()), y_train)

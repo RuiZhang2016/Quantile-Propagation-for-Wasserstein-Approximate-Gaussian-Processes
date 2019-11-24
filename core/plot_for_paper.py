@@ -8,7 +8,7 @@ from scipy.stats import norm
 from core.util import *
 import pyGPs
 os.environ['proj'] = "/home/rzhang/PycharmProjects/WGPC"
-
+from sklearn.calibration import calibration_curve
 
 def plot_components():
     x = np.linspace(-4,9,1024)
@@ -233,14 +233,10 @@ def draw_reliability_diagram():
         ps = np.exp(lps)
         for i in range(2):
             tmp_scores = y_test * ps[i] + (1-y_test)*(1-ps[i])
-            y_score_bin_mean, empirical_prob_pos = reliability_curve(y_test,tmp_scores,bins=50)
-            scores_not_nan = np.logical_not(np.isnan(empirical_prob_pos))
-
-            # marker = '*' if i == 0 else 'o'
-            print('y scores, empirical prob:', y_score_bin_mean[scores_not_nan],empirical_prob_pos[scores_not_nan])
-            plt.plot(y_score_bin_mean[scores_not_nan],
-                     empirical_prob_pos[scores_not_nan],'*',label='EP' if i == 0 else 'QP')
-        plt.plot(np.linspace(0,1,100),np.linspace(0,1,100))
+            # y_score_bin_mean, empirical_prob_pos = reliability_curve(y_test,tmp_scores,bins=10,normalize=True)
+            prob_true, prob_pred = calibration_curve(y_test,tmp_scores,n_bins=10,normalize=True)
+            plt.plot(prob_pred,prob_true,marker='.',label='EP' if i == 0 else 'QP')
+        plt.plot(np.linspace(0,1,100),np.linspace(0,1,100),'--')
         plt.title(data_id)
         plt.xlabel('predictive probability')
         plt.ylabel('true probability')

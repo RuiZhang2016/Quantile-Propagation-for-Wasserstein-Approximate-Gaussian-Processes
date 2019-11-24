@@ -276,7 +276,6 @@ class GP(object):
         if self.usingDefaultMean and self.meanfunc is None:
             c = np.mean(y)
             self.meanfunc = mean.Const(0)    # adapt default prior mean wrt. training labels
-
         # optimize
         optimalHyp, optimalNlZ = self.optimizer.findMin(self.x, self.y, numIters = numIterations)
         self.nlZ = optimalNlZ
@@ -421,8 +420,8 @@ class GP(object):
             else:
                 Lp, Ymu, Ys2 = likfunc.evaluate(np.tile(ys[ids],(1,N)), Fmu[:], Fs2[:],None,None,3)
             lp[ids]  = np.reshape( old_div(np.reshape(Lp,(np.prod(Lp.shape),N)).sum(axis=1),N) , (len(ids),1) )   # log probability; sample averaging
-            ymu[ids] = np.reshape( old_div(np.reshape(Ymu,(np.prod(Ymu.shape),N)).sum(axis=1),N) ,(len(ids),1) )  # predictive mean ys|y and ...            
-            ys2[ids] = np.reshape( old_div(np.reshape(Ys2,(np.prod(Ys2.shape),N)).sum(axis=1),N) , (len(ids),1) ) # .. variance
+            ymu[ids] = np.reshape( old_div(np.reshape(Ymu,(np.prod(Ymu.shape),N)).sum(axis=1),N),(len(ids),1))  # predictive mean ys|y and ...
+            ys2[ids] = np.reshape( old_div(np.reshape(Ys2,(np.prod(Ys2.shape),N)).sum(axis=1),N),(len(ids),1)) # .. variance
             nact = ids[-1]+1                  # set counter to index of next data point
         self.ym = ymu
         self.ys2 = ys2
