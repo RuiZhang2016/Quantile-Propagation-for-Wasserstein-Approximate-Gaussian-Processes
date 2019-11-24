@@ -53,7 +53,7 @@ def interp_fs():
     f2 = interpolate.interp2d(y, x, table2, kind='cubic')
     return f1, f2
 
-datanames = ['ionosphere', 'breast_cancer', 'crabs', 'pima', 'usps', 'sonar']
+datanames = ['ionosphere', 'breast_cancer', 'crabs', 'pima', 'usps', 'sonar', 'iris']
 def experiments(f1, f2, exp_id):
     data_id, piece_id = divmod(exp_id, 10)
     dic = load_obj('{}_{}'.format(datanames[data_id], piece_id))
@@ -79,8 +79,8 @@ def run(x_train,y_train,x_test,y_test,f1,f2,dataname,expid):
     # modelEP.setOptimizer('BFGS')
     if not f1 is None and not f2 is None:
         modelQP.useInference('QP', f1, f2)
-    kEP = pyGPs.cov.RBFard(log_ell_list=[0.01] * n_features, log_sigma=1.)  # kernel
-    kQP = pyGPs.cov.RBFard(log_ell_list=[0.01] * n_features, log_sigma=1.)  # kernel
+    kEP = pyGPs.cov.RBFard(log_ell_list=[-1] * n_features, log_sigma=1.)  # kernel
+    kQP = pyGPs.cov.RBFard(log_ell_list=[-1] * n_features, log_sigma=1.)  # kernel
     modelEP.setPrior(kernel=kEP)
     modelQP.setPrior(kernel=kQP)
 
@@ -96,14 +96,13 @@ def run(x_train,y_train,x_test,y_test,f1,f2,dataname,expid):
     Es = []
     Is = []
     lps = []
-    for i in range(1):
+    for i in range(2):
         model = models[i]
-
         try:
-        # model.getPosterior(x_train, y_train)
-            model.optimize(x_train, y_train.reshape((-1,1)), numIterations=1)
+            model.getPosterior(x_train, y_train)
+            model.optimize(x_train, y_train.reshape((-1,1)), numIterations=20)
         except Exception as e:
-            print(e)
+            print('here2',e)
             Is += [None]
             Es += [None]
             continue
@@ -143,10 +142,9 @@ def run(x_train,y_train,x_test,y_test,f1,f2,dataname,expid):
         ymu, ys2, fmu, fs2, lp = model.predict(x_test, ys=np.ones(y_test.shape))
 
         lp = lp.flatten()
-        print('lp:',np.exp(lp))
         y_test = y_test.flatten()
         lp2 = (1+y_test)/2*lp+(1-y_test)/2*(np.log(1-np.exp(lp)))
-        print('lp2:',np.exp(lp2))
+        # print('lp2:',np.exp(lp2))
         lps += [lp2]
         Is += [np.nansum(lp2)]
         # print('{} Inference Method: '.format(expid),model.inffunc.name,' ','Likelihood Function: ', model.likfunc)
@@ -166,15 +164,13 @@ def run(x_train,y_train,x_test,y_test,f1,f2,dataname,expid):
     # plt.legend()
     # plt.savefig(os.environ['proj'] + "/res/{}_rely_diag_{}.pdf".format(dataname,expid))
     # plt.show()
-    return
     # print results
     # print("Negative log marginal liklihood before and after optimization")
-    np.save(os.environ['proj'] + "/res/lps_{}_2.npy".format(expid),lps)
-    f = open(os.environ['proj'] + "/res/{}_output_2.txt".format(dataname), "a")
+    # np.save(os.environ['proj'] + "/res/lps_{}_2.npy".format(expid),lps)
+    # f = open(os.environ['proj'] + "/res/{}_output_2.txt".format(dataname), "a")
     # f.write("Negative log marginal liklihood before and after optimization:\n")
-    # f.write('{} I E: EP {} {} QP {} {}\n'.format(id, IEP, EEP, IQP, EQP))
-    f.write('{} Es: EP {} QP {}; Is: EP {} QP {} \n'.format(expid, Es[0], Es[1], Is[0],Is[1]))
-    f.close()
+    # f.write('{} Es: EP {} QP {}; Is: EP {} QP {} \n'.format(expid, Es[0], Es[1], Is[0],Is[1]))
+    # f.close()
 
 
 def synthetic(f1, f2):
@@ -245,7 +241,7 @@ if __name__ == '__main__':
     #         if os.path.exists(filename):
     #             os.remove(filename)
 
-    # Parallel(n_jobs=30)(delayed(experiments)(f1,f2,expid) for expid in range(60))
+    Parallel(n_jobs=4)(delayed(experiments)(f1,f2,expid) for expid in range(60,70))
     # for i in range(6):
     #     experiments(f1,f2,i*10)
     # for dn_id in range(len(datanames)):
@@ -269,36 +265,36 @@ if __name__ == '__main__':
     #         except Exception as e:
     #             print(e)
 
-    for did in range(6):
-        lps = None
-        testy = None
-        for exp_id in range(did*10,(did+1)*10):
-            data_id, piece_id = divmod(exp_id, 10)
-            dic = load_obj('{}_{}'.format(datanames[data_id], piece_id))
-            filename = os.environ['proj'] + "/res/lps_{}_2.npy".format(exp_id)
-            if os.path.exists(filename):
-                tmp = np.load(filename)
-                if tmp.shape[0] ==2:
-                    if lps is None:
-                        lps = tmp
-                        testy = dic['y_test']
-                    else:
-                        lps = np.hstack((lps,tmp))
-                        testy = np.hstack((testy,dic['y_test']))
-
-        from sklearn.calibration import calibration_curve
-        testy = testy>0.5
-        lps = np.exp(lps)
-        print('dataname:',datanames[data_id])
-        print('percentile: ',np.mean(testy))
-        # print('log likelihood:',lps)
-        fop, mpv = calibration_curve(testy, lps[0], n_bins=10, normalize=True)
-        plt.plot([0, 1], [0, 1], linestyle='--')
-        plt.plot(mpv, fop, marker='.',label='EP')
-        fop, mpv = calibration_curve(testy, lps[1], n_bins=10, normalize=True)
-        plt.plot(mpv, fop, marker='.',label='QP')
-        plt.legend()
-        plt.show()
+    # for did in range(6):
+    #     lps = None
+    #     testy = None
+    #     for exp_id in range(did*10,(did+1)*10):
+    #         data_id, piece_id = divmod(exp_id, 10)
+    #         dic = load_obj('{}_{}'.format(datanames[data_id], piece_id))
+    #         filename = os.environ['proj'] + "/res/lps_{}_2.npy".format(exp_id)
+    #         if os.path.exists(filename):
+    #             tmp = np.load(filename)
+    #             if tmp.shape[0] ==2:
+    #                 if lps is None:
+    #                     lps = tmp
+    #                     testy = dic['y_test']
+    #                 else:
+    #                     lps = np.hstack((lps,tmp))
+    #                     testy = np.hstack((testy,dic['y_test']))
+    #
+    #     from sklearn.calibration import calibration_curve
+    #     testy = testy>0.5
+    #     lps = np.exp(lps)
+    #     print('dataname:',datanames[data_id])
+    #     print('percentile: ',np.mean(testy))
+    #     # print('log likelihood:',lps)
+    #     fop, mpv = calibration_curve(testy, lps[0], n_bins=10, normalize=True)
+    #     plt.plot([0, 1], [0, 1], linestyle='--')
+    #     plt.plot(mpv, fop, marker='.',label='EP')
+    #     fop, mpv = calibration_curve(testy, lps[1], n_bins=10, normalize=True)
+    #     plt.plot(mpv, fop, marker='.',label='QP')
+    #     plt.legend()
+    #     plt.show()
 
 
 

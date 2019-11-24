@@ -880,7 +880,6 @@ class QP(Inference):
                 # ttau_tmp = old_div(-d2lZ, (1. + old_div(d2lZ, tau_ni)))
                 # ttau_tmp = max(ttau_tmp, 0)  # enforce positivity i.e. lower bound ttau by zero
                 # tnu_tmp = old_div((dlZ + (m[ii] - old_div(nu_ni, tau_ni)) * d2lZ), (1. + old_div(d2lZ, tau_ni)))
-
                 mu_ni = nu_ni / tau_ni
                 sigma_ni = np.sqrt(1/tau_ni)
                 mu_i = sigma_ni**2*dlZ+mu_ni
@@ -894,7 +893,6 @@ class QP(Inference):
                 ttau[ii] = max(1 / sigma_hat2 - tau_ni, 0)
                 ## ttau[ii] = min(ttau[ii],1e6)
                 tnu[ii] = 1 / sigma_hat2 * mu_hat - nu_ni
-
                 ds2 = ttau[ii] - ttau_old  # finally rank-1 update Sigma ..
                 si = np.reshape(Sigma[:, ii], (Sigma.shape[0], 1))
                 Sigma = Sigma - ds2 / (1. + ds2 * si[ii]) * np.dot(si, si.T)  # takes 70# of total time

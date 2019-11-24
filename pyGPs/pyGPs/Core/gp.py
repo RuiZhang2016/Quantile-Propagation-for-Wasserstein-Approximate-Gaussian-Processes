@@ -276,7 +276,6 @@ class GP(object):
         if self.usingDefaultMean and self.meanfunc is None:
             c = np.mean(y)
             self.meanfunc = mean.Const(0)    # adapt default prior mean wrt. training labels
-
         # optimize
         optimalHyp, optimalNlZ = self.optimizer.findMin(self.x, self.y, numIters = numIterations)
         self.nlZ = optimalNlZ

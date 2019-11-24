@@ -139,14 +139,15 @@ class Likelihood(object):
         else:
             ys = np.array(self._Fr(xs_Fr, v, mu, sigma))# np.array([self._Fr(x, v, mu, sigma) for x in xs_Fr])
         ys = ys.flatten()
-
-        _nugget0 = 1e-14
-        _nugget1 = 1-1e-14
-        ys[ys >= _nugget1] = _nugget1
-        ys[ys <= _nugget0] = _nugget0
+        _nugget0 = -1+1e-7
+        _nugget1 = 1-1e-7
+        # ys[ys >= _nugget1] = _nugget1
+        # ys[ys <= _nugget0] = _nugget0
         dys = ys[1:] - ys[:-1]
         ys = 2 * ys - 1
-        xs_erf = erfinv(2*ys-1)
+        ys[ys >= _nugget1] = _nugget1
+        ys[ys <= _nugget0] = _nugget0
+        xs_erf = erfinv(ys)
         s = sigma_q
         prod = (xs_Fr - mu_q - np.sqrt(2)*s*xs_erf) ** 2
         w22 = np.nansum((prod[:-1] + prod[1:]) * dys) * 0.5
