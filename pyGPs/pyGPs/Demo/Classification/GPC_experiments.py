@@ -83,13 +83,8 @@ def run(x_train,y_train,x_test,y_test,f1,f2,dataname,expid):
     # modelEP.setOptimizer('BFGS')
     if not f1 is None and not f2 is None:
         modelQP.useInference('QP', f1, f2)
-<<<<<<< HEAD
     kEP = pyGPs.cov.RBFard(log_ell_list=[0.1] * n_features, log_sigma=1.)  # kernel
     kQP = pyGPs.cov.RBFard(log_ell_list=[0.1] * n_features, log_sigma=1.)  # kernel
-=======
-    kEP = pyGPs.cov.RBFard(log_ell_list=[-1] * n_features, log_sigma=1.)  # kernel
-    kQP = pyGPs.cov.RBFard(log_ell_list=[-1] * n_features, log_sigma=1.)  # kernel
->>>>>>> d5925421259c99614b4d5b55cc8d9c7dc33dc8c5
     modelEP.setPrior(kernel=kEP)
     modelQP.setPrior(kernel=kQP)
 
@@ -108,17 +103,10 @@ def run(x_train,y_train,x_test,y_test,f1,f2,dataname,expid):
     for i in range(2):
         model = models[i]
         try:
-<<<<<<< HEAD
         # model.getPosterior(x_train, y_train)
             model.optimize(x_train, y_train.reshape((-1,1)), numIterations=40)
         except Exception as e:
             print(e)
-=======
-            model.getPosterior(x_train, y_train)
-            model.optimize(x_train, y_train.reshape((-1,1)), numIterations=20)
-        except Exception as e:
-            print('here2',e)
->>>>>>> d5925421259c99614b4d5b55cc8d9c7dc33dc8c5
             Is += [None]
             Es += [None]
             continue
@@ -249,7 +237,6 @@ if __name__ == '__main__':
     f1, f2 = lambda x:x, lambda x:x #interp_fs()
     # synthetic(f1, f2)
     # experiments(f1,f2,1)
-<<<<<<< HEAD
     x =input('delete *_output_2.txt?Y/N')
     if x == 'Y':
         for dataname in datanames:
@@ -259,20 +246,6 @@ if __name__ == '__main__':
 
     Parallel(n_jobs=40)(delayed(experiments)(f1,f2,expid) for expid in range(80,100))
     for dn_id in range(len(datanames)):
-=======
-    # x =input('delete *_output_2.txt?Y/N')
-    # if x == 'Y':
-    #     for dataname in datanames:
-    #         filename = os.environ['proj'] + "/res/{}_output_2.txt".format(dataname)
-    #         if os.path.exists(filename):
-    #             os.remove(filename)
-
-    # Parallel(n_jobs=4)(delayed(experiments)(f1,f2,expid) for expid in range(60,70))
-    # for i in range(6):
-    #     experiments(f1,f2,i*10)
-    ##
-    for dn_id in range(6,7):
->>>>>>> d5925421259c99614b4d5b55cc8d9c7dc33dc8c5
         dataname = datanames[dn_id]
         filename = os.environ['proj'] + "/res/{}_output_2.txt".format(dataname)
         if os.path.exists(filename):
