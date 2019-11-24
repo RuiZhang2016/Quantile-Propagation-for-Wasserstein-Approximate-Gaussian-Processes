@@ -3,8 +3,8 @@ from __future__ import absolute_import
 from past.utils import old_div
 from builtins import object
 from scipy.stats import norm
-# from scipy.special import erfinv,owens_t
-from scipy.special import owens_t
+from scipy.special import erfinv,owens_t
+# from scipy.special import owens_t
 # from mpmath import erfinv
 #    Marion Neumann [marion dot neumann at uni-bonn dot de]
 #    Daniel Marthaler [dan dot marthaler at gmail dot com]
@@ -124,9 +124,9 @@ class Likelihood(object):
         pass
 
     def fit_gauss_wd2(self, v, mu, sigma,mu_q,sigma_q,Z=None):
-        # return mu_q, sigma_q
-        # if sigma_q < 8e-3:
-        #     return mu_q,8e-3
+        # return mu_q, sigma_q*0.99
+        #if sigma_q < 1e-1:
+        #   return mu_q,1e-1
 
         # if sigma_q >1e4:
         #     return mu_q,1e4
@@ -145,8 +145,8 @@ class Likelihood(object):
         ys[ys >= _nugget1] = _nugget1
         ys[ys <= _nugget0] = _nugget0
         dys = ys[1:] - ys[:-1]
-        # ys = 2 * ys - 1
-        xs_erf = self.erfinv(2*ys-1)
+        ys = 2 * ys - 1
+        xs_erf = erfinv(2*ys-1)
         s = sigma_q
         prod = (xs_Fr - mu_q - np.sqrt(2)*s*xs_erf) ** 2
         w22 = np.nansum((prod[:-1] + prod[1:]) * dys) * 0.5
@@ -154,13 +154,13 @@ class Likelihood(object):
         assert inf_sigma>0
         return mu_q, inf_sigma
 
-    def erfinv(self,x):
-        a = 0.147
-        u = np.log((1 - x)*(1+x))
-        u1 = 2 / (np.pi * a) + u / 2
-        u2 = u / a
-        y = np.sign(x)*np.sqrt(-u1 + np.sqrt(u1**2-u2))
-        return y
+    # def erfinv(self,x):
+        # a = 0.147
+        # u = np.log((1 - x)*(1+x))
+        # u1 = 2 / (np.pi * a) + u / 2
+        # u2 = u / a
+        # y = np.sign(x)*np.sqrt(-u1 + np.sqrt(u1**2-u2))
+        # return y
 
 
 class Gauss(Likelihood):

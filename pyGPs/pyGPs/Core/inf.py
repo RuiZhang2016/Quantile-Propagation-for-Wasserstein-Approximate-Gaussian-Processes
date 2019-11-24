@@ -906,7 +906,7 @@ class QP(Inference):
             # print(K, ttau, tnu)
             # print(Sigma,mu,nlZ,L)
         if sweep == max_sweep:
-            logging.warning("maximum number of sweeps reached in function infQP".format(max_sweep))
+            logging.warning("maximum number of sweeps reached in function infQP")
 
         self.last_ttau = ttau
         self.last_tnu = tnu  # remember for next call
