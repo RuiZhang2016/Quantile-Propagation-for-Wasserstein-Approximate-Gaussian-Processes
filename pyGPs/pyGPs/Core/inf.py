@@ -874,26 +874,26 @@ class QP(Inference):
                 # compute the desired derivatives of the indivdual log partition function
                 lZ, dlZ, d2lZ = likfunc.evaluate(y[ii], old_div(nu_ni, tau_ni), old_div(1, tau_ni), inffunc, None, 3)
                 ttau_old = copy(ttau[ii])  # then find the new tilde parameters, keep copy of old
-                ttau[ii] = old_div(-d2lZ, (1. + old_div(d2lZ, tau_ni)))
-                ttau[ii] = max(ttau[ii], 0)  # enforce positivity i.e. lower bound ttau by zero
-                tnu[ii] = old_div((dlZ + (m[ii] - old_div(nu_ni, tau_ni)) * d2lZ), (1. + old_div(d2lZ, tau_ni)))
+                # ttau[ii] = old_div(-d2lZ, (1. + old_div(d2lZ, tau_ni)))
+                # ttau[ii] = max(ttau[ii], 0)  # enforce positivity i.e. lower bound ttau by zero
+                # tnu[ii] = old_div((dlZ + (m[ii] - old_div(nu_ni, tau_ni)) * d2lZ), (1. + old_div(d2lZ, tau_ni)))
                 # ttau_tmp = old_div(-d2lZ, (1. + old_div(d2lZ, tau_ni)))
                 # ttau_tmp = max(ttau_tmp, 0)  # enforce positivity i.e. lower bound ttau by zero
                 # tnu_tmp = old_div((dlZ + (m[ii] - old_div(nu_ni, tau_ni)) * d2lZ), (1. + old_div(d2lZ, tau_ni)))
 
-                # mu_ni = nu_ni / tau_ni
-                # sigma_ni = np.sqrt(1/tau_ni)
-                # mu_i = sigma_ni**2*dlZ+mu_ni
-                # sigma_i = np.sqrt(sigma_ni**4*(d2lZ+dlZ**2)+sigma_ni**2-(mu_ni-mu_i)**2)
-                # if isinstance(likfunc,lik.Laplace):
-                #     mu_hat, sigma_hat = likfunc.fit_gauss_wd2(y[ii][0], mu_ni[0], sigma_ni[0],mu_i,sigma_i,np.exp(lZ))
-                # else:
-                #     mu_hat, sigma_hat = likfunc.fit_gauss_wd2(y[ii][0], mu_ni[0], sigma_ni[0], mu_i, sigma_i)
+                mu_ni = nu_ni / tau_ni
+                sigma_ni = np.sqrt(1/tau_ni)
+                mu_i = sigma_ni**2*dlZ+mu_ni
+                sigma_i = np.sqrt(sigma_ni**4*(d2lZ+dlZ**2)+sigma_ni**2-(mu_ni-mu_i)**2)
+                if isinstance(likfunc,lik.Laplace):
+                    mu_hat, sigma_hat = likfunc.fit_gauss_wd2(y[ii][0], mu_ni[0], sigma_ni[0],mu_i,sigma_i,np.exp(lZ))
+                else:
+                    mu_hat, sigma_hat = likfunc.fit_gauss_wd2(y[ii][0], mu_ni[0], sigma_ni[0], mu_i, sigma_i)
                 ##print("mu_ni,mu_i,mu_hat,sigma_ni,sigma_i,sigma_hat:",mu_ni,mu_i,mu_hat,sigma_ni,sigma_i,sigma_hat)
-                # sigma_hat2 = sigma_hat**2
-                # ttau[ii] = max(1 / sigma_hat2 - tau_ni, 0)
+                sigma_hat2 = sigma_hat**2
+                ttau[ii] = max(1 / sigma_hat2 - tau_ni, 0)
                 ## ttau[ii] = min(ttau[ii],1e6)
-                # tnu[ii] = 1 / sigma_hat2 * mu_hat - nu_ni
+                tnu[ii] = 1 / sigma_hat2 * mu_hat - nu_ni
 
                 ds2 = ttau[ii] - ttau_old  # finally rank-1 update Sigma ..
                 si = np.reshape(Sigma[:, ii], (Sigma.shape[0], 1))

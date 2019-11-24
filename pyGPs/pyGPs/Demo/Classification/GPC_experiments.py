@@ -20,10 +20,8 @@ from scipy import interpolate
 from mpl_toolkits.mplot3d import axes3d
 from scipy.stats import ttest_ind
 
-
 def preproc(x, m, s):
     return (x - m) / s
-
 
 def compute_I(ys, ps, ys_train):
     p1 = np.mean([e if e == 1 else 0 for e in ys_train])
@@ -98,13 +96,14 @@ def run(x_train,y_train,x_test,y_test,f1,f2,dataname,expid):
     Es = []
     Is = []
     lps = []
-    for i in range(2):
+    for i in range(1):
         model = models[i]
 
         try:
         # model.getPosterior(x_train, y_train)
-            model.optimize(x_train, y_train.reshape((-1,1)), numIterations=40)
-        except:
+            model.optimize(x_train, y_train.reshape((-1,1)), numIterations=1)
+        except Exception as e:
+            print(e)
             Is += [None]
             Es += [None]
             continue
@@ -142,9 +141,12 @@ def run(x_train,y_train,x_test,y_test,f1,f2,dataname,expid):
     # return
 
         ymu, ys2, fmu, fs2, lp = model.predict(x_test, ys=np.ones(y_test.shape))
+
         lp = lp.flatten()
+        print('lp:',np.exp(lp))
         y_test = y_test.flatten()
         lp2 = (1+y_test)/2*lp+(1-y_test)/2*(np.log(1-np.exp(lp)))
+        print('lp2:',np.exp(lp2))
         lps += [lp2]
         Is += [np.nansum(lp2)]
         # print('{} Inference Method: '.format(expid),model.inffunc.name,' ','Likelihood Function: ', model.likfunc)
@@ -158,14 +160,13 @@ def run(x_train,y_train,x_test,y_test,f1,f2,dataname,expid):
         # plt.plot(y_score_bin_mean[scores_not_nan],
         #          empirical_prob_pos[scores_not_nan],linestyle=line_style,label=model.inffunc.name)
         Es+=[compute_E(y_test, np.exp(lp))]
-
     # plt.plot(np.linspace(0,1,20),np.linspace(0,1,20),'-.')
     # plt.xlabel('Predictive Probability')
     # plt.ylabel('Empirical Probability')
     # plt.legend()
     # plt.savefig(os.environ['proj'] + "/res/{}_rely_diag_{}.pdf".format(dataname,expid))
     # plt.show()
-
+    return
     # print results
     # print("Negative log marginal liklihood before and after optimization")
     np.save(os.environ['proj'] + "/res/lps_{}_2.npy".format(expid),lps)
@@ -245,25 +246,60 @@ if __name__ == '__main__':
     #             os.remove(filename)
 
     # Parallel(n_jobs=30)(delayed(experiments)(f1,f2,expid) for expid in range(60))
-    for dn_id in range(len(datanames)):
-        dataname = datanames[dn_id]
-        filename = os.environ['proj'] + "/res/{}_output_2.txt".format(dataname)
-        if os.path.exists(filename):
-            lines = read_output_table(filename)
-            try:
-                lines_E = np.array([l for l in lines[:,:2] if None not in l])
-                lines_Q = np.array([l for l in lines[:,2:] if None not in l]) 
-                print(dataname,': ',np.mean(lines_E,axis=0),np.mean(lines_Q,axis=0))
-                lps = None
-                for exp_id in range(dn_id*10,dn_id*10+10):
-                    tmp = np.load(os.environ['proj']+'/res/lps_{}_2.npy'.format(exp_id))
+    # for i in range(6):
+    #     experiments(f1,f2,i*10)
+    # for dn_id in range(len(datanames)):
+    #     dataname = datanames[dn_id]
+    #     filename = os.environ['proj'] + "/res/{}_output_2.txt".format(dataname)
+    #     if os.path.exists(filename):
+    #         lines = read_output_table(filename)
+    #         try:
+    #             lines_E = np.array([l for l in lines[:,:2] if None not in l])
+    #             lines_Q = np.array([l for l in lines[:,2:] if None not in l])
+    #             print(dataname,': ',np.mean(lines_E,axis=0),np.mean(lines_Q,axis=0))
+    #             lps = None
+    #             for exp_id in range(dn_id*10,dn_id*10+10):
+    #                 tmp = np.load(os.environ['proj']+'/res/lps_{}_2.npy'.format(exp_id))
+    #                 if lps is None:
+    #                     lps = tmp # np.load(os.environ['proj']+'/res/lps_{}_2.npy'.format(exp_id))
+    #                 elif len(tmp)>1:
+    #                     lps = np.hstack((lps,tmp))
+    #
+    #             print('p-value:', ttest_ind(lps[0],lps[1]))
+    #         except Exception as e:
+    #             print(e)
+
+    for did in range(6):
+        lps = None
+        testy = None
+        for exp_id in range(did*10,(did+1)*10):
+            data_id, piece_id = divmod(exp_id, 10)
+            dic = load_obj('{}_{}'.format(datanames[data_id], piece_id))
+            filename = os.environ['proj'] + "/res/lps_{}_2.npy".format(exp_id)
+            if os.path.exists(filename):
+                tmp = np.load(filename)
+                if tmp.shape[0] ==2:
                     if lps is None:
-                        lps = tmp # np.load(os.environ['proj']+'/res/lps_{}_2.npy'.format(exp_id))
-                    elif len(tmp)>1:
+                        lps = tmp
+                        testy = dic['y_test']
+                    else:
                         lps = np.hstack((lps,tmp))
-                    
-                print('p-value:', ttest_ind(lps[0],lps[1]))
-            except Exception as e:
-                print(e)
-        # print(lines)
-        # print('I E: ', np.mean(lines,axis=0))
+                        testy = np.hstack((testy,dic['y_test']))
+
+        from sklearn.calibration import calibration_curve
+        testy = testy>0.5
+        lps = np.exp(lps)
+        print('dataname:',datanames[data_id])
+        print('percentile: ',np.mean(testy))
+        # print('log likelihood:',lps)
+        fop, mpv = calibration_curve(testy, lps[0], n_bins=10, normalize=True)
+        plt.plot([0, 1], [0, 1], linestyle='--')
+        plt.plot(mpv, fop, marker='.',label='EP')
+        fop, mpv = calibration_curve(testy, lps[1], n_bins=10, normalize=True)
+        plt.plot(mpv, fop, marker='.',label='QP')
+        plt.legend()
+        plt.show()
+
+
+
+
