@@ -132,7 +132,7 @@ class Likelihood(object):
         #     return mu_q,1e4
 
         if abs(mu)>4*sigma or sigma_q < 0.4:
-            return mu_q,sigma_q
+            return mu_q,sigma_q*0.99
         xs_Fr = self.samples * 5 * sigma_q + mu_q
         if isinstance(self,Laplace):
             ys = np.array(self._Fr(xs_Fr, v, mu, sigma,Z))# np.array([self._Fr(x, v, mu, sigma,Z) for x in xs_Fr])
@@ -141,8 +141,6 @@ class Likelihood(object):
         ys = ys.flatten()
         _nugget0 = -1+1e-7
         _nugget1 = 1-1e-7
-        # ys[ys >= _nugget1] = _nugget1
-        # ys[ys <= _nugget0] = _nugget0
         dys = ys[1:] - ys[:-1]
         ys = 2 * ys - 1
         ys[ys >= _nugget1] = _nugget1

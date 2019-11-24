@@ -43,5 +43,5 @@ if __name__ == '__main__':
     # split_data(read_crabs(),'crabs')
     # split_data(read_pima(),'pima')
     # split_data(read_sonar(),'sonar')
-    # split_data(read_usps(),'usps')
-    split_data(read_iris(), 'iris')
+    # split_data(read_usps(),'usps28')
+    split_data(read_iris(), 'iris23')

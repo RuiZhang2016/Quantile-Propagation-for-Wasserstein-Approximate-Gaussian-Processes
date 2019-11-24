@@ -100,7 +100,7 @@ def run(x_train,y_train,x_test,y_test,f1,f2,dataname,expid):
         model = models[i]
         try:
             model.getPosterior(x_train, y_train)
-            model.optimize(x_train, y_train.reshape((-1,1)), numIterations=20)
+            model.optimize(x_train, y_train.reshape((-1,1)), numIterations=40)
         except Exception as e:
             print('here2',e)
             Is += [None]
@@ -240,30 +240,31 @@ if __name__ == '__main__':
     #         if os.path.exists(filename):
     #             os.remove(filename)
 
-    # Parallel(n_jobs=4)(delayed(experiments)(f1,f2,expid) for expid in range(60,70))
+    Parallel(n_jobs=10)(delayed(experiments)(f1,f2,expid) for expid in range(60,70))
     # for i in range(6):
     #     experiments(f1,f2,i*10)
-    ##
-    for dn_id in range(6,7):
-        dataname = datanames[dn_id]
-        filename = os.environ['proj'] + "/res/{}_output_2.txt".format(dataname)
-        if os.path.exists(filename):
-            lines = read_output_table(filename)
-            try:
-                lines_E = np.array([l for l in lines[:,:2] if None not in l])
-                lines_Q = np.array([l for l in lines[:,2:] if None not in l])
-                print(dataname,': ',np.mean(lines_E,axis=0),np.mean(lines_Q,axis=0))
-                lps = None
-                for exp_id in range(dn_id*10,dn_id*10+10):
-                    tmp = np.load(os.environ['proj']+'/res/lps_{}_2.npy'.format(exp_id))
-                    if lps is None:
-                        lps = tmp # np.load(os.environ['proj']+'/res/lps_{}_2.npy'.format(exp_id))
-                    elif len(tmp)>1:
-                        lps = np.hstack((lps,tmp))
 
-                print('p-value:', ttest_ind(lps[0],lps[1]))
-            except Exception as e:
-                print(e)
+    ## compute average error rates
+    # for dn_id in range(6,7):
+    #     dataname = datanames[dn_id]
+    #     filename = os.environ['proj'] + "/res/{}_output_2.txt".format(dataname)
+    #     if os.path.exists(filename):
+    #         lines = read_output_table(filename)
+    #         try:
+    #             lines_E = np.array([l for l in lines[:,:2] if None not in l])
+    #             lines_Q = np.array([l for l in lines[:,2:] if None not in l])
+    #             print(dataname,': ',np.mean(lines_E,axis=0),np.mean(lines_Q,axis=0))
+    #             lps = None
+    #             for exp_id in range(dn_id*10,dn_id*10+10):
+    #                 tmp = np.load(os.environ['proj']+'/res/lps_{}_2.npy'.format(exp_id))
+    #                 if lps is None:
+    #                     lps = tmp # np.load(os.environ['proj']+'/res/lps_{}_2.npy'.format(exp_id))
+    #                 elif len(tmp)>1:
+    #                     lps = np.hstack((lps,tmp))
+    #
+    #             print('p-value:', ttest_ind(lps[0],lps[1]))
+    #         except Exception as e:
+    #             print(e)
 
     ## reliability diagram
     # for did in range(6,7):

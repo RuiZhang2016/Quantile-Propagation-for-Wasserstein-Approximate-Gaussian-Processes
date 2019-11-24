@@ -67,8 +67,8 @@ def read_usps():
         X_te = test.get('data')[:]
         y_te = test.get('target')[:]
     a,b = np.vstack((X_tr, X_te)), np.hstack((y_tr, y_te))
-    ids = [i for i in range(len(b)) if b[i] == 3 or b[i] == 5]
-    b = np.array([[b[i]-4] for i in ids])
+    ids = [i for i in range(len(b)) if b[i] == 2 or b[i] == 8] # choose which two numbers
+    b = np.array([[-1 if b[i] == 2 else 1] for i in ids]) # one is labeled -1 and the other 1
     a = np.array([a[i] for i in ids])
     n = len(a)
     m = len(a[0])
@@ -127,7 +127,7 @@ def read_pima():
 
 def read_iris():
     file = os.environ['proj'] + '/data/iris.data'
-    str2int = {'Iris-setosa': 1, 'Iris-versicolor': -1 }
+    str2int = {'Iris-versicolor': 1, 'Iris-virginica': -1 }
     with open(file, 'r') as rf:
         reader = csv.reader(rf)
         lines = list(reader)
