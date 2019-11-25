@@ -99,7 +99,11 @@ def run(x_train,y_train,x_test,y_test,f1,f2,dataname,expid):
     for i in range(2):
         model = models[i]
         try:
+<<<<<<< HEAD
+            model.getPosterior(x_train, y_train)
+=======
         # model.getPosterior(x_train, y_train)
+>>>>>>> 72550df41f83a59253075e83d17fb43fc35cbde9
             model.optimize(x_train, y_train.reshape((-1,1)), numIterations=40)
         except Exception as e:
             print(e)
@@ -262,7 +266,6 @@ if __name__ == '__main__':
                 print('p-value:', ttest_ind(lps[0],lps[1]))
             except Exception as e:
                 print(e)
-
     ## reliability diagram
     # for did in range(6,7):
     #     lps = None
