@@ -7,14 +7,15 @@ if sys.platform == 'darwin':
     sys.path.append('/Users/ruizhang/PycharmProjects/WGPC/pyGPs')
     os.environ['proj'] = '/Users/ruizhang/PycharmProjects/WGPC'
 else:
-    sys.path.append('/home/rzhang/PycharmProjects/WGPC/pyGPs')
-    os.environ['proj'] = '/home/rzhang/PycharmProjects/WGPC'
+    os.environ['proj'] = '/home/users/u5963436/Work/WGPC'
+sys.path.append(os.environ['proj'])
+sys.path.append(os.environ['proj']+'/pyGPs')
 import pyGPs
 import numpy as np
-
+from joblib import Parallel, delayed
 # np.random.seed(10230)
 # from .read_data import *
-from core.generate_table import *
+from core import generate_table 
 from scipy import interpolate
 from mpl_toolkits.mplot3d import axes3d
 
@@ -75,8 +76,8 @@ def run(x_train,y_train,x_test,y_test,f1,f2,dataname,expid):
     # modelEP.setOptimizer('BFGS')
     if not f1 is None and not f2 is None:
         modelQP.useInference('QP', f1, f2)
-    kEP = pyGPs.cov.RBFard(log_ell_list=[0.01] * n_features, log_sigma=1.)  # kernel
-    kQP = pyGPs.cov.RBFard(log_ell_list=[0.01] * n_features, log_sigma=1.)  # kernel
+    kEP = pyGPs.cov.RBFard(log_ell_list=[0.1] * n_features, log_sigma=1.)  # kernel
+    kQP = pyGPs.cov.RBFard(log_ell_list=[0.1] * n_features, log_sigma=1.)  # kernel
     modelEP.setPrior(kernel=kEP)
     modelQP.setPrior(kernel=kQP)
 
@@ -89,7 +90,7 @@ def run(x_train,y_train,x_test,y_test,f1,f2,dataname,expid):
         model = models[i]
         try:
             # model.getPosterior(x_train, y_train)
-            model.optimize(x_train, y_train.reshape((-1, 1)), numIterations=1)
+            model.optimize(x_train, y_train.reshape((-1, 1)), numIterations=10)
         except Exception as e:
             print(e)
             Is += [None]
@@ -98,10 +99,8 @@ def run(x_train,y_train,x_test,y_test,f1,f2,dataname,expid):
 
         ymu, ys2, fmu, fs2, lp = model.predict(x_test, ys=y_test)
         lp = lp.flatten()
-        print('lp:', np.exp(lp))
         y_test = y_test.flatten()
         lp2 = (1 + y_test) / 2 * lp + (1 - y_test) / 2 * (np.log(1 - np.exp(lp)))
-        print('lp2:', np.exp(lp2))
         lps += [lp2]
         Is += [np.nansum(lp2)]
         # I = compute_I(y_test, np.exp(lp.flatten()), y_train)
@@ -135,21 +134,19 @@ def read_output_table(file_path):
         lines = np.array([[float(l[-3]),float(l[-1])] for l in lines if 'Es:' in l])
         return lines
 
+def loop(i,j,f1,f2):
+    y_ij = np.hstack((np.ones(len(X_split[i])),0-np.ones(len(X_split[j]))))
+    X_ij = np.vstack((X_split[i],X_split[j]))
+    n = len(X_ij)
+    train_ids = np.random.choice(n,int(n*0.7),replace=False)
+    X_train = np.array([X_ij[ii] for ii in train_ids])
+    y_train = np.array([y_ij[ii] for ii in train_ids])
+    X_test = np.array([X_ij[ii] for ii in range(n) if not ii in train_ids])
+    y_test = np.array([y_ij[ii] for ii in range(n) if not ii in train_ids])
+    run(X_train, y_train, X_test, y_test, f1, f2, 'usps', '{}-{}'.format(i,j))
+
 if __name__ == '__main__':
     X_split = read_usps()
     ns = [len(X_split[i]) for i in range(10)]
     f1, f2 = lambda x:x, lambda x:x
-    for i in range(9):
-        for j in range(i+1,10):
-            y_ij = np.hstack((np.ones(len(X_split[i])),0-np.ones(len(X_split[j]))))
-            X_ij = np.vstack((X_split[i],X_split[j]))
-            n = len(X_ij)
-            train_ids = np.random.choice(n,int(n*0.05),replace=False)
-            X_train = np.array([X_ij[ii] for ii in train_ids])
-            y_train = np.array([y_ij[ii] for ii in train_ids])
-            X_test = np.array([X_ij[ii] for ii in range(n) if not ii in train_ids])
-            y_test = np.array([y_ij[ii] for ii in range(n) if not ii in train_ids])
-            run(X_train, y_train, X_test, y_test, f1, f2, 'usps', '{}-{}'.format(i,j))
-
-
-
+    Parallel(n_jobs=30)(delayed(loop)(i,j,f1,f2)  for i in range(9) for j in range(i+1,10))

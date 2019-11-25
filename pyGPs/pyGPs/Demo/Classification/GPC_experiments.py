@@ -7,7 +7,7 @@ if sys.platform == 'darwin':
     sys.path.append('/Users/ruizhang/PycharmProjects/WGPC/pyGPs')
     os.environ['proj'] = '/Users/ruizhang/PycharmProjects/WGPC'
 else:
-    os.environ['proj'] = '/home/rzhang/PycharmProjects/WGPC'
+    os.environ['proj'] = '/home/users/u5963436/Work/WGPC'#'/home/rzhang/PycharmProjects/WGPC'
 sys.path.append(os.environ['proj']+'/pyGPs')
 sys.path.append(os.environ['proj'])
 import pyGPs
@@ -53,7 +53,11 @@ def interp_fs():
     f2 = interpolate.interp2d(y, x, table2, kind='cubic')
     return f1, f2
 
+<<<<<<< HEAD
+datanames = dict(0:'ionosphere',1:'breast_cancer',2:'crabs',3:'pima',4:'usps35',5:'usps47',6:'usps28',7:'sonar',8:'iris12',9:'iris13',10:'iris23')
+=======
 datanames = ['ionosphere', 'breast_cancer', 'crabs', 'pima', 'usps', 'sonar', 'iris']
+>>>>>>> d5925421259c99614b4d5b55cc8d9c7dc33dc8c5
 def experiments(f1, f2, exp_id):
     data_id, piece_id = divmod(exp_id, 10)
     dic = load_obj('{}_{}'.format(datanames[data_id], piece_id))
@@ -79,8 +83,8 @@ def run(x_train,y_train,x_test,y_test,f1,f2,dataname,expid):
     # modelEP.setOptimizer('BFGS')
     if not f1 is None and not f2 is None:
         modelQP.useInference('QP', f1, f2)
-    kEP = pyGPs.cov.RBFard(log_ell_list=[-1] * n_features, log_sigma=1.)  # kernel
-    kQP = pyGPs.cov.RBFard(log_ell_list=[-1] * n_features, log_sigma=1.)  # kernel
+    kEP = pyGPs.cov.RBFard(log_ell_list=[0.1] * n_features, log_sigma=1.)  # kernel
+    kQP = pyGPs.cov.RBFard(log_ell_list=[0.1] * n_features, log_sigma=1.)  # kernel
     modelEP.setPrior(kernel=kEP)
     modelQP.setPrior(kernel=kQP)
 
@@ -99,10 +103,14 @@ def run(x_train,y_train,x_test,y_test,f1,f2,dataname,expid):
     for i in range(2):
         model = models[i]
         try:
+<<<<<<< HEAD
             model.getPosterior(x_train, y_train)
+=======
+        # model.getPosterior(x_train, y_train)
+>>>>>>> 72550df41f83a59253075e83d17fb43fc35cbde9
             model.optimize(x_train, y_train.reshape((-1,1)), numIterations=40)
         except Exception as e:
-            print('here2',e)
+            print(e)
             Is += [None]
             Es += [None]
             continue
@@ -233,39 +241,35 @@ if __name__ == '__main__':
     f1, f2 = lambda x:x, lambda x:x #interp_fs()
     # synthetic(f1, f2)
     # experiments(f1,f2,1)
-    # x =input('delete *_output_2.txt?Y/N')
-    # if x == 'Y':
-    #     for dataname in datanames:
-    #         filename = os.environ['proj'] + "/res/{}_output_2.txt".format(dataname)
-    #         if os.path.exists(filename):
-    #             os.remove(filename)
+    x =input('delete *_output_2.txt?Y/N')
+    if x == 'Y':
+        for dataname in datanames:
+            filename = os.environ['proj'] + "/res/{}_output_2.txt".format(dataname)
+            if os.path.exists(filename):
+                os.remove(filename)
 
-    Parallel(n_jobs=10)(delayed(experiments)(f1,f2,expid) for expid in range(60,70))
-    # for i in range(6):
-    #     experiments(f1,f2,i*10)
+    Parallel(n_jobs=40)(delayed(experiments)(f1,f2,expid) for expid in range(80,100))
+    for dn_id in range(len(datanames)):
+        dataname = datanames[dn_id]
+        filename = os.environ['proj'] + "/res/{}_output_2.txt".format(dataname)
+        if os.path.exists(filename):
+            lines = read_output_table(filename)
+            lines = np.array([l for l in lines if None not in l])
+            try:
+                lines_E = np.array([l for l in lines[:,:2] if None not in l])
+                lines_Q = np.array([l for l in lines[:,2:] if None not in l])
+                print(dataname,': ',np.mean(lines_E,axis=0),np.mean(lines_Q,axis=0))
+                lps = None
+                for exp_id in range(dn_id*10,dn_id*10+10):
+                    tmp = np.load(os.environ['proj']+'/res/lps_{}_2.npy'.format(exp_id))
+                    if lps is None:
+                        lps = tmp # np.load(os.environ['proj']+'/res/lps_{}_2.npy'.format(exp_id))
+                    elif len(tmp)>1:
+                        lps = np.hstack((lps,tmp))
 
-    ## compute average error rates
-    # for dn_id in range(6,7):
-    #     dataname = datanames[dn_id]
-    #     filename = os.environ['proj'] + "/res/{}_output_2.txt".format(dataname)
-    #     if os.path.exists(filename):
-    #         lines = read_output_table(filename)
-    #         try:
-    #             lines_E = np.array([l for l in lines[:,:2] if None not in l])
-    #             lines_Q = np.array([l for l in lines[:,2:] if None not in l])
-    #             print(dataname,': ',np.mean(lines_E,axis=0),np.mean(lines_Q,axis=0))
-    #             lps = None
-    #             for exp_id in range(dn_id*10,dn_id*10+10):
-    #                 tmp = np.load(os.environ['proj']+'/res/lps_{}_2.npy'.format(exp_id))
-    #                 if lps is None:
-    #                     lps = tmp # np.load(os.environ['proj']+'/res/lps_{}_2.npy'.format(exp_id))
-    #                 elif len(tmp)>1:
-    #                     lps = np.hstack((lps,tmp))
-    #
-    #             print('p-value:', ttest_ind(lps[0],lps[1]))
-    #         except Exception as e:
-    #             print(e)
-
+                print('p-value:', ttest_ind(lps[0],lps[1]))
+            except Exception as e:
+                print(e)
     ## reliability diagram
     # for did in range(6,7):
     #     lps = None

@@ -130,7 +130,6 @@ class Likelihood(object):
 
         # if sigma_q >1e4:
         #     return mu_q,1e4
-
         if abs(mu)>4*sigma or sigma_q < 0.4:
             return mu_q,sigma_q*0.99
         xs_Fr = self.samples * 5 * sigma_q + mu_q
@@ -150,7 +149,7 @@ class Likelihood(object):
         prod = (xs_Fr - mu_q - np.sqrt(2)*s*xs_erf) ** 2
         w22 = np.nansum((prod[:-1] + prod[1:]) * dys) * 0.5
         inf_sigma = (sigma_q[0] ** 2 + s**2 - w22)/2/s
-        assert inf_sigma>0
+        assert inf_sigma>0, 'inf_sigma <=0, {}'.format(inf_sigma)
         return mu_q, inf_sigma
 
     # def erfinv(self,x):

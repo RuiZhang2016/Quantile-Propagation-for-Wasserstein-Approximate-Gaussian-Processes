@@ -872,6 +872,7 @@ class QP(Inference):
                 # print(Sigma[ii,ii],ttau[ii])
                 nu_ni = old_div(mu[ii], Sigma[ii, ii]) + m[ii] * tau_ni - tnu[ii]  # .. params tau_ni and nu_ni
                 # compute the desired derivatives of the indivdual log partition function
+                
                 lZ, dlZ, d2lZ = likfunc.evaluate(y[ii], old_div(nu_ni, tau_ni), old_div(1, tau_ni), inffunc, None, 3)
                 ttau_old = copy(ttau[ii])  # then find the new tilde parameters, keep copy of old
                 # ttau[ii] = old_div(-d2lZ, (1. + old_div(d2lZ, tau_ni)))
@@ -891,7 +892,7 @@ class QP(Inference):
                 ##print("mu_ni,mu_i,mu_hat,sigma_ni,sigma_i,sigma_hat:",mu_ni,mu_i,mu_hat,sigma_ni,sigma_i,sigma_hat)
                 sigma_hat2 = sigma_hat**2
                 ttau[ii] = max(1 / sigma_hat2 - tau_ni, 0)
-                ## ttau[ii] = min(ttau[ii],1e6)
+                ttau[ii] = min(ttau[ii],1e6)
                 tnu[ii] = 1 / sigma_hat2 * mu_hat - nu_ni
                 ds2 = ttau[ii] - ttau_old  # finally rank-1 update Sigma ..
                 si = np.reshape(Sigma[:, ii], (Sigma.shape[0], 1))
