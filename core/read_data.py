@@ -4,6 +4,8 @@ np.random.seed(0)
 import h5py
 import os
 import __init__
+from sklearn import preprocessing
+from sklearn.preprocessing import StandardScaler
 
 def read_ionosphere():
     file = os.environ['proj']+'/data/ionosphere.data'
@@ -136,8 +138,7 @@ def read_iris():
         return np.array(lines)
 
 def read_adult():
-    from sklearn import preprocessing
-    from sklearn.preprocessing import StandardScaler
+
     file = os.environ['proj'] + '/data/adult.data'
     with open(file, 'r') as rf:
         reader = csv.reader(rf)
@@ -176,8 +177,26 @@ def read_wine():
         lines[:, -1] *= 2
         return lines
 
+def read_car():
+    file = os.environ['proj'] + '/data/car.data'
+    with open(file, 'r') as rf:
+        reader = csv.reader(rf)
+        lines = list(reader)
+        lines = np.array(lines)
+        n = len(lines[0])
+        for i in range(n):
+            le = preprocessing.LabelEncoder()
+            le.fit(lines[:, i])
+            lines[:, i] = le.transform(lines[:, i])
+
+        lines = np.array(lines, dtype=float)
+        lines = np.array([l for l in lines if l[-1] == 3 or l[-1] == 4])
+        lines[:, -1] -= 3.5
+        lines[:, -1] *= 2
+        return lines
+
 if __name__ == '__main__':
     # z = read_usps()
     # print(np.std(z,axis=0))
     # read_iris()
-    print(read_wine())
+    print(read_car())
