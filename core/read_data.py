@@ -161,9 +161,22 @@ def read_adult():
     lines[:,-1] = (lines[:,-1]>0)*2-1
     return lines
 
+def read_wine():
+    file = os.environ['proj'] + '/data/wine.data'
+    with open(file, 'r') as rf:
+        reader = csv.reader(rf)
+        lines = list(reader)
+        lines = np.array(lines,dtype=float)
+        n = len(lines[0])
+        col_ids = np.array([i+1 if i != n-1 else 0 for i in range(n)])
+        print(col_ids)
+        lines = lines[:,col_ids]
+        lines = np.array([l for l in lines if l[-1] == 1 or l[-1] == 2])
+        lines[:,-1] -= 1
+        return lines
 
 if __name__ == '__main__':
     # z = read_usps()
     # print(np.std(z,axis=0))
     # read_iris()
-    print(len(read_adult()))
+    read_wine()
