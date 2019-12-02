@@ -92,12 +92,15 @@ def run(x_train,y_train,x_test,y_test,f1,f2,dataname,expid):
     # ax = fig.gca(projection='3d')
 
     # calculations of EP and QP
-    models =  [modelEP, modelQP]
     Es = []
     Is = []
     lps = []
     for i in range(2):
-        model = models[i]
+        if i == 0:
+            model = modelEP
+        else:
+            del modelEP
+            model = modelQP
         try:
             model.optimize(x_train, y_train.reshape((-1,1)), numIterations=40)
         except Exception as e:
