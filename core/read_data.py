@@ -6,6 +6,7 @@ import os
 import __init__
 from sklearn import preprocessing
 from sklearn.preprocessing import StandardScaler
+import collections
 
 def read_ionosphere():
     file = os.environ['proj']+'/data/ionosphere.data'
@@ -172,9 +173,11 @@ def read_wine():
         col_ids = np.array([i+1 if i != n-1 else 0 for i in range(n)])
 
         lines = lines[:,col_ids]
-        lines = np.array([l for l in lines if l[-1] == 2 or l[-1] == 3])
-        lines[:,-1] -= 2.5
-        lines[:, -1] *= 2
+        print(collections.Counter(lines[:, -1]))
+        label1, label2 = 2, 3
+        lines = np.array([l for l in lines if l[-1] == label1 or l[-1] == label2])
+        lines[:, -1] -= (label1 + label2) / 2
+        lines[:, -1] /= abs(label1 - label2) / 2
         return lines
 
 def read_car():
@@ -190,13 +193,16 @@ def read_car():
             lines[:, i] = le.transform(lines[:, i])
 
         lines = np.array(lines, dtype=float)
-        lines = np.array([l for l in lines if l[-1] == 3 or l[-1] == 4])
-        lines[:, -1] -= 3.5
-        lines[:, -1] *= 2
+        print(collections.Counter(lines[:, -1]))
+        label1, label2 = 0, 1
+        lines = np.array([l for l in lines if l[-1] == label1 or l[-1] == label2])
+        lines[:, -1] -= (label1+label2)/2
+        lines[:, -1] /= abs(label1-label2)/2
         return lines
 
 if __name__ == '__main__':
     # z = read_usps()
     # print(np.std(z,axis=0))
     # read_iris()
-    print(read_car())
+    res = read_car()
+    print(res)
