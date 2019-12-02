@@ -135,7 +135,35 @@ def read_iris():
         lines = [[str2int[l[i]] if i == n - 1 else float(l[i]) for i in range(n)] for l in lines if len(l)==5 and l[-1] in str2int.keys()]
         return np.array(lines)
 
+def read_adult():
+    from sklearn import preprocessing
+    from sklearn.preprocessing import StandardScaler
+    file = os.environ['proj'] + '/data/adult.data'
+    with open(file, 'r') as rf:
+        reader = csv.reader(rf)
+        lines = list(reader)
+        lines1 = np.array(lines[:-1])
+    file = os.environ['proj'] + '/data/adult.test'
+    with open(file, 'r') as rf:
+        reader = csv.reader(rf)
+        lines = list(reader)
+        lines2 = np.array(lines[1:-1])
+    lines = np.vstack((lines1,lines2))
+    for i in [1,3,5,6,7,8,9,13,14]:
+        le = preprocessing.LabelEncoder()
+        le.fit(lines[:,i])
+        # print(lines[:10, i])
+        lines[:,i] = le.transform(lines[:,i])
+    lines = np.array(lines,dtype=float)
+    scaler = StandardScaler()
+    scaler.fit(lines)
+    lines = scaler.transform(lines)
+    lines[:,-1] = (lines[:,-1]>0)*2-1
+    return lines
+
+
 if __name__ == '__main__':
     # z = read_usps()
     # print(np.std(z,axis=0))
-    read_iris()
+    # read_iris()
+    print(read_adult())
