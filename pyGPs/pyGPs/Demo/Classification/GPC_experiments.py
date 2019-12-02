@@ -53,7 +53,7 @@ def interp_fs():
     f2 = interpolate.interp2d(y, x, table2, kind='cubic')
     return f1, f2
 
-datanames = {0:'ionosphere',1:'breast_cancer',2:'crabs',3:'pima',4:'usps35',5:'usps47',6:'usps28',7:'sonar',8:'iris12',9:'iris13',10:'iris23'}
+datanames = {0:'ionosphere',1:'breast_cancer',2:'crabs',3:'pima',4:'usps35',5:'usps47',6:'usps28',7:'sonar',8:'iris12',9:'iris13',10:'iris23', 11:'adult'}
 def experiments(f1, f2, exp_id):
     data_id, piece_id = divmod(exp_id, 10)
     dic = load_obj('{}_{}'.format(datanames[data_id], piece_id))
@@ -242,7 +242,7 @@ if __name__ == '__main__':
             if os.path.exists(filename):
                 os.remove(filename)
 
-    Parallel(n_jobs=40)(delayed(experiments)(f1,f2,expid) for expid in range(80,100))
+    Parallel(n_jobs=2)(delayed(experiments)(f1,f2,expid) for expid in range(110,120))
     for dn_id in range(len(datanames)):
         dataname = datanames[dn_id]
         filename = os.environ['proj'] + "/res/{}_output_2.txt".format(dataname)
