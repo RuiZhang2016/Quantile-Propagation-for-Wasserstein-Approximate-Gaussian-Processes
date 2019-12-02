@@ -16,7 +16,7 @@ def split_data(data,dataname):
     # data = read_ionosphere()
     np.random.shuffle(data)
     n = data.shape[0]
-    l = int(n / 10)
+    l = int(n / 5)
 
     def loop(i, data, l):
         # split data
@@ -28,7 +28,7 @@ def split_data(data,dataname):
         y_test = test[:, -1]
         dic = {'x_train':x_train, 'y_train':y_train, 'x_test':x_test,'y_test':y_test}
         save_obj(dic,'{}_{}'.format(dataname,i))
-    for i in range(10):
+    for i in range(5):
         loop(i,data,l)
 
 def save_obj(obj, name ):

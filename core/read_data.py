@@ -166,4 +166,4 @@ if __name__ == '__main__':
     # z = read_usps()
     # print(np.std(z,axis=0))
     # read_iris()
-    print(read_adult())
+    print(len(read_adult()))
