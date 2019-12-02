@@ -53,11 +53,7 @@ def interp_fs():
     f2 = interpolate.interp2d(y, x, table2, kind='cubic')
     return f1, f2
 
-<<<<<<< HEAD
-datanames = dict(0:'ionosphere',1:'breast_cancer',2:'crabs',3:'pima',4:'usps35',5:'usps47',6:'usps28',7:'sonar',8:'iris12',9:'iris13',10:'iris23')
-=======
-datanames = ['ionosphere', 'breast_cancer', 'crabs', 'pima', 'usps', 'sonar', 'iris']
->>>>>>> d5925421259c99614b4d5b55cc8d9c7dc33dc8c5
+datanames = {0:'ionosphere',1:'breast_cancer',2:'crabs',3:'pima',4:'usps35',5:'usps47',6:'usps28',7:'sonar',8:'iris12',9:'iris13',10:'iris23'}
 def experiments(f1, f2, exp_id):
     data_id, piece_id = divmod(exp_id, 10)
     dic = load_obj('{}_{}'.format(datanames[data_id], piece_id))
@@ -103,11 +99,6 @@ def run(x_train,y_train,x_test,y_test,f1,f2,dataname,expid):
     for i in range(2):
         model = models[i]
         try:
-<<<<<<< HEAD
-            model.getPosterior(x_train, y_train)
-=======
-        # model.getPosterior(x_train, y_train)
->>>>>>> 72550df41f83a59253075e83d17fb43fc35cbde9
             model.optimize(x_train, y_train.reshape((-1,1)), numIterations=40)
         except Exception as e:
             print(e)
