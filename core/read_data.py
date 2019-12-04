@@ -174,10 +174,14 @@ def read_wine():
 
         lines = lines[:,col_ids]
         print(collections.Counter(lines[:, -1]))
-        label1, label2 = 2, 3
+
+        label1, label2 = 1,3
         lines = np.array([l for l in lines if l[-1] == label1 or l[-1] == label2])
         lines[:, -1] -= (label1 + label2) / 2
         lines[:, -1] /= abs(label1 - label2) / 2
+        scaler = StandardScaler()
+        scaler.fit(lines[:,:-1])
+        lines[:,:-1] = scaler.transform(lines[:,:-1])
         return lines
 
 def read_car():
@@ -204,5 +208,5 @@ if __name__ == '__main__':
     # z = read_usps()
     # print(np.std(z,axis=0))
     # read_iris()
-    res = read_car()
+    res = read_wine()
     print(res)
