@@ -47,5 +47,5 @@ if __name__ == '__main__':
     # split_data(read_usps(),'usps28')
     # split_data(read_iris(), 'iris23')
     # split_data(read_adult(), 'adult')
-    split_data(read_wine(), 'scaled_wine13')
-    # split_data(read_car(), 'car01')
+    # split_data(read_wine(), 'scaled_wine13')
+    split_data(read_car(), 'scaled_car13')
