@@ -122,6 +122,9 @@ def read_pima():
 
     z = np.vstack((z_tr,z_tr2))
     z = np.vstack((z,z_te))
+    scaler = StandardScaler()
+    scaler.fit(z[:, :-1])
+    z[:, :-1] = scaler.transform(z[:, :-1])
     n = len(z)
     m = len(z[0])
     print("#features: ", m - 1)
@@ -212,5 +215,5 @@ if __name__ == '__main__':
     # z = read_usps()
     # print(np.std(z,axis=0))
     # read_iris()
-    res = read_car()
+    res = read_pima()
     print(res)
