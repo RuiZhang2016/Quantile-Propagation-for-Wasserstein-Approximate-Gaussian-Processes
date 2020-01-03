@@ -74,7 +74,6 @@ def cal_C2(v,mu,sigma):
 
 
 xs_norm = np.random.normal(size=20000)
-# xs_disc = np.linspace(-1,1,20000)
 def fit_gauss_wd_sampling(v, mu, sigma):
     sigma2 = sigma ** 2
     sqrtsigma = np.sqrt(sigma2 + 1)

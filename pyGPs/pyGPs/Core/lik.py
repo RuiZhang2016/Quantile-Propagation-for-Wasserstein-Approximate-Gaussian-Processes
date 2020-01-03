@@ -152,6 +152,10 @@ class Likelihood(object):
         assert inf_sigma>0, 'inf_sigma <=0, {}'.format(inf_sigma)
         return mu_q, inf_sigma
 
+    def fit_gauss_wd2_IS(self, v, mu, sigma,mu_q,sigma_q,Z=None):
+
+        return mu_q, inf_sigma
+
     # def erfinv(self,x):
         # a = 0.147
         # u = np.log((1 - x)*(1+x))
@@ -462,6 +466,7 @@ class Erf(Likelihood):
             return -0.25
         else:
             return owens_t(x1, (x2 + rho * x1) / x1 / np.sqrt(1 - rho ** 2))
+    def p(self,v,f):
 
 
 class Laplace(Likelihood):
