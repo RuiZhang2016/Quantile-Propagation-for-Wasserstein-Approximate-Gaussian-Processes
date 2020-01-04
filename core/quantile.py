@@ -73,7 +73,7 @@ def cal_C2(v,mu,sigma):
     return np.sum(np.sqrt(2)*0.5*(prod[:-1]+prod[1:]))*d
 
 
-xs_norm = np.random.normal(size=20000)
+xs_norm = np.random.normal(size=512)
 def fit_gauss_wd_sampling(v, mu, sigma):
     sigma2 = sigma ** 2
     sqrtsigma = np.sqrt(sigma2 + 1)

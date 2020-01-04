@@ -828,8 +828,8 @@ class QP(Inference):
         self._nugget0 = -1+1e-14
         self._nugget1 = 1-1e-14
         self.sqrt2 = np.sqrt(2)
-        self.samples = np.linspace(-4,4,1024)
-        self.samples_gauss = np.random.normal(loc=0,scale=1,size=20000)
+        # self.samples = np.linspace(-4,4,1024)
+        # self.samples_gauss = np.random.normal(loc=0,scale=1,size=20000)
         self.f1 = f1
         self.f2 = f2
 
@@ -888,8 +888,7 @@ class QP(Inference):
                 if isinstance(likfunc,lik.Laplace):
                     mu_hat, sigma_hat = likfunc.fit_gauss_wd2(y[ii][0], mu_ni[0], sigma_ni[0],mu_i,sigma_i,np.exp(lZ))
                 else:
-                    mu_hat, sigma_hat = likfunc.fit_gauss_wd2(y[ii][0], mu_ni[0], sigma_ni[0], mu_i, sigma_i)
-                ##print("mu_ni,mu_i,mu_hat,sigma_ni,sigma_i,sigma_hat:",mu_ni,mu_i,mu_hat,sigma_ni,sigma_i,sigma_hat)
+                    mu_hat, sigma_hat = likfunc.fit_gauss_wd2_IS(y[ii][0], mu_ni[0], sigma_ni[0], mu_i, sigma_i)
                 sigma_hat2 = sigma_hat**2
                 ttau[ii] = max(1 / sigma_hat2 - tau_ni, 0)
                 ttau[ii] = min(ttau[ii],1e6)

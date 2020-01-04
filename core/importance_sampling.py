@@ -1,50 +1,110 @@
 import numpy as np
+import matplotlib.pyplot as plt
 from scipy.stats import norm
 from quantile import fit_gauss_kl,fit_gauss_wd_sampling
 from scipy.special import erfinv
 import time
+np.random.seed(100)
 
 
-def fit_gauss_kl_IS(v, mu, sigma):
-    J = 1000
-    samples = np.random.normal(size=J)
-    samples = samples*sigma+mu
-    w = norm.cdf(v*samples)
-    w /= np.sum(w)
-    mean = w@samples
+class IS:
+    def __init__(self):
+        self.J = 10000
+        self.samples = np.sort(np.random.normal(size=self.J))
+        self._nugget0 = -1 + 1e-14
+        self._nugget1 = 1 - 1e-14
+        self.sqrt2 = np.sqrt(2)
 
-    variance = w@(samples**2)-mean**2
-    return mean, np.sqrt(variance)
+    def fit_gauss_kl_IS(self, v, mu, sigma):
+        samples = self.samples*sigma+mu
+        w = norm.cdf(v*samples)
+        w /= np.sum(w)
+        mean = w@samples
+        inf_s = w@(samples**2)-mean**2
+        return mean, np.sqrt(inf_s)
 
+    def fit_gauss_wd2_IS(self, v, mu, sigma):
+        samples = self.samples*sigma+mu
+        w = norm.cdf(v*samples)
+        w /= np.sum(w)
+        mean = w@samples
 
-def fit_gauss_wd2_IS(v, mu, sigma):
-    J = 20000
-    samples = np.random.normal(size=J)
-    samples = samples*sigma+mu
-    samples = np.sort(samples)
-    w = norm.cdf(v*samples)
-    w /= np.sum(w)
-    mean = w@samples
-    tmp = 2*np.cumsum(w)-1
-    _nugget0 = -1 + 1e-14
-    _nugget1 = 1 - 1e-14
-    tmp[tmp >= _nugget1] = _nugget1
-    tmp[tmp <= _nugget0] = _nugget0
-    variance = np.sqrt(2)*w@(samples*erfinv(tmp))
-    return mean, variance
+        tmp = 2*np.cumsum(w)-1
+        tmp[tmp >= self._nugget1] = self._nugget1
+        tmp[tmp <= self._nugget0] = self._nugget0
+        inf_s = self.sqrt2*w@(samples*erfinv(tmp))
+        return mean, inf_s
 
 
 def main():
     # m,v = fit_gauss_kl_IS(1,1,2)
     # m1,v1 = fit_gauss_kl(1, 1, 2)
     # print(m,v,m1,v1)
-    t0 = time.time()
-    m,v = fit_gauss_wd2_IS(1,1,2)
-    t1 = time.time()
-    m1,v1 = fit_gauss_wd_sampling(1,1,2)
-    t2 = time.time()
-    print(m,v,m1,v1,t1-t0,t2-t1)
+
+    ## show abs error of importance sampling for kl estimate
+    myIS = IS()
+    inf_mat = []
+    m_list = np.linspace(-5, 5, 30)
+    s_list = np.linspace(0.3, 3, 30)
+    for m in m_list:
+        inf_vec = []
+        for s in s_list:
+            t0 = time.time(); inf_m1,inf_s1 = myIS.fit_gauss_kl_IS(1,m,s)
+            t1 = time.time(); inf_m2,inf_s2 = fit_gauss_kl(1,m,s)
+            t2 = time.time(); inf_vec += [[m,s,inf_m1,inf_s1,inf_m2,inf_s2,t1-t0,t2-t1]]
+        inf_mat += [inf_vec]
+
+    inf_mat = np.array(inf_mat)
+    fig, axes = plt.subplots(nrows=1, ncols=3)
+    ids = [3,5]
+    im = axes.flat[0].imshow(inf_mat[:,:,ids[0]], vmin=0, vmax=2)
+    im = axes.flat[1].imshow(inf_mat[:,:,ids[1]],vmin=0, vmax=2)
+    error = abs(inf_mat[:,:,ids[0]] - inf_mat[:,:,ids[1]])/abs(inf_mat[:,:,ids[1]])
+    im = axes.flat[2].imshow(error,vmin=0, vmax=2)
+    fig.colorbar(im, ax=axes.ravel().tolist())
+    ticks_pos = [i*5 for i in range(6)]
+
+
+    # x_label_list = ['{:.2f}'.format(s_list[i]) for i in ticks_pos]
+    # y_label_list = ['{:.2f}'.format(m_list[i]) for i in ticks_pos]
+    # axes.flat[0].set_xticks(ticks_pos)
+    # axes.flat[0].set_yticks(ticks_pos)
+    # axes.flat[0].set_xticklabels(x_label_list)
+    # axes.flat[0].set_yticklabels(y_label_list)
+    # fig,ax = plt.figure(figsize=(12,6))
+    # plt.subplot(1,3,1);plt.imshow(inf_m1_mat)
+    # plt.subplot(1, 3, 2);plt.imshow(inf_m2_mat)
+    # plt.subplot(1, 3, 3);plt.imshow(np.array(inf_m2_mat) - np.array(inf_m1_mat))
+    # plt.colorbar(ax=ax)
+    plt.show()
+
+def main2():
+    ## importance sampling for wd estimation
+    myIS = IS()
+    inf_mat = []
+    m_list = np.linspace(-5, 5, 30)
+    s_list = np.linspace(0.3, 3, 30)
+    for m in m_list:
+        inf_vec = []
+        for s in s_list:
+            t0 = time.time(); inf_m1, inf_s1 = myIS.fit_gauss_wd2_IS(1, m, s)
+            t1 = time.time(); inf_m2, inf_s2 = fit_gauss_wd_sampling(1, m, s)
+            t2 = time.time(); inf_vec += [[m, s, inf_m1, inf_s1, inf_m2, inf_s2, t1 - t0, t2 - t1]]
+            print(t1 - t0, t2 - t1)
+        inf_mat += [inf_vec]
+
+    inf_mat = np.array(inf_mat)
+    fig, axes = plt.subplots(nrows=1, ncols=3)
+    ids = [3, 5]
+    im = axes.flat[0].imshow(inf_mat[:, :, ids[0]], vmin=0, vmax=2)
+    im = axes.flat[1].imshow(inf_mat[:, :, ids[1]], vmin=0, vmax=2)
+    error = abs(inf_mat[:, :, ids[0]] - inf_mat[:, :, ids[1]])/abs(inf_mat[:,:,ids[1]])
+    im = axes.flat[2].imshow(error, vmin=0, vmax=2)
+    fig.colorbar(im, ax=axes.ravel().tolist())
+    ticks_pos = [i * 5 for i in range(6)]
+    plt.show()
 
 if __name__ == '__main__':
-    main()
+    main2()
+
 
