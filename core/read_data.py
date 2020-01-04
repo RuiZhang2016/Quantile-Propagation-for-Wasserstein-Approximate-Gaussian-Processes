@@ -211,9 +211,35 @@ def read_car():
         lines[:, :-1] = scaler.transform(lines[:, :-1])
         return lines
 
+def read_harus():
+    files_train= [os.environ['proj'] + '/data/HARUS_X_train.txt',
+             os.environ['proj'] + '/data/HARUS_y_train.txt']
+    files_test = [os.environ['proj'] + '/data/HARUS_X_test.txt',
+             os.environ['proj'] + '/data/HARUS_y_test.txt']
+    lines = []
+    for file in files_train:
+        with open(file, 'r') as rf:
+            reader = csv.reader(rf)
+            tmp_lines = list(reader)
+            tmp_lines = [l[0].split() for l in tmp_lines]
+            tmp_lines = np.array(tmp_lines,dtype=float)
+            lines += [tmp_lines]
+    lines = np.hstack(lines)
+
+    lines2 = []
+    for file in files_test:
+        with open(file, 'r') as rf:
+            reader = csv.reader(rf)
+            tmp_lines = list(reader)
+            tmp_lines = [l[0].split() for l in tmp_lines]
+            tmp_lines = np.array(tmp_lines,dtype=float)
+            lines += [tmp_lines]
+    lines = np.hstack(lines)
+    print(lines.shape)
+
+
 if __name__ == '__main__':
     # z = read_usps()
     # print(np.std(z,axis=0))
     # read_iris()
-    res = read_pima()
-    print(res)
+    res = read_harus()

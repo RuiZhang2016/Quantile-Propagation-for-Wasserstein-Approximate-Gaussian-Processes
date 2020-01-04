@@ -52,6 +52,9 @@ class Likelihood(object):
     """Base function for Likelihood function"""
     def __init__(self):
         self.hyp = []
+        self.samples = np.sort(np.random.normal(size=10000))
+        self._nugget0 = -1 + 1e-14
+        self._nugget1 = 1 - 1e-14
 
     def evaluate(self, y=None, mu=None, s2=None, inffunc=None, der=None, nargout=1):
         '''
@@ -132,7 +135,8 @@ class Likelihood(object):
         #     return mu_q,1e4
         if abs(mu)>4*sigma or sigma_q < 0.4:
             return mu_q,sigma_q*0.99
-        xs_Fr = self.samples * 5 * sigma_q + mu_q
+        # xs_Fr = self.samples * 5 * sigma_q + mu_q
+        xs_Fr = self.samples * sigma + mu
         if isinstance(self,Laplace):
             ys = np.array(self._Fr(xs_Fr, v, mu, sigma,Z))# np.array([self._Fr(x, v, mu, sigma,Z) for x in xs_Fr])
         else:
@@ -150,6 +154,20 @@ class Likelihood(object):
         w22 = np.nansum((prod[:-1] + prod[1:]) * dys) * 0.5
         inf_sigma = (sigma_q[0] ** 2 + s**2 - w22)/2/s
         assert inf_sigma>0, 'inf_sigma <=0, {}'.format(inf_sigma)
+        return mu_q, inf_sigma
+
+    def fit_gauss_wd2_IS(self, v, mu, sigma,mu_q,sigma_q,Z=None):
+        # self.samples = np.random.normal(size=1024)
+        samples = self.samples * sigma + mu
+        # samples = np.sort(samples)
+        w = self._p(v,samples)
+        w /= np.sum(w)
+        # mean = w @ samples
+        tmp = 2 * np.cumsum(w) - 1
+
+        tmp[tmp >= self._nugget1] = self._nugget1
+        tmp[tmp <= self._nugget0] = self._nugget0
+        inf_sigma = np.sqrt(2) * w @ (samples * erfinv(tmp))
         return mu_q, inf_sigma
 
     # def erfinv(self,x):
@@ -171,6 +189,7 @@ class Gauss(Likelihood):
     hyp = [ log_sigma ]
     '''
     def __init__(self, log_sigma=np.log(0.1) ):
+        super().__init__()
         self.hyp = [log_sigma]
 
     def evaluate(self, y=None, mu=None, s2=None, inffunc=None, der=None, nargout=1):
@@ -282,8 +301,7 @@ class Erf(Likelihood):
     :math:`Erf(t)=\\frac{1}{2}(1+erf(\\frac{t}{\\sqrt{2}}))=normcdf(t)`
     '''
     def __init__(self):
-        self.hyp = []
-        self.samples = np.linspace(-1, 1, 1024)
+        super().__init__()
 
 
     def evaluate(self, y=None, mu=None, s2=None, inffunc=None, der=None, nargout=1):
@@ -464,6 +482,10 @@ class Erf(Likelihood):
             return owens_t(x1, (x2 + rho * x1) / x1 / np.sqrt(1 - rho ** 2))
 
 
+    def _p(self,v,f):
+        return norm.cdf(v*f)
+
+
 class Laplace(Likelihood):
     '''
     Laplacian likelihood function for regression. ONLY works with EP inference!
@@ -474,8 +496,8 @@ class Laplace(Likelihood):
     hyp = [ log_sigma ]
     '''
     def __init__(self, log_sigma=np.log(0.1) ):
+        super().__init__()
         self.hyp = [ log_sigma ]
-        self.samples = np.linspace(-1, 1, 1024)
 
     def evaluate(self, y=None, mu=None, s2=None, inffunc=None, der=None, nargout=1):
         from . import inf
