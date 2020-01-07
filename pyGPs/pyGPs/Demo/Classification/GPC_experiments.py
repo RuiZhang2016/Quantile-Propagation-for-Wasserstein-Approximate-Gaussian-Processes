@@ -53,7 +53,8 @@ def interp_fs():
     f2 = interpolate.interp2d(y, x, table2, kind='cubic')
     return f1, f2
 
-datanames = {0:'ionosphere',1:'breast_cancer',2:'crabs',3:'pima',4:'usps35',5:'usps47',6:'usps28',7:'sonar',8:'iris12',9:'iris13',10:'iris23', 11:'adult'}
+datanames = {0:'ionosphere',1:'breast_cancer',2:'crabs',3:'pima',4:'usps35',5:'usps47',6:'usps28',7:'sonar',8:'iris12',
+        9:'iris13',10:'iris23', 11:'adult',12:'scaled_wine12',13:'scaled_wine23',14:'scaled_wine13',15:'scaled_car01',16:'scaled_car02',17:'scaled_car13'}
 def experiments(f1, f2, exp_id):
     data_id, piece_id = divmod(exp_id, 10)
     dic = load_obj('{}_{}'.format(datanames[data_id], piece_id))
