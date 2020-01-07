@@ -79,8 +79,8 @@ def run(x_train,y_train,x_test,y_test,f1,f2,dataname,expid):
     # modelEP.setOptimizer('BFGS')
     if not f1 is None and not f2 is None:
         modelQP.useInference('QP', f1, f2)
-    kEP = pyGPs.cov.RBFard(log_ell_list=[0.1] * n_features, log_sigma=1.)  # kernel
-    kQP = pyGPs.cov.RBFard(log_ell_list=[0.1] * n_features, log_sigma=1.)  # kernel
+    kEP = pyGPs.cov.RBFard(log_ell_list=[-1] * n_features, log_sigma=1.)  # kernel
+    kQP = pyGPs.cov.RBFard(log_ell_list=[-1] * n_features, log_sigma=1.)  # kernel
     modelEP.setPrior(kernel=kEP)
     modelQP.setPrior(kernel=kQP)
 
@@ -229,9 +229,38 @@ def read_output_table(file_path):
         lines = np.array([[str2float(l[3]),str2float(l[5]),str2float(l[8]),str2float(l[-1])] for l in lines if 'Es:' in l])
         return lines
 
+def poisson_regression():
+    year = np.array([1851+i for i in range(112)]).reshape((-1,1))
+    count = np.array([4, 5, 4, 1, 0, 4, 3, 4,0, 6, 3, 3, 4, 0, 2, 6, 3, 3, 5, 4, 5, 3, 1, 4, 4, 1, 5, 5, 3, 4, 2, 5, 2, 2, 3, 4,
+              2, 1, 3, 2, 2, 1, 1, 1, 1, 3, 0, 0, 1, 0, 1, 1, 0, 0, 3, 1, 0, 3, 2, 2, 0, 1, 1, 1, 0, 1, 0, 1, 0, 0, 0,
+              2, 1, 0, 0, 0, 1, 1, 0, 2, 3, 3, 1, 1, 2, 1, 1, 1, 1, 2, 4, 2, 0, 0, 0, 1, 4, 0, 0, 0, 1, 0, 0, 0, 0, 0,
+             1, 0, 0, 1, 0, 1]).reshape((-1,1))
+    # plt.vlines(year,ymin=[0]*len(year),ymax = count)
+    # plt.show()
 
+    n_features = 1
+    # define models
+    fig = plt.figure(figsize=(14, 6))
+    modelEP = pyGPs.GPR()
+    # modelQP = pyGPs.GPC()
+    # modelEP.useLikelihood('Heaviside')
+    # modelQP.useLikelihood('Heaviside')
+    # modelEP.setOptimizer('BFGS')
+    # if not f1 is None and not f2 is None:
+    #     modelQP.useInference('QP', f1, f2)
+    kEP = pyGPs.cov.RBFard(log_ell_list=[2] * n_features, log_sigma=0.1)  # kernel
+    # kQP = pyGPs.cov.RBFard(log_ell_list=[0.1] * n_features, log_sigma=1.)  # kernel
+    modelEP.setPrior(kernel=kEP)
+    # modelQP.setPrior(kernel=kQP)
+    modelEP.optimize(year, count)
+    modelEP.predict(year)               # predict test cases
+
+    ax = fig.add_subplot(1,1,1)
+    modelEP.plot(ax)
+    plt.show()
 if __name__ == '__main__':
-
+    poisson_regression()
+    raise Exception
     f1, f2 = lambda x:x, lambda x:x #interp_fs()
     # synthetic(f1, f2)R
     # experiments(f1,f2,1)
@@ -242,7 +271,7 @@ if __name__ == '__main__':
     #         if os.path.exists(filename):
     #             os.remove(filename)
 
-    Parallel(n_jobs=2)(delayed(experiments)(f1,f2,expid) for expid in range(80,90))
+    Parallel(n_jobs=4)(delayed(experiments)(f1,f2,expid) for expid in range(80,90))
     for dn_id in range(len(datanames)):
         dataname = datanames[dn_id]
         filename = os.environ['proj'] + "/res/{}_output_2.txt".format(dataname)
@@ -260,7 +289,6 @@ if __name__ == '__main__':
                         lps = tmp # np.load(os.environ['proj']+'/res/lps_{}_2.npy'.format(exp_id))
                     elif len(tmp)>1:
                         lps = np.hstack((lps,tmp))
-
                 print('p-value:', ttest_ind(lps[0],lps[1]))
             except Exception as e:
                 print(e)

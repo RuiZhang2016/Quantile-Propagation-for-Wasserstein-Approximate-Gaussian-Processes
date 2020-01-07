@@ -3,7 +3,9 @@ from __future__ import absolute_import
 from past.utils import old_div
 from builtins import object
 from scipy.stats import norm
-from scipy.special import erfinv,owens_t
+from scipy.special import erfinv,owens_t,gammaln
+from .tools import lik_epquad,glm_invlink_exp,glm_invlink_logistic,logsumexp
+import numpy as np
 # from scipy.special import owens_t
 # from mpmath import erfinv
 #    Marion Neumann [marion dot neumann at uni-bonn dot de]
@@ -55,6 +57,7 @@ class Likelihood(object):
         self.samples = np.sort(np.random.normal(size=10000))
         self._nugget0 = -1 + 1e-14
         self._nugget1 = 1 - 1e-14
+        self.sqrt2 = np.sqrt(2)
 
     def evaluate(self, y=None, mu=None, s2=None, inffunc=None, der=None, nargout=1):
         '''
@@ -150,7 +153,7 @@ class Likelihood(object):
         ys[ys <= _nugget0] = _nugget0
         xs_erf = erfinv(ys)
         s = sigma_q
-        prod = (xs_Fr - mu_q - np.sqrt(2)*s*xs_erf) ** 2
+        prod = (xs_Fr - mu_q - self.sqrt2*s*xs_erf) ** 2
         w22 = np.nansum((prod[:-1] + prod[1:]) * dys) * 0.5
         inf_sigma = (sigma_q[0] ** 2 + s**2 - w22)/2/s
         assert inf_sigma>0, 'inf_sigma <=0, {}'.format(inf_sigma)
@@ -158,6 +161,8 @@ class Likelihood(object):
 
     def fit_gauss_wd2_IS(self, v, mu, sigma,mu_q,sigma_q,Z=None):
         # self.samples = np.random.normal(size=1024)
+        if abs(mu)>4*sigma or sigma_q < 0.4:
+            return mu_q,sigma_q*0.99
         samples = self.samples * sigma + mu
         # samples = np.sort(samples)
         w = self._p(v,samples)
@@ -167,8 +172,11 @@ class Likelihood(object):
 
         tmp[tmp >= self._nugget1] = self._nugget1
         tmp[tmp <= self._nugget0] = self._nugget0
-        inf_sigma = np.sqrt(2) * w @ (samples * erfinv(tmp))
-        return mu_q, inf_sigma
+        # inf_sigma = np.sqrt(2) * w @ (samples * erfinv(tmp))
+        # sigma_q = w @ (samples ** 2) - mu_q ** 2
+        sigma = sigma_q
+        inf_s = (sigma_q ** 2 - w @ (samples - mu_q - self.sqrt2 * sigma * erfinv(tmp)) ** 2 + sigma ** 2) / 2 / sigma
+        return mu_q, inf_s
 
     # def erfinv(self,x):
         # a = 0.147
@@ -501,6 +509,7 @@ class Laplace(Likelihood):
 
     def evaluate(self, y=None, mu=None, s2=None, inffunc=None, der=None, nargout=1):
         from . import inf
+
         sn = np.exp(self.hyp); b = old_div(sn,np.sqrt(2));
         if y is None:
             y = np.zeros_like(mu)
@@ -719,8 +728,6 @@ class Heaviside(Likelihood):
         self.samples = np.linspace(-1,1,256)
 
     def evaluate(self, y=None, mu=None, s2=None, inffunc=None, der=None, nargout=1):
-        from . import inf
-
         if not y is None:
             y = np.sign(y)
             y[y==0] = 1
@@ -776,9 +783,70 @@ class Heaviside(Likelihood):
         # qt = lambda y: mu + np.sqrt(2) * sigma * erfinv(2 * (y * Z + (label + 1) / 2 * cdf0) - 1) if y > 0 else float('-inf')
         return np.array([F(e) for e in x])
 
+class Poisson(Likelihood):
+    def evaluate(self, y=None, mu=None, s2=None, inffunc=None, der=None, nargout=1,link='exp'):
+        from . import inf
+        if inffunc is None:              # prediction mode
+            assert y.shape[1] == 1, y.shape
+            if y is None:
+                y = np.zeros_like(mu)
+            s2zero = True
+            if (not s2 is None) and np.linalg.norm(s2) > 0:
+                s2zero = False
+            if s2zero:                   # log probability
+                lg = g(mu, link)
+                lp = lg * y - np.exp(lg) - gammaln(y + 1)
+            else:
+                lp = self.evaluate(y, mu, s2, inf.EP(),link=link)
+            if nargout>1:
+                print('check point 1')
+                n = max(mu.shape);on = np.ones((n, 1));N = 20
+                t, w = self.gauher(N)
+                oN = np.ones((1, N)); lw = on * np.log(w)
+                sig = np.sqrt(s2) # vectors only
+                lg = g(sig * t+mu*oN,link)
+                ymu = np.exp(logsumexp(lg + lw)) # first moment using Gaussian-Hermite quad
+                if nargout>2:
+                    elg = np.exp(lg)
+                    yv = elg # second y moment from Poisson distribution
+                    ys2 = (yv + (elg - ymu * oN)** 2) * w
+                else:
+                    return lp,ymu
+            else:
+                return lp
+        else:
+            if isinstance(inffunc, inf.EP) or isinstance(inffunc, inf.QP):
+                res = lik_epquad(self.evaluate, y, mu, s2,link,nargout)
+                # print(res)
+                # for e in res:
+                #     print(link,nargout, e.shape, e)
+                return res
+            elif isinstance(inffunc, inf.Laplace):
+                ltmp = self.g(mu, link, nargout)# lg, dlg, d2lg, d3lg = self.g(mu, link, 4)
+                # print(ltmp,mu)
+                (ltmp[0])[ltmp[0]>20] = 20
+                elg = np.exp(ltmp[0])
+                lp = ltmp[0] * y - elg - gammaln(y + 1)
+                res = lp
+                if nargout > 1:
+                    dlp = ltmp[1] *(y - elg)
+                    res = [res,dlp]
+                    if nargout > 2:
+                        d2lp = ltmp[2]*(y - elg) - ltmp[1]* ltmp[1]* elg
+                        res += [d2lp]
+                        if nargout > 3:
+                            d3lp = ltmp[3]*(y - elg) - ltmp[1]* (ltmp[1]*ltmp[1]+ 3 * ltmp[2])* elg
+                            res += [d3lp]
+                return res
 
-if __name__ == '__main__':
-    pass
+    def g(self, f,link, nargout=1):
+            if link == 'exp':
+                return glm_invlink_exp(f,nargout)
+            elif link == 'logistic':
+                return glm_invlink_logistic(f,nargout)
+            else:
+                raise Exception('{} Not Implemented'.format(link))
+
 
 
 

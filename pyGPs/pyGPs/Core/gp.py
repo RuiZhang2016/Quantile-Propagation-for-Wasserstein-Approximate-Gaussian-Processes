@@ -535,8 +535,8 @@ class GPR(GP):
         super(GPR, self).__init__()
         self.meanfunc = mean.Zero()                        # default prior mean
         self.covfunc = cov.RBF()                           # default prior covariance
-        self.likfunc = lik.Gauss()                         # likihood with default noise variance 0.1
-        self.inffunc = inf.Exact()                         # inference method
+        self.likfunc = lik.Poisson()                         # likihood with default noise variance 0.1
+        self.inffunc = inf.EP()                         # inference method
         self.optimizer = opt.Minimize(self)                # default optimizer
 
 
