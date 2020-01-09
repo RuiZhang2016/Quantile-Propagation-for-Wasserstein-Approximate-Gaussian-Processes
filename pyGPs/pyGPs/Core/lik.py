@@ -4,7 +4,7 @@ from past.utils import old_div
 from builtins import object
 from scipy.stats import norm
 from scipy.special import erfinv,owens_t,gammaln
-from .tools import lik_epquad,glm_invlink_exp,glm_invlink_logistic,logsumexp
+from .tools import lik_epquad,glm_invlink_exp,glm_invlink_logistic,logsumexp,gauher
 import numpy as np
 # from scipy.special import owens_t
 # from mpmath import erfinv
@@ -787,24 +787,23 @@ class Poisson(Likelihood):
     def evaluate(self, y=None, mu=None, s2=None, inffunc=None, der=None, nargout=1,link='exp'):
         from . import inf
         if inffunc is None:              # prediction mode
-            assert y.shape[1] == 1, y.shape
             if y is None:
                 y = np.zeros_like(mu)
             s2zero = True
             if (not s2 is None) and np.linalg.norm(s2) > 0:
                 s2zero = False
             if s2zero:                   # log probability
-                lg = g(mu, link)
+                lg = self.g(mu, link)
                 lp = lg * y - np.exp(lg) - gammaln(y + 1)
             else:
                 lp = self.evaluate(y, mu, s2, inf.EP(),link=link)
             if nargout>1:
                 print('check point 1')
                 n = max(mu.shape);on = np.ones((n, 1));N = 20
-                t, w = self.gauher(N)
+                t, w = gauher(N)
                 oN = np.ones((1, N)); lw = on * np.log(w)
                 sig = np.sqrt(s2) # vectors only
-                lg = g(sig * t+mu*oN,link)
+                lg = self.g(sig * t+mu*oN,link)
                 ymu = np.exp(logsumexp(lg + lw)) # first moment using Gaussian-Hermite quad
                 if nargout>2:
                     elg = np.exp(lg)

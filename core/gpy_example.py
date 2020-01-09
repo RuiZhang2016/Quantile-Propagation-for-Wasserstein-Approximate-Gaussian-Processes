@@ -8,7 +8,8 @@ import numpy as np
 if __name__ == '__main__':
     #GPy.examples.regression.toy_poisson_rbf_1d_laplace()
     # plt.show()
-    GPy.examples.classification.toy_linear_1d_classification()
+    m = GPy.examples.classification.toy_linear_1d_classification()
+    print(m.log_likelihood())
     plt.show()
 
     # optimizer = 'scg'

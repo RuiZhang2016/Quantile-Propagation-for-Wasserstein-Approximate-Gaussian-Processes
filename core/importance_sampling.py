@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.stats import norm
-from quantile import fit_gauss_kl,fit_gauss_wd_sampling
+from quantile import *
 from scipy.special import erfinv
 import time
 np.random.seed(100)
@@ -9,7 +9,7 @@ from joblib import Parallel, delayed
 
 class IS:
     def __init__(self):
-        self.J = 10000
+        self.J = 20000
         self.samples = np.sort(np.random.normal(size=self.J))
         self._nugget0 = -1 + 1e-14
         self._nugget1 = 1 - 1e-14
@@ -84,13 +84,13 @@ def main():
 def main2():
     ## importance sampling for wd estimation
     myIS = IS()
-    m_list = np.linspace(-5, 5, 30)
-    s_list = np.linspace(0.3, 3, 30)
+    m_list = np.linspace(-5, 5, 10)
+    s_list = np.linspace(0.3, 3, 10)
     def loop(myIS,m,s_list):
         inf_vec = []
         for s in s_list:
             t0 = time.time(); inf_m1, inf_s1 = myIS.fit_gauss_wd2_IS(1, m, s)
-            t1 = time.time(); inf_m2, inf_s2 = fit_gauss_wd_sampling(1, m, s)
+            t1 = time.time(); inf_m2, inf_s2 = fit_gauss_wd2_quad(1, m, s)
             t2 = time.time(); inf_vec += [[m, s, inf_m1, inf_s1, inf_m2, inf_s2, t1 - t0, t2 - t1]]
         return inf_vec
     # inf_mat =[]
@@ -111,7 +111,7 @@ def main2():
     ids = [3, 5]
     im = axes.flat[0].imshow(inf_mat[ids[0]], vmin=0, vmax=2)
     im = axes.flat[1].imshow(inf_mat[ids[1]], vmin=0, vmax=2)
-    error = abs(inf_mat[ids[0]] - inf_mat[ids[1]])/abs(inf_mat[ids[1]])
+    error = abs(inf_mat[ids[0]] - inf_mat[ids[1]])
     # im = axes.flat[0].imshow(inf_mat[:,:,ids[0]], vmin=0, vmax=2)
     # im = axes.flat[1].imshow(inf_mat[:,:,ids[1]], vmin=0, vmax=2)
     # error = abs(inf_mat[:,:,ids[0]] - inf_mat[:,:,ids[1]])/abs(inf_mat[:,:,ids[1]])

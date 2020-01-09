@@ -231,11 +231,11 @@ def read_output_table(file_path):
         return lines
 
 def poisson_regression():
-    year = np.array([1851+i for i in range(112)]).reshape((-1,1))
+    year = np.array([1851+i for i in range(112)])[:,None]
     count = np.array([4, 5, 4, 1, 0, 4, 3, 4,0, 6, 3, 3, 4, 0, 2, 6, 3, 3, 5, 4, 5, 3, 1, 4, 4, 1, 5, 5, 3, 4, 2, 5, 2, 2, 3, 4,
               2, 1, 3, 2, 2, 1, 1, 1, 1, 3, 0, 0, 1, 0, 1, 1, 0, 0, 3, 1, 0, 3, 2, 2, 0, 1, 1, 1, 0, 1, 0, 1, 0, 0, 0,
               2, 1, 0, 0, 0, 1, 1, 0, 2, 3, 3, 1, 1, 2, 1, 1, 1, 1, 2, 4, 2, 0, 0, 0, 1, 4, 0, 0, 0, 1, 0, 0, 0, 0, 0,
-             1, 0, 0, 1, 0, 1]).reshape((-1,1))
+             1, 0, 0, 1, 0, 1])[:,None]
     # plt.vlines(year,ymin=[0]*len(year),ymax = count)
     # plt.show()
 
@@ -243,13 +243,14 @@ def poisson_regression():
     # define models
     fig = plt.figure(figsize=(14, 6))
     modelEP = pyGPs.GPR()
+    modelEP.setOptimizer('CG')
     # modelQP = pyGPs.GPC()
     # modelEP.useLikelihood('Heaviside')
     # modelQP.useLikelihood('Heaviside')
     # modelEP.setOptimizer('BFGS')
     # if not f1 is None and not f2 is None:
     #     modelQP.useInference('QP', f1, f2)
-    kEP = pyGPs.cov.RBFard(log_ell_list=[2] * n_features, log_sigma=0.1)  # kernel
+    kEP = pyGPs.cov.RBFard(log_ell_list=[-0.1] * n_features, log_sigma=0.1)  # kernel
     # kQP = pyGPs.cov.RBFard(log_ell_list=[0.1] * n_features, log_sigma=1.)  # kernel
     modelEP.setPrior(kernel=kEP)
     # modelQP.setPrior(kernel=kQP)

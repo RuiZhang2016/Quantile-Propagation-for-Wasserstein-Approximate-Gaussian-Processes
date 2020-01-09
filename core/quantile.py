@@ -3,10 +3,10 @@ from scipy.stats import norm
 from scipy.special import owens_t
 import scipy.integrate as integrate
 import time
-from scipy.special import erfinv
+from scipy.special import erfinv, roots_hermite
 from pynverse import inversefunc
 import matplotlib.pyplot as plt
-
+from scipy.integrate import quad,quadrature # useless
 
 def Fr(x, v, mu, sigma):
     sigma2 = sigma ** 2
@@ -31,7 +31,13 @@ def Fr(x, v, mu, sigma):
         OT1 = my_owens_t(h, k, rho)
         OT2 = my_owens_t(k, h, rho)
         res[i] = A * (0.5 * norm.cdf(h) + 0.5 * v * cdfk - v * OT1 - v * OT2 + v * eta)
-    return res[0]
+    output = res[0]
+    if output>1-1e-14:
+        output = 1-1e-14
+    if output<1e-14:
+        output = 1e-14
+    return output
+
 
 def pr(x,v,mu,sigma):
     Z = norm.cdf(mu  / v / np.sqrt(1 + sigma ** 2))
@@ -73,8 +79,8 @@ def cal_C2(v,mu,sigma):
     return np.sum(np.sqrt(2)*0.5*(prod[:-1]+prod[1:]))*d
 
 
-xs_norm = np.random.normal(size=512)
-def fit_gauss_wd_sampling(v, mu, sigma):
+xs_norm = np.random.normal(size=3000)
+def fit_gauss_wd2_sampling(v, mu, sigma):
     sigma2 = sigma ** 2
     sqrtsigma = np.sqrt(sigma2 + 1)
     z = mu / v / sqrtsigma  # z = (mu - m) / v / np.sqrt(1 + sigma2 / v2)
@@ -89,10 +95,8 @@ def fit_gauss_wd_sampling(v, mu, sigma):
     ys = np.array([Fr(x, v, mu, sigma) for x in xs_Fr])
     # ys = np.array(Fr(xs_Fr,v,mu,sigma))
     ys_2 = 2 * ys - 1
-    _nugget0 = -1 + 1e-14
-    _nugget1 = 1 - 1e-14
-    ys_2[ys_2 >= _nugget1] = _nugget1
-    ys_2[ys_2 <= _nugget0] = _nugget0
+    _nugget0 = -1 + 1e-14;_nugget1 = 1 - 1e-14
+    ys_2[ys_2 >= _nugget1] = _nugget1; ys_2[ys_2 <= _nugget0] = _nugget0
 
     xs_erf = erfinv(ys_2)
     prod = xs_Fr*xs_erf*norm.cdf(xs_Fr*v)
@@ -103,32 +107,48 @@ def fit_gauss_wd_sampling(v, mu, sigma):
 samples = np.linspace(-1,1,1024)
 def fit_gauss_wd2_nature(v, mu, sigma):
     print('mu,sigma: ',mu,sigma)
-    sigma2 = sigma ** 2
-    # v2 = 1
+    sigma2 = sigma ** 2 # v2 = 1
     z = mu / v / np.sqrt(1 + sigma2)  # z = (mu - m) / v / np.sqrt(1 + sigma2 / v2)
     pdfdivcdf = norm.pdf(z) / norm.cdf(z)
     inf_mu = mu + sigma2 * pdfdivcdf/v/np.sqrt(1+sigma2)# inf_mu = mu + sigma ** 2 * norm.pdf(z) / norm.cdf(z) / v / np.sqrt(1 + sigma2 / v2)
-
-    # inverse_Fr = lambda y: inversefunc(lambda x: self._Fr(x, v, mu, sigma), y_values=y, accuracy=6)
-    # inf_sigma =  self.sqrt2* integrate.quad(lambda x: inverse_Fr(x)*erfinv(2 * x - 1), 0, 1)[0]
-
     inf_sigma2 = sigma2 - sigma2 ** 2 * pdfdivcdf / (1 + sigma2) * (z + pdfdivcdf)# inf_sigma2 = sigma2 - sigma2 ** 2 * norm.pdf(z) / (v2 + sigma2) / norm.cdf(z) * (z + norm.pdf(z) / norm.cdf(z))
     inf_sigma = np.sqrt(inf_sigma2)
     xs_Fr = samples*5*inf_sigma + inf_mu # np.linspace(inf_mu - 5 * inf_sigma, inf_mu + 5 * inf_sigma, 512)
 
-    ys = np.array([Fr(x, v, mu, sigma) for x in xs_Fr])
-    #ys = np.array(Fr(xs_Fr, v, mu, sigma))
-    _nugget0 = -1+1e-14
-    _nugget1 = 1 - 1e-14
+    ys = np.array([Fr(x, v, mu, sigma) for x in xs_Fr]) #ys = np.array(Fr(xs_Fr, v, mu, sigma))
+    _nugget0 = -1+1e-14; _nugget1 = 1 - 1e-14
     dys = ys[1:] - ys[:-1]
     ys = 2 * ys - 1
-    ys[ys >= _nugget1] = _nugget1
-    ys[ys <= _nugget0] = _nugget0
+    ys[ys >= _nugget1] = _nugget1; ys[ys <= _nugget0] = _nugget0
     xs_erf = erfinv(ys)
     prod = xs_Fr * xs_erf
     #
     inf_sigma = np.sqrt(2) * np.nansum((prod[:-1] + prod[1:]) * dys) * 0.5
     return inf_mu, inf_sigma
+
+def fit_gauss_wd2_quad(v, mu, sigma):
+    sigma2 = sigma ** 2 # v2 = 1
+    z = mu / v / np.sqrt(1 + sigma2)  # z = (mu - m) / v / np.sqrt(1 + sigma2 / v2)
+    pdfdivcdf = norm.pdf(z) / norm.cdf(z)
+    inf_mu = mu + sigma2 * pdfdivcdf/v/np.sqrt(1+sigma2)# inf_mu = mu + sigma ** 2 * norm.pdf(z) / norm.cdf(z) / v / np.sqrt(1 + sigma2 / v2)
+    sqrt2 = np.sqrt(2)
+    # f = lambda t: (sqrt2*sigma*t+mu)*erfinv(2*Fr(t,v,mu,sigma)-1)*norm.cdf(v*(sqrt2*sigma*t+mu))/norm.cdf(z)*2*sigma
+    # x,w = roots_hermite(20)
+    f = lambda t: t*erfinv(2*Fr(t,v,mu,sigma)-1)*pr(t,v,mu,sigma)
+    inf_sigma = sqrt2*quad(f,-np.inf,np.inf,epsrel=0)[0]
+    return inf_mu,inf_sigma
+
+
+def fit_gauss_wd2_gh(v, mu, sigma):
+    print('mu,sigma: ',mu,sigma)
+    sigma2 = sigma ** 2 # v2 = 1
+    z = mu / v / np.sqrt(1 + sigma2)  # z = (mu - m) / v / np.sqrt(1 + sigma2 / v2)
+    pdfdivcdf = norm.pdf(z) / norm.cdf(z)
+    inf_mu = mu + sigma2 * pdfdivcdf/v/np.sqrt(1+sigma2)# inf_mu = mu + sigma ** 2 * norm.pdf(z) / norm.cdf(z) / v / np.sqrt(1 + sigma2 / v2)
+    sqrt2 = np.sqrt(2)
+    f = lambda t: (sqrt2*sigma*t+mu)*erfinv(2*Fr(sqrt2*sigma*t+mu,v,mu,sigma)-1)*norm.cdf(v*(sqrt2*sigma*t+mu))/norm.cdf(z)*2*sigma
+    x,w = roots_hermite(100)
+    return inf_mu,f(x),w,np.sum(w)
 
 
 def fit_gauss_wd2_by_another_wd(v, mu, sigma):
@@ -360,4 +380,12 @@ def main2():
     plt.show()
 
 if __name__ == '__main__':
-    compare_different_implementation()
+    # compare_different_implementation()
+    t1 = time.time()
+    print('quad: ',fit_gauss_wd2_quad(1,1,1))
+    t2 = time.time()
+    print(t2-t1)
+    print('sampling:,',fit_gauss_wd2_sampling(1, 1, 1))
+    print(time.time()-t2)
+    print('ep: ',fit_gauss_kl(1,1,1))
+    print('gh: ', fit_gauss_wd2_gh(1, 1, 1))
