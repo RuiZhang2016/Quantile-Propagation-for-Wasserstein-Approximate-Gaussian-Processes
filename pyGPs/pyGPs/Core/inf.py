@@ -884,7 +884,9 @@ class QP(Inference):
                 # tnu[ii] = old_div((dlZ + (m[ii] - old_div(nu_ni, tau_ni)) * d2lZ), (1. + old_div(d2lZ, tau_ni)))
                 # ttau_tmp = old_div(-d2lZ, (1. + old_div(d2lZ, tau_ni)))
                 # ttau_tmp = max(ttau_tmp, 0)  # enforce positivity i.e. lower bound ttau by zero
-                # tnu_tmp = old_div((dlZ + (m[ii] - old_div(nu_ni, tau_ni)) * d2lZ), (1. + old_div(d2lZ, tau_ni)))
+                # tnu_tmp = old_div((dlZ + (m[ii] - old_div(nu_ni, tau_ni)) * d2lZ), (1.
+                #
+                #  + old_div(d2lZ, tau_ni)))
                 mu_ni = nu_ni / tau_ni
                 sigma_ni = np.sqrt(1/tau_ni)
                 mu_i = sigma_ni**2*dlZ+mu_ni
