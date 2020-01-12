@@ -238,7 +238,7 @@ def poisson_regression():
              1, 0, 0, 1, 0, 1])[:,None]
     # plt.vlines(year,ymin=[0]*len(year),ymax = count)
     # plt.show()
-
+    return
     n_features = 1
     # define models
     fig = plt.figure(figsize=(14, 6))
