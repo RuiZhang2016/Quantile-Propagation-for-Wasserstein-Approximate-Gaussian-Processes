@@ -167,13 +167,13 @@ def run(x_train,y_train,x_test,y_test,f1,f2,dataname,expid):
     # plt.legend()
     # plt.savefig(os.environ['proj'] + "/res/{}_rely_diag_{}.pdf".format(dataname,expid))
     # plt.show()
-    # print results
+    ## print results
     # print("Negative log marginal liklihood before and after optimization")
-    # np.save(os.environ['proj'] + "/res/lps_{}_2.npy".format(expid),lps)
-    # f = open(os.environ['proj'] + "/res/{}_output_2.txt".format(dataname), "a")
-    # f.write('{} Es: EP {} QP {}; Is: EP {} QP {} \n'.format(expid, Es[0], Es[1], Is[0],Is[1]))
-    # f.close()
-    print(expid,'Es: ', Es,'Is: ', Is)
+    np.save(os.environ['proj'] + "/res/lps_{}_2.npy".format(expid),lps)
+    f = open(os.environ['proj'] + "/res/{}_output_2.txt".format(dataname), "a")
+    f.write('{} Es: EP {} QP {}; Is: EP {} QP {} \n'.format(expid, Es[0], Es[1], Is[0],Is[1]))
+    f.close()
+    #print(expid,'Es: ', Es,'Is: ', Is)
 
 def synthetic(f1, f2):
     print('generating data ...')
@@ -273,7 +273,7 @@ if __name__ == '__main__':
     #         if os.path.exists(filename):
     #             os.remove(filename)
 
-    Parallel(n_jobs=4)(delayed(experiments)(f1,f2,expid) for expid in range(80,90))
+    Parallel(n_jobs=10)(delayed(experiments)(f1,f2,expid) for expid in range(30,40))
     for dn_id in range(len(datanames)):
         dataname = datanames[dn_id]
         filename = os.environ['proj'] + "/res/{}_output_2.txt".format(dataname)
