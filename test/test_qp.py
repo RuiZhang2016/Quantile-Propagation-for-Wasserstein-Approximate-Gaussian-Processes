@@ -14,7 +14,7 @@ from unittest import TestCase
 from core.quantile import *
 import time
 import numpy as np
-from scipy.special import erfinv, hyp1f1,gamma,gammaincc,comb,erf
+from scipy.special import erfinv, hyp1f1,gamma,gammaincc,comb,erf,loggamma, logsumexp
 import scipy.integrate as integrate
 from pynverse import inversefunc
 from scipy.stats import norm
@@ -220,35 +220,79 @@ class TestQp(TestCase):
     #                 sigma2 = sigma*sigma
     #                 alpha = 2*sigma2/(1+2*sigma2)
     #                 h = mu*mu/(1+2*sigma2)
-    #                 Z_thm = alpha**(y+0.5)/np.sqrt(2*np.pi*sigma2)/factorial(y)/np.exp(h)*gamma(y+0.5)*hyp1f1(-y,0.5,-h/2/sigma2)
+    #                 # Z_thm = alpha**(y+0.5)/np.sqrt(2*np.pi*sigma2)/factorial(y)/np.exp(h)*gamma(y+0.5)*hyp1f1(-y,0.5,-h/2/sigma2)
+    #                 lZ = (y+0.5)*np.log(alpha)-np.log(2*np.pi*sigma2)/2 - np.sum(np.log(range(1,y+1)))-h+loggamma(y+0.5)+np.log(hyp1f1(-y,0.5,-h/2/sigma2))
+    #                 dlZ = y / sigma2 * hyp1f1(1 - y, 1.5, -h / 2 / sigma2) / hyp1f1(-y, 0.5, -h / 2 / sigma2) - 1
+    #                 dlZ *= 2*mu/(1+2*sigma2)
+    #                 mean_thm = dlZ * sigma2 + mu
     #
-    #                 deriv_thm = alpha**(y+0.5)/np.sqrt(2*np.pi*sigma2)/factorial(y)/np.exp(h)*gamma(y+0.5)*(y/sigma2*hyp1f1(-y+1,1.5,-h/2/sigma2)
-    #                                                                                               -hyp1f1(-y,0.5,-h/2/sigma2))*2*mu/(1+2*sigma2)
-    #                 mean_quad = quad(lambda x: x*pr(x, mu, sigma) * like(g(x), y), -np.inf, np.inf)[0]/Z_thm
-    #                 mean_thm = deriv_thm/Z_thm * sigma2 + mu
+    #                 mean_quad = quad(lambda x: x*pr(x, mu, sigma) * like(g(x), y), -np.inf, np.inf)[0]/np.exp(lZ)
     #                 assert np.isclose(mean_quad, mean_thm), "y, mu, sigma, mean_quad, mean_thm: {}, {}, {}, {}, {}".format(y,mu,sigma,mean_quad,mean_thm)
 
+    # def test_square_poisson_variance(self):
+    #     g = lambda f: f**2
+    #     like = lambda f,y: f**y*np.exp(-f)/factorial(y)
+    #     pr = lambda x, mu, sigma: norm.pdf(x, loc=mu, scale=sigma)
+    #     for y in [0,1,2,5,6]:
+    #         for mu in np.linspace(-5,5,10):
+    #             for sigma in np.linspace(1,5,10):
+    #                 sigma2 = sigma*sigma
+    #                 alpha = 2*sigma2/(1+2*sigma2)
+    #                 h = mu*mu/(1+2*sigma2)
+    #                 z_F = -h / 2 / sigma2
+    #                 lA = (y+0.5)*np.log(alpha)-np.log(2*np.pi*sigma2)/2 - np.sum(np.log(range(1,y+1)))-h+loggamma(y+0.5)
+    #                 lZ = lA+np.log(hyp1f1(-y,0.5,z_F))
+    #
+    #                 dlZ_1 = y / sigma2 * hyp1f1(1 - y, 1.5, z_F) / hyp1f1(-y, 0.5, z_F) - 1
+    #                 dlZ = dlZ_1 * 2*mu/(1+2*sigma2)
+    #                 d2lZ_1 = dlZ_1* 2/(1+2*sigma2)
+    #                 d2lZ_2 = hyp1f1(2 - y, 2.5, z_F) / hyp1f1(-y, 0.5, z_F)*2*(1-y)/3
+    #                 d2lZ_2 += hyp1f1(1 - y, 1.5, z_F)**2 / hyp1f1(-y, 0.5, z_F)**2*2*y
+    #                 d2lZ_2 *= 2*h*y/sigma2**2/(1+2*sigma2)
+    #                 d2lZ = d2lZ_1-d2lZ_2
+    #                 mean_thm = dlZ * sigma2 + mu
+    #                 v_thm = sigma2**2*d2lZ+sigma2
+    #                 v_quad = quad(lambda x: (x-mean_thm)*(x-mean_thm)*pr(x, mu, sigma)*like(g(x), y),-np.inf,np.inf)[0]/np.exp(lZ)
+    #                 assert np.isclose(v_quad, v_thm), "y, mu, sigma, v_quad, v_thm: {}, {}, {}, {}, {}".format(y,mu,sigma,v_quad,v_thm)
 
-    def test_square_poisson_variance(self):
-        g = lambda f: f**2
-        like = lambda f,y: f**y*np.exp(-f)/factorial(y)
+    def test_square_poisson_cdf(self):
+        g = lambda f: f ** 2
+        like = lambda f,y: np.exp(y*np.log(f)-f-np.sum(np.log(range(1,y+1))))#f**y*np.exp(-f)/factorial(y)
         pr = lambda x, mu, sigma: norm.pdf(x, loc=mu, scale=sigma)
-        for y in [0,1,2,5,6]:
-            for mu in np.linspace(-5,5,10):
-                for sigma in np.linspace(1,5,10):
+
+        def log_comb(n,k):
+            return np.sum(np.log(range(n-k+1,n+1)))-np.sum(np.log(range(1,k+1)))
+
+        def log_term_k(k,x, y,alpha, beta):
+            k2 = (k+1)/2
+            a = (-1)**k+np.sign(x-beta)**(k+1)*(1-gammaincc(k2,(x-beta)**2/alpha))
+            sign = np.sign(a)*(((2*y-k)%2 == 0)*2-1 if np.sign(beta)<0 else np.sign(beta))
+            if sign == 0.:
+                return 0,0
+            res = log_comb(2*y,k)+(2*y-k)*np.log(abs(beta))+k2*np.log(alpha)+loggamma(k2)+np.log(abs(a))
+            return res, sign
+
+        for y in [1,2,3,4,5,6,7]:
+            for mu in np.linspace(-3,3,10):
+                for sigma in np.linspace(2,4,10):
                     sigma2 = sigma*sigma
-                    alpha = 2*sigma2/(1+2*sigma2)
-                    B = (deriv_thm / mu) if mu != mu else (A * 2 / (1 + 2 * sigma2) * (y / sigma2 - 1))
                     h = mu*mu/(1+2*sigma2)
-                    A = alpha**(y+0.5)/np.sqrt(2*np.pi*sigma2)/factorial(y)/np.exp(h)*gamma(y+0.5)
-                    Z_thm = A*hyp1f1(-y,0.5,-h/2/sigma2)
-                    deriv_thm = A*(y/sigma2*hyp1f1(-y+1,1.5,-h/2/sigma2)-hyp1f1(-y,0.5,-h/2/sigma2))*2*mu/(1+2*sigma2)
-                    deriv2_thm = A*(-y*(1-y)/3/sigma2/sigma2*hyp1f1(-y + 2, 2.5, -h / 2 / sigma2)-
-                                    2*y / sigma2 * hyp1f1(-y + 1, 1.5, -h / 2 / sigma2)
-                                    + hyp1f1(-y, 0.5, -h / 2 / sigma2)) * (2 * mu / (1 + 2 * sigma2))**2+B
-                    mean_thm = deriv_thm/Z_thm * sigma2 + mu
-                    v_thm = sigma2*sigma2*deriv2_thm/Z_thm+sigma2-mu*mu+2*mu*mean_thm-mean_thm*mean_thm
-                    v_quad = quad(lambda x: (x-mean_thm)*(x-mean_thm)*pr(x, mu, sigma)*like(g(x), y),-np.inf,np.inf)[0]/Z_thm
-                    assert np.isclose(v_quad, v_thm), "y, mu, sigma, mean_quad, mean_thm: {}, {}, {}, {}, {}".format(y,mu,sigma,v_quad,v_thm)
-
-
+                    alpha = 2*sigma2/(1+2*sigma2)
+                    beta = mu/(1+2*sigma2)
+                    z_F = -h / 2 / sigma2
+                    lA = -(y+0.5)*np.log(alpha)-loggamma(y+0.5)-np.log(hyp1f1(-y,0.5,z_F))
+                    lZ = (y+0.5)*np.log(alpha)-np.log(2*np.pi*sigma2)/2 - np.sum(np.log(range(1,y+1)))-h+loggamma(y+0.5)+np.log(hyp1f1(-y,0.5,z_F))
+                    # F = lambda x: np.exp(logsumexp([log_term_k(k,x,y,alpha,beta) for k in range(2*y+1)])+lA-np.log(2))
+                    # print(F(np.inf))
+                    res_dict = {1:[],-1:[]}
+                    x = 0
+                    for k in range(1+2*y):
+                        # print(y,mu,sigma,k,log_term_k(k,1,y,alpha,beta))
+                        value,sign = log_term_k(k, x, y, alpha, beta)
+                        if sign != 0:
+                            res_dict[sign] += [value]
+                    p = 0 if len(res_dict[1]) == 0 else np.exp(logsumexp(res_dict[1]))
+                    n = 0 if len(res_dict[-1]) == 0 else np.exp(logsumexp(res_dict[-1]))
+                    F_thm = (p-n)*np.exp(lA)/2
+                    F_quad = quad(lambda x:pr(x, mu, sigma) * like(g(x), y), -np.inf, x)[0] / np.exp(lZ)
+                    assert np.isclose(F_thm, F_quad), "y, mu, sigma, v_quad, v_thm: {}, {}, {}, {}, {}".format(y,mu,sigma,F_quad,F_thm)

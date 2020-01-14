@@ -4,14 +4,15 @@ try:
 except:
     pass
 import numpy as np
+from joblib import Parallel,delayed
 
 if __name__ == '__main__':
     # GPy.examples.regression.toy_poisson_rbf_1d_laplace()
     # plt.show()
     # m = GPy.examples.classification.toy_linear_1d_classification()
-    m = GPy.examples.regression.toy_poisson_rbf_1d_laplace()
-    print(m.log_likelihood())
-    plt.show()
+
+    Parallel(n_jobs=8)(delayed(GPy.examples.regression.toy_poisson_rbf_1d_laplace)(seed=i) for i in range(100))
+
 
     # optimizer = 'scg'
     # plot = True

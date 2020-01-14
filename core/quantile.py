@@ -32,11 +32,7 @@ def Fr(x, v, mu, sigma):
         OT2 = my_owens_t(k, h, rho)
         res[i] = A * (0.5 * norm.cdf(h) + 0.5 * v * cdfk - v * OT1 - v * OT2 + v * eta)
     output = res[0]
-    if output>1-1e-14:
-        output = 1-1e-14
-    if output<1e-14:
-        output = 1e-14
-    return output
+    return np.clip(output,1e-14,1-1e-14)
 
 
 def pr(x,v,mu,sigma):
@@ -87,10 +83,10 @@ def fit_gauss_wd2_sampling(v, mu, sigma):
     Z = norm.cdf(z)
     pdfdivcdf = norm.pdf(z) / norm.cdf(z)
     inf_mu = mu + sigma2 * pdfdivcdf / v / sqrtsigma  # inf_mu = mu + sigma ** 2 * norm.pdf(z) / norm.cdf(z) / v / np.sqrt(1 + sigma2 / v2)
-    #inf_sigma2 = sigma2 - sigma2 ** 2 * pdfdivcdf / (1 + sigma2) * (z + pdfdivcdf)
-    #inf_sigma = np.sqrt(inf_sigma2)
+    inf_sigma2 = sigma2 - sigma2 ** 2 * pdfdivcdf / (1 + sigma2) * (z + pdfdivcdf)
+    inf_sigma = np.sqrt(inf_sigma2)
 
-    xs_Fr = xs_norm*sigma+mu# xs_disc*3*inf_sigma+inf_mu# np.linspace(inf_mu-4*inf_sigma,inf_mu+4*inf_sigma,8200) # xs_norm*sigma+mu
+    xs_Fr = xs_norm*inf_sigma+inf_mu# xs_disc*3*inf_sigma+inf_mu# np.linspace(inf_mu-4*inf_sigma,inf_mu+4*inf_sigma,8200) # xs_norm*sigma+mu
 
     ys = np.array([Fr(x, v, mu, sigma) for x in xs_Fr])
     # ys = np.array(Fr(xs_Fr,v,mu,sigma))
@@ -99,10 +95,11 @@ def fit_gauss_wd2_sampling(v, mu, sigma):
     ys_2[ys_2 >= _nugget1] = _nugget1; ys_2[ys_2 <= _nugget0] = _nugget0
 
     xs_erf = erfinv(ys_2)
-    prod = xs_Fr*xs_erf*norm.cdf(xs_Fr*v)
+    prod = xs_Fr * xs_erf * pr(xs_Fr,v,mu,sigma)/norm.pdf(xs_Fr,loc=inf_mu, scale= inf_sigma)# prod = xs_Fr*xs_erf*norm.cdf(xs_Fr*v)
 
-    C2 = np.sqrt(2) * np.mean(prod)/Z
+    C2 = np.sqrt(2) * np.mean(prod) # C2 = np.sqrt(2) * np.mean(prod)/Z
     return inf_mu, C2
+
 
 samples = np.linspace(-1,1,1024)
 def fit_gauss_wd2_nature(v, mu, sigma):
@@ -148,7 +145,7 @@ def fit_gauss_wd2_gh(v, mu, sigma):
     sqrt2 = np.sqrt(2)
     f = lambda t: (sqrt2*sigma*t+mu)*erfinv(2*Fr(sqrt2*sigma*t+mu,v,mu,sigma)-1)*norm.cdf(v*(sqrt2*sigma*t+mu))/norm.cdf(z)*2*sigma
     x,w = roots_hermite(100)
-    return inf_mu,f(x),w,np.sum(w)
+    return inf_mu,f(x),np.sum(w)
 
 
 def fit_gauss_wd2_by_another_wd(v, mu, sigma):
