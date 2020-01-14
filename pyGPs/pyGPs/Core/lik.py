@@ -167,8 +167,10 @@ class Likelihood(object):
 
         tmp[tmp >= self._nugget1] = self._nugget1
         tmp[tmp <= self._nugget0] = self._nugget0
-        inf_sigma = np.sqrt(2) * w @ (samples * erfinv(tmp))
-        return mu_q, inf_sigma
+        # inf_sigma = np.sqrt(2) * w @ (samples * erfinv(tmp))
+        sigma = sigma_q
+        inf_s = (sigma_q ** 2 - w @ (samples - mu_q - self.sqrt2 * sigma * erfinv(tmp)) ** 2 + sigma ** 2) / 2 / sigma
+        return mu_q, inf_s
 
     # def erfinv(self,x):
         # a = 0.147
