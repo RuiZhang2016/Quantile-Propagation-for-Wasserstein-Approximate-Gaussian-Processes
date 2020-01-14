@@ -272,7 +272,6 @@ def brentmin(xlow,xupp,Nitmax,tol,f,nout=None,*args):
     return vargout
 
 
-
 def cholupdate(R,x,sgn='+'):
     '''
     Placeholder for a python version of MATLAB's cholupdate.  Now it is O(n^3)
@@ -291,4 +290,104 @@ def cholupdate(R,x,sgn='+'):
     return jitchol(R1).T
 
 
+def gauher(N):
+    if N==20: # return precalculated values
+        x=[-7.619048541679757, -6.510590157013656, -5.578738805893203,
+            -4.734581334046057, -3.943967350657318, -3.18901481655339,
+            -2.458663611172367, -1.745247320814127, -1.042945348802751,
+            -0.346964157081356,  0.346964157081356, 1.042945348802751,
+             1.745247320814127,  2.458663611172367, 3.18901481655339,
+             3.943967350657316, 4.734581334046057, 5.578738805893202,
+             6.510590157013653, 7.619048541679757]
+        w=[0.000000000000126, 0.000000000248206, 0.000000061274903,
+             0.00000440212109, 0.000128826279962, 0.00183010313108,
+             0.013997837447101,  0.061506372063977, 0.161739333984,
+             0.260793063449555,  0.260793063449555, 0.161739333984,
+             0.061506372063977, 0.013997837447101, 0.00183010313108,
+             0.000128826279962, 0.00000440212109, 0.000000061274903,
+             0.000000000248206, 0.000000000000126]
+    else:
+        b = np.sqrt(np.array([(i+1)/2 for i in range(N-1)]))
+        V,D = np.linalg.eig(np.diag(b,1) + np.diag(b,-1))
+        w = V[0]**2
+        x = np.sqrt(2)*np.diag(D)
+    return x, w
 
+
+def glm_invlink_logistic(f,nargout):
+    l1pef = (f+np.abs(f))/2+ np.log(1 + np.exp(-np.abs(f))) # safely compute log(1 + exp(f))
+    lg = np.log(l1pef); lg[f < -15] = f[f < -15] # fix log(log(1 + exp(f))) limits
+    res = lg
+    if nargout > 1:
+        sm = 1 / (1 + np.exp(-f))
+        dlg = sm / l1pef
+        dlg[f < -15] = 1
+        res = [res, dlg]
+        if nargout > 2:
+            sp = 1 / (1 + np.exp(f))
+            d2lg = dlg * (sp - dlg)
+            res += [d2lg]
+            if nargout > 3:
+                d3lg = d2lg * (sp - 2 * dlg) - dlg * sp * sm
+                res += [d3lg]
+    return res
+
+
+def glm_invlink_exp(f, nargout):
+    lg = f
+    res = lg
+    if nargout > 1:
+        dlg = np.ones(f.shape)
+        res = [res, dlg]
+        if nargout > 2:
+            d2lg = np.zeros(f.shape)
+            res += [d2lg]
+            if nargout > 3:
+                d3lg = np.zeros(f.shape)
+                res += [d3lg]
+    return res
+
+from scipy.misc import logsumexp
+# def logsumexp2(logx):
+#     N = logx.shape[1]
+#     max_logx = (np.max(logx,1)).reshape((-1,1))
+#     x = np.exp(logx - max_logx *np.ones((1, N)))
+#     y = np.log(np.sum(x, 1)).reshape((-1,1)) + max_logx
+#     return y
+
+def lik_epquad(lik, y, mu, s2,link='exp', nargout=1):
+    n = max([len(y), len(mu), len(s2)]); N = 50
+    on, oN = np.ones((n, 1)),np.ones((1,N))
+    t, w = gauher(N)
+    lw = on*np.log(w)
+    # print(lw.shape)
+    # mu = mu.reshape((-1,1))
+    sig = np.sqrt(s2) # sig = np.sqrt(s2.reshape((-1,1)))
+    # print(lik,y * oN, sig * t+mu*oN,np.array([]),'infLaplace',None,link,3)
+    from . import inf
+    res_i= lik(y * oN, sig * t+mu*oN,np.array([]),inf.Laplace(),None,nargout,link)
+    lZ = logsumexp(res_i[0] + lw,1)
+    if mu.shape[0]>1: lZ = lZ.reshape((-1,1))
+    lZ += np.log(s2)/2
+    res = lZ
+    if nargout > 1:
+        # 1st derivative wrt mean
+        # Using p * dlp=dp, p=exp(lp), Z=sum_i wi * pi, dZ = sum_i wi * dpi we obtain
+        # dlZ = sum_i exp(lpi-lZ+lwi) * dlpi = sum_i ai * dlpi.
+        # print(res_i[0].shape,lZ.shape,lw.shape)
+        a = np.exp(res_i[0] - lZ * oN + lw)
+        dlZ = np.sum(a* res_i[1], 1)
+        res = [res, dlZ]
+        if nargout > 2: # 2nd derivative wrt mean
+        # Using d2lZ=(d2Z * Z-dZ ^ 2) / Z ^ 2 <= > d2Z=Z * (d2lZ+dlZ ^ 2) and
+        # d2Z = sum_i wi * d2Zi, we get d2lZ = sum_i ai * (d2lpi+dlpi ^ 2)-dlZ ^ 2.
+            d2lZ = np.sum(a* (res_i[2]+res_i[1]* res_i[1]), 1) - dlZ* dlZ
+            res += [d2lZ]
+    return res
+
+if __name__ == '__main__':
+    y = np.array([1,2,3]).reshape((-1,1))
+    mu = np.array([1,2,3]).reshape((-1,1))
+    s2 = np.array([1,2,3]).reshape((-1,1))
+    link = 'exp'
+    lik_epquad(lik, y, mu, s2, link, nargout=1)

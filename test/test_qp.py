@@ -14,13 +14,12 @@ from unittest import TestCase
 from core.quantile import *
 import time
 import numpy as np
-from scipy.special import erfinv
+from scipy.special import erfinv, hyp1f1,gamma,gammaincc,comb,erf
 import scipy.integrate as integrate
 from pynverse import inversefunc
 from scipy.stats import norm
 import pyGPs
-
-
+from math import factorial
 
 class TestQp(TestCase):
     # def test_Fr(self):
@@ -128,28 +127,28 @@ class TestQp(TestCase):
     #
     #     plt.show()
 
-    def test_comp_EP_and_QP(self):
-        modelEP = pyGPs.GPC()
-        modelQP = pyGPs.GPC()
-
-        f1,f2 = lambda x:x, lambda x:x
-        modelQP.useInference('QP', f1, f2)
-        x = np.array([[1,2],[3,4],[5,6],[7,8]])
-        nf = x.shape[1]
-        y = np.array([[1],[1],[-1],[-1]])
-        k1 = pyGPs.cov.RBFard(log_ell_list=[0.01] *nf, log_sigma=1.)  # kernel
-        modelEP.setPrior(kernel=k1)
-        k2 = pyGPs.cov.RBFard(log_ell_list=[0.01] * nf, log_sigma=1.)  # kernel
-        modelQP.setPrior(kernel=k2)
-        print('EP opt:')
-        modelEP.optimize(x, y, numIterations=1)
-        # print(modelEP.posterior)
-        print('QP opt:')
-        modelQP.optimize(x, y, numIterations=1)
-        assert np.allclose(modelEP.inffunc.last_ttau,modelQP.inffunc.last_ttau),(modelEP.inffunc.last_ttau,modelQP.inffunc.last_ttau)
-        assert np.allclose(modelEP.posterior.alpha, modelQP.posterior.alpha)
-        assert np.allclose(modelEP.posterior.sW, modelQP.posterior.sW)
-        assert np.allclose(modelEP.posterior.L,modelQP.posterior.L)
+    # def test_comp_EP_and_QP(self):
+    #     modelEP = pyGPs.GPC()
+    #     modelQP = pyGPs.GPC()
+    #
+    #     f1,f2 = lambda x:x, lambda x:x
+    #     modelQP.useInference('QP', f1, f2)
+    #     x = np.array([[1,2],[3,4],[5,6],[7,8]])
+    #     nf = x.shape[1]
+    #     y = np.array([[1],[1],[-1],[-1]])
+    #     k1 = pyGPs.cov.RBFard(log_ell_list=[0.01] *nf, log_sigma=1.)  # kernel
+    #     modelEP.setPrior(kernel=k1)
+    #     k2 = pyGPs.cov.RBFard(log_ell_list=[0.01] * nf, log_sigma=1.)  # kernel
+    #     modelQP.setPrior(kernel=k2)
+    #     print('EP opt:')
+    #     modelEP.optimize(x, y, numIterations=1)
+    #     # print(modelEP.posterior)
+    #     print('QP opt:')
+    #     modelQP.optimize(x, y, numIterations=1)
+    #     assert np.allclose(modelEP.inffunc.last_ttau,modelQP.inffunc.last_ttau),(modelEP.inffunc.last_ttau,modelQP.inffunc.last_ttau)
+    #     assert np.allclose(modelEP.posterior.alpha, modelQP.posterior.alpha)
+    #     assert np.allclose(modelEP.posterior.sW, modelQP.posterior.sW)
+    #     assert np.allclose(modelEP.posterior.L,modelQP.posterior.L)
 
         # x_test = np.array([[2,3],[6,7]])
         # y_test = np.array([[1],[-1]])
@@ -167,5 +166,89 @@ class TestQp(TestCase):
         # lps += [lp2]
         # Is += [np.nansum(lp2)]
 
+    # def test_square_poisson_Z(self):
+    #     g = lambda f: f**2
+    #     like = lambda f,y: f**y*np.exp(-f)/factorial(y)
+    #     pr = lambda x, mu, sigma: norm.pdf(x, loc=mu, scale=sigma)
+    #     for y in [0,1,2,3,5,7]:
+    #         for mu in np.linspace(-10,10,10):
+    #             for sigma in np.linspace(1,5,10):
+    #                 Z_quad = quad(lambda x: pr(x,mu,sigma)*like(g(x),y),-np.inf,np.inf)[0]
+    #                 sigma2 = sigma*sigma
+    #                 alpha = 2*sigma2/(1+2*sigma2)
+    #                 h = mu*mu/(1+2*sigma2)
+    #                 Z_thm = alpha**(y+0.5)/np.sqrt(2*np.pi*sigma2)/factorial(y)/np.exp(h)*gamma(y+0.5)*hyp1f1(-y,0.5,-h/2/sigma2)
+    #                 assert np.isclose(Z_quad,Z_thm), "y, mu, sigma, Z_quad, Z_thm: {}, {}, {}, {}, {}".format(y,mu,sigma,Z_quad, Z_thm)
+
+    # def test_square_poisson_qp_sigma(self):
+    #     g = lambda f: f**2
+    #     like = lambda f,y: f**y*np.exp(-f)/factorial(y)
+    #     pr = lambda x, mu, sigma: norm.pdf(x, loc=mu, scale=sigma)
+    #     for U in [-3,-1,0,1,3]:
+    #         for y in [0,2,4,6]:
+    #             for mu in np.linspace(-3,3,5):
+    #                 for sigma in np.linspace(0.5,3,5):
+    #                     sigma2 = sigma*sigma
+    #                     alpha = 2*sigma2/(1+2*sigma2)
+    #                     h = mu*mu/(1+2*sigma2)
+    #                     A = 1/(alpha**(y+0.5)*gamma(y+0.5)*hyp1f1(-y,0.5,-h/2/sigma2))
+    #                     beta = mu/(1+2*sigma2)
+    #                     Z_thm = alpha**(y+0.5)/np.sqrt(2*np.pi*sigma2)/factorial(y)/np.exp(h)*gamma(y+0.5)*hyp1f1(-y,0.5,-h/2/sigma2)
+    #                     assert np.isclose(A, 1/(Z_thm*np.sqrt(2*np.pi*sigma2)*factorial(y)*np.exp(h))), "A has problems"
+    #                     F_quad = lambda x: quad(lambda x: pr(x,mu,sigma)*like(g(x),y),-np.inf,x)[0]/Z_thm
+    #                     F_thm = lambda x: A/2*np.sum([comb(2*y,k)*beta**(2*y-k)*alpha**((k+1)/2)*((-1)**k*gamma((k+1)/2)+
+    #                     np.sign(x-beta)**(k+1)*gamma((k+1)/2)*(1-gammaincc((1+k)/2,(x-beta)**2/alpha))) for k in range(2*y+1)])
+    #                     assert np.isclose(F_quad(U),F_thm(U)), "{} {} {} {}".format(U, y, mu, sigma)
+    #
+    # def test_simpler_computation_for_square_poisson(self):
+    #     sigma = 0.8
+    #     U = 1  # require >= 0
+    #     k= 1
+    #
+    #     f = lambda x: x**k*np.exp(-x*x/sigma)
+    #     int_f = lambda U: 0.5*sigma**((1+k)/2)*gamma((1+k)/2)*((1+(-1)**k)-gammaincc((1+k)/2,U*U/sigma))
+    #     int_f_quad = lambda U: quad(f,-np.inf,U)[0]
+    #     assert np.isclose(int_f(U),int_f_quad(U))
+
+    # def test_square_poisson_mean(self):
+    #     g = lambda f: f**2
+    #     like = lambda f,y: f**y*np.exp(-f)/factorial(y)
+    #     pr = lambda x, mu, sigma: norm.pdf(x, loc=mu, scale=sigma)
+    #     for y in [0,1,2,5,6]:
+    #         for mu in np.linspace(-5,5,10):
+    #             for sigma in np.linspace(1,5,10):
+    #                 sigma2 = sigma*sigma
+    #                 alpha = 2*sigma2/(1+2*sigma2)
+    #                 h = mu*mu/(1+2*sigma2)
+    #                 Z_thm = alpha**(y+0.5)/np.sqrt(2*np.pi*sigma2)/factorial(y)/np.exp(h)*gamma(y+0.5)*hyp1f1(-y,0.5,-h/2/sigma2)
+    #
+    #                 deriv_thm = alpha**(y+0.5)/np.sqrt(2*np.pi*sigma2)/factorial(y)/np.exp(h)*gamma(y+0.5)*(y/sigma2*hyp1f1(-y+1,1.5,-h/2/sigma2)
+    #                                                                                               -hyp1f1(-y,0.5,-h/2/sigma2))*2*mu/(1+2*sigma2)
+    #                 mean_quad = quad(lambda x: x*pr(x, mu, sigma) * like(g(x), y), -np.inf, np.inf)[0]/Z_thm
+    #                 mean_thm = deriv_thm/Z_thm * sigma2 + mu
+    #                 assert np.isclose(mean_quad, mean_thm), "y, mu, sigma, mean_quad, mean_thm: {}, {}, {}, {}, {}".format(y,mu,sigma,mean_quad,mean_thm)
+
+
+    def test_square_poisson_variance(self):
+        g = lambda f: f**2
+        like = lambda f,y: f**y*np.exp(-f)/factorial(y)
+        pr = lambda x, mu, sigma: norm.pdf(x, loc=mu, scale=sigma)
+        for y in [0,1,2,5,6]:
+            for mu in np.linspace(-5,5,10):
+                for sigma in np.linspace(1,5,10):
+                    sigma2 = sigma*sigma
+                    alpha = 2*sigma2/(1+2*sigma2)
+                    B = (deriv_thm / mu) if mu != mu else (A * 2 / (1 + 2 * sigma2) * (y / sigma2 - 1))
+                    h = mu*mu/(1+2*sigma2)
+                    A = alpha**(y+0.5)/np.sqrt(2*np.pi*sigma2)/factorial(y)/np.exp(h)*gamma(y+0.5)
+                    Z_thm = A*hyp1f1(-y,0.5,-h/2/sigma2)
+                    deriv_thm = A*(y/sigma2*hyp1f1(-y+1,1.5,-h/2/sigma2)-hyp1f1(-y,0.5,-h/2/sigma2))*2*mu/(1+2*sigma2)
+                    deriv2_thm = A*(-y*(1-y)/3/sigma2/sigma2*hyp1f1(-y + 2, 2.5, -h / 2 / sigma2)-
+                                    2*y / sigma2 * hyp1f1(-y + 1, 1.5, -h / 2 / sigma2)
+                                    + hyp1f1(-y, 0.5, -h / 2 / sigma2)) * (2 * mu / (1 + 2 * sigma2))**2+B
+                    mean_thm = deriv_thm/Z_thm * sigma2 + mu
+                    v_thm = sigma2*sigma2*deriv2_thm/Z_thm+sigma2-mu*mu+2*mu*mean_thm-mean_thm*mean_thm
+                    v_quad = quad(lambda x: (x-mean_thm)*(x-mean_thm)*pr(x, mu, sigma)*like(g(x), y),-np.inf,np.inf)[0]/Z_thm
+                    assert np.isclose(v_quad, v_thm), "y, mu, sigma, mean_quad, mean_thm: {}, {}, {}, {}, {}".format(y,mu,sigma,v_quad,v_thm)
 
 

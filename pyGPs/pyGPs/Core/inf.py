@@ -736,13 +736,13 @@ class EP(Inference):
         self.name = 'Expectation Propagation'
         self.last_ttau = None
         self.last_tnu = None
-    def evaluate(self, meanfunc, covfunc, likfunc, x, y, nargout=1):
+    def evaluate(self, meanfunc, covfunc, likfunc, x, y, nargout=1, link='exp'):
         tol = 1e-4; max_sweep = 10; min_sweep = 2 # tolerance to stop EP iterations
         n = x.shape[0]
         inffunc = self
         K = covfunc.getCovMatrix(x=x, mode='train') # evaluate the covariance matrix
         m = meanfunc.getMean(x)                   # evaluate the mean vector
-        nlZ0 = -likfunc.evaluate(y, m, np.reshape(np.diag(K),(np.diag(K).shape[0],1)), inffunc).sum()
+        nlZ0 = -likfunc.evaluate(y, m, np.reshape(np.diag(K),(np.diag(K).shape[0],1)), inffunc,link=link).sum()
         if self.last_ttau is None:                # find starting point for tilde parameters
             ttau  = np.zeros((n,1))               # initialize to zero if we have no better guess
             tnu   = np.zeros((n,1))
@@ -767,17 +767,21 @@ class EP(Inference):
                 tau_ni = old_div(1,Sigma[ii,ii]) - ttau[ii]#  first find the cavity distribution ..
                 nu_ni  = old_div(mu[ii],Sigma[ii,ii]) + m[ii]*tau_ni - tnu[ii]    # .. params tau_ni and nu_ni
                 # compute the desired derivatives of the indivdual log partition function
-                lZ,dlZ,d2lZ = likfunc.evaluate(y[ii], old_div(nu_ni,tau_ni), old_div(1,tau_ni), inffunc, None, 3)
+                lZ,dlZ,d2lZ = likfunc.evaluate(y[ii], old_div(nu_ni,tau_ni), old_div(1,tau_ni), inffunc, None, 3,link=link)
+                # print(lZ.shape,dlZ.shape,d2lZ.shape)
                 ttau_old = copy(ttau[ii])         # then find the new tilde parameters, keep copy of old
                 ttau[ii] = old_div(-d2lZ,(1.+old_div(d2lZ,tau_ni)))
-                ttau[ii] = max(ttau[ii],0)        # enforce positivity i.e. lower bound ttau by zero
+                # print(d2lZ,y[ii],old_div(nu_ni,tau_ni),old_div(1,tau_ni))
+                ttau[ii] = max(ttau[ii],1e-14)        # enforce positivity i.e. lower bound ttau by zero
                 tnu[ii]  = old_div(( dlZ + (m[ii]-old_div(nu_ni,tau_ni))*d2lZ ),(1.+old_div(d2lZ,tau_ni)))
-
+                # print(tnu[ii])
+                # tnu[ii] = min(tnu[ii],10)
                 ds2 = ttau[ii] - ttau_old         # finally rank-1 update Sigma ..
                 si  = np.reshape(Sigma[:,ii],(Sigma.shape[0],1))
                 Sigma = Sigma - ds2/(1.+ds2*si[ii])*np.dot(si,si.T)   # takes 70# of total time
                 mu = np.dot(Sigma,tnu)                                # .. and recompute mu
             # recompute since repeated rank-one updates can destroy numerical precision
+            # print(K,ttau,tnu)
             Sigma, mu, nlZ, L = self._epComputeParams(K, y, ttau, tnu, likfunc, m, inffunc)
         if sweep == max_sweep:
             logging.warning("maximum number of sweeps reached in function infEP")
@@ -880,7 +884,9 @@ class QP(Inference):
                 # tnu[ii] = old_div((dlZ + (m[ii] - old_div(nu_ni, tau_ni)) * d2lZ), (1. + old_div(d2lZ, tau_ni)))
                 # ttau_tmp = old_div(-d2lZ, (1. + old_div(d2lZ, tau_ni)))
                 # ttau_tmp = max(ttau_tmp, 0)  # enforce positivity i.e. lower bound ttau by zero
-                # tnu_tmp = old_div((dlZ + (m[ii] - old_div(nu_ni, tau_ni)) * d2lZ), (1. + old_div(d2lZ, tau_ni)))
+                # tnu_tmp = old_div((dlZ + (m[ii] - old_div(nu_ni, tau_ni)) * d2lZ), (1.
+                #
+                #  + old_div(d2lZ, tau_ni)))
                 mu_ni = nu_ni / tau_ni
                 sigma_ni = np.sqrt(1/tau_ni)
                 mu_i = sigma_ni**2*dlZ+mu_ni
@@ -891,7 +897,7 @@ class QP(Inference):
                     mu_hat, sigma_hat = likfunc.fit_gauss_wd2_IS(y[ii][0], mu_ni[0], sigma_ni[0], mu_i, sigma_i)
                 sigma_hat2 = sigma_hat**2
                 ttau[ii] = max(1 / sigma_hat2 - tau_ni, 0)
-                ttau[ii] = min(ttau[ii],1e6)
+                # ttau[ii] = min(ttau[ii],1e3)
                 tnu[ii] = 1 / sigma_hat2 * mu_hat - nu_ni
                 ds2 = ttau[ii] - ttau_old  # finally rank-1 update Sigma ..
                 si = np.reshape(Sigma[:, ii], (Sigma.shape[0], 1))
