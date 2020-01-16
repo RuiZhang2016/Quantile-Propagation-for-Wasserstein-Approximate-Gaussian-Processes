@@ -168,7 +168,7 @@ class TestQp(TestCase):
 
     # def test_square_poisson_Z(self):
     #     g = lambda f: f**2
-    #     like = lambda f,y: f**y*np.exp(-f)/factorial(y)
+    #     like = lambda f,y: np.exp(y*np.log(f)-f-np.sum(np.log(range(1,y+1))))
     #     pr = lambda x, mu, sigma: norm.pdf(x, loc=mu, scale=sigma)
     #     for y in [0,1,2,3,5,7]:
     #         for mu in np.linspace(-10,10,10):
@@ -182,7 +182,7 @@ class TestQp(TestCase):
 
     # def test_square_poisson_qp_sigma(self):
     #     g = lambda f: f**2
-    #     like = lambda f,y: f**y*np.exp(-f)/factorial(y)
+    #     like = lambda f,y: np.exp(y*np.log(f)-f-np.sum(np.log(range(1,y+1))))
     #     pr = lambda x, mu, sigma: norm.pdf(x, loc=mu, scale=sigma)
     #     for U in [-3,-1,0,1,3]:
     #         for y in [0,2,4,6]:
@@ -212,7 +212,7 @@ class TestQp(TestCase):
 
     # def test_square_poisson_mean(self):
     #     g = lambda f: f**2
-    #     like = lambda f,y: f**y*np.exp(-f)/factorial(y)
+    #     like = lambda f,y: np.exp(y*np.log(f)-f-np.sum(np.log(range(1,y+1))))
     #     pr = lambda x, mu, sigma: norm.pdf(x, loc=mu, scale=sigma)
     #     for y in [0,1,2,5,6]:
     #         for mu in np.linspace(-5,5,10):
@@ -231,7 +231,7 @@ class TestQp(TestCase):
 
     # def test_square_poisson_variance(self):
     #     g = lambda f: f**2
-    #     like = lambda f,y: f**y*np.exp(-f)/factorial(y)
+    #     like = lambda f,y: np.exp(y*np.log(f)-f-np.sum(np.log(range(1,y+1))))
     #     pr = lambda x, mu, sigma: norm.pdf(x, loc=mu, scale=sigma)
     #     for y in [0,1,2,5,6]:
     #         for mu in np.linspace(-5,5,10):
@@ -255,44 +255,157 @@ class TestQp(TestCase):
     #                 v_quad = quad(lambda x: (x-mean_thm)*(x-mean_thm)*pr(x, mu, sigma)*like(g(x), y),-np.inf,np.inf)[0]/np.exp(lZ)
     #                 assert np.isclose(v_quad, v_thm), "y, mu, sigma, v_quad, v_thm: {}, {}, {}, {}, {}".format(y,mu,sigma,v_quad,v_thm)
 
-    def test_square_poisson_cdf(self):
-        g = lambda f: f ** 2
-        like = lambda f,y: np.exp(y*np.log(f)-f-np.sum(np.log(range(1,y+1))))#f**y*np.exp(-f)/factorial(y)
+    # def test_square_poisson_cdf(self):
+    #     g = lambda f: f ** 2
+    #     like = lambda f,y: np.exp(y*np.log(f)-f-np.sum(np.log(range(1,y+1))))#f**y*np.exp(-f)/factorial(y)
+    #     pr = lambda x, mu, sigma: norm.pdf(x, loc=mu, scale=sigma)
+    #
+    #     def log_comb(n,k):
+    #         return np.sum(np.log(range(n-k+1,n+1)))-np.sum(np.log(range(1,k+1)))
+    #
+    #     def log_term_k(k,x, y,alpha, beta):
+    #         k2 = (k+1)/2
+    #         a = (-1)**k+np.sign(x-beta)**(k+1)*(1-gammaincc(k2,(x-beta)**2/alpha))
+    #         sign = np.sign(a)*(((2*y-k)%2 == 0)*2-1 if np.sign(beta)<0 else np.sign(beta))
+    #         if sign == 0.:
+    #             return 0,0
+    #         res = log_comb(2*y,k)+(2*y-k)*np.log(abs(beta))+k2*np.log(alpha)+loggamma(k2)+np.log(abs(a))
+    #         return res, sign
+    #
+    #     for y in [1,2,3,4,5,6,7]:
+    #         for mu in np.linspace(-3,3,10):
+    #             for sigma in np.linspace(2,4,10):
+    #                 sigma2 = sigma*sigma
+    #                 h = mu*mu/(1+2*sigma2)
+    #                 alpha = 2*sigma2/(1+2*sigma2)
+    #                 beta = mu/(1+2*sigma2)
+    #                 z_F = -h / 2 / sigma2
+    #                 lA = -(y+0.5)*np.log(alpha)-loggamma(y+0.5)-np.log(hyp1f1(-y,0.5,z_F))
+    #                 lZ = (y+0.5)*np.log(alpha)-np.log(2*np.pi*sigma2)/2 - np.sum(np.log(range(1,y+1)))-h+loggamma(y+0.5)+np.log(hyp1f1(-y,0.5,z_F))
+    #                 # F = lambda x: np.exp(logsumexp([log_term_k(k,x,y,alpha,beta) for k in range(2*y+1)])+lA-np.log(2))
+    #                 # print(F(np.inf))
+    #                 res_dict = {1:[],-1:[]}
+    #                 x = 0
+    #                 for k in range(1+2*y):
+    #                     # print(y,mu,sigma,k,log_term_k(k,1,y,alpha,beta))
+    #                     value,sign = log_term_k(k, x, y, alpha, beta)
+    #                     if sign != 0:
+    #                         res_dict[sign] += [value]
+    #                 p = 0 if len(res_dict[1]) == 0 else np.exp(logsumexp(res_dict[1]))
+    #                 n = 0 if len(res_dict[-1]) == 0 else np.exp(logsumexp(res_dict[-1]))
+    #                 F_thm = (p-n)*np.exp(lA)/2
+    #                 F_quad = quad(lambda x:pr(x, mu, sigma) * like(g(x), y), -np.inf, x)[0] / np.exp(lZ)
+    #                 assert np.isclose(F_thm, F_quad), "y, mu, sigma, v_quad, v_thm: {}, {}, {}, {}, {}".format(y,mu,sigma,F_quad,F_thm)
+
+    # def test_heaviside_Z(self):
+    #     like = lambda f,y: (1+y)/2 if f >=0 else (1-y)/2
+    #     pr = lambda x, mu, sigma: norm.pdf(x, loc=mu, scale=sigma)
+    #
+    #     for y in [-1,1]:
+    #         for mu in np.linspace(-3,3,10):
+    #             for sigma in np.linspace(1,5,10):
+    #                 Z_thm = (1-y)/2+y*norm.cdf(mu,scale=sigma)
+    #                 Z_quad = quad(lambda x: like(x,y)*pr(x,mu,sigma),-np.inf,np.inf)[0]
+    #                 assert np.isclose(Z_thm, Z_quad), "y, mu, sigma, Z_quad, Z_thm: {}, {}, {}, {}, {}".format(y, mu,
+    #                                                                                                            sigma,
+    #                                                                                                            Z_quad,
+    #                                                                                                            Z_thm)
+
+    # def test_heaviside_cdf(self):
+    #     like = lambda f,y: (1+y)/2 if f >=0 else (1-y)/2
+    #     pr = lambda x, mu, sigma: norm.pdf(x, loc=mu, scale=sigma)
+    #
+    #     for y in [-1,1]:
+    #         for mu in np.linspace(-3,3,6):
+    #             for sigma in np.linspace(1,5,5):
+    #                 Z_thm = (1 - y) / 2 + y * norm.cdf(mu, scale=sigma)
+    #
+    #                 F_thm = lambda x: ((1-y)/2/Z_thm*norm.cdf(x,loc=mu,scale=sigma)) if x<0 else \
+    #                     ((1+y)/2/Z_thm*norm.cdf(x,loc=mu,scale=sigma)-y/Z_thm*norm.cdf(0,loc=mu,scale=sigma))
+    #                 F_quad = lambda x: quad(lambda x: like(x,y)*pr(x,mu,sigma),-np.inf,x)[0]/Z_thm
+    #                 for x in np.linspace(-3,3,6):
+    #                     assert np.isclose(F_thm(x), F_quad(x)), "y, mu, sigma, Z_quad, Z_thm: {}, {}, {}, {}, {}".format(y, mu,
+    #                                                                                                            sigma,
+    #                                                                                                            F_quad,
+    #                                                                                                            F_thm)
+
+    # def test_heaviside_mean(self):
+    #     like = lambda f,y: (1+y)/2 if f >=0 else (1-y)/2
+    #     pr = lambda x, mu, sigma: norm.pdf(x, loc=mu, scale=sigma)
+    #
+    #     for y in [-1,1]:
+    #         for mu in np.linspace(-3,3,10):
+    #             for sigma in np.linspace(1,5,10):
+    #                 Z_thm = (1-y)/2+y*norm.cdf(mu,scale=sigma)
+    #                 mean_quad = quad(lambda x: x*like(x,y)*pr(x,mu,sigma),-np.inf,np.inf)[0]/Z_thm
+    #                 cdf = norm.cdf(mu, scale=sigma)
+    #                 pdf = norm.pdf(mu, scale=sigma)
+    #                 Z = (1 - y) / 2 + y * cdf
+    #                 dlZ = y * pdf / Z
+    #                 mean_thm = dlZ*sigma*sigma + mu
+    #
+    #                 assert np.isclose(mean_thm, mean_quad), "y, mu, sigma, Z_quad, Z_thm: {}, {}, {}, {}, {}".format(y, mu,
+    #                                                                                                            sigma,
+    #                                                                                                            mean_quad,
+    #                                                                                                            mean_thm)
+
+    # def test_heaviside_mean(self):
+    #     like = lambda f,y: (1+y)/2 if f >=0 else (1-y)/2
+    #     pr = lambda x, mu, sigma: norm.pdf(x, loc=mu, scale=sigma)
+    #
+    #     for y in [-1,1]:
+    #         for mu in np.linspace(-3,3,10):
+    #             for sigma in np.linspace(1,5,10):
+    #                 cdf = norm.cdf(mu, scale=sigma)
+    #                 pdf = norm.pdf(mu, scale=sigma)
+    #                 Z = (1 - y) / 2 + y * cdf
+    #                 dlZ = y * pdf / Z
+    #                 mean = dlZ * sigma * sigma + mu
+    #                 d2lZ = -y * norm.pdf(mu, scale=sigma)*mu/sigma/sigma / Z - dlZ * dlZ
+    #                 v_thm = d2lZ*sigma**4 + sigma**2
+    #
+    #                 v_quad = quad(lambda x: (x-mean)*(x-mean)*like(x, y) * pr(x, mu, sigma), -np.inf, np.inf)[0] / Z
+    #
+    #                 assert np.isclose(v_thm, v_quad), "y, mu, sigma, Z_quad, Z_thm: {}, {}, {}, {}, {}".format(y, mu,
+    #                                                                                                            sigma,
+    #                                                                                                            v_quad,
+    #                                                                                                            v_thm)
+
+    def test_heaviside_Z(self):
+        def like(f,y):
+            if y == 0 and f == 0:
+                return 1
+            elif y >0 and f == 0:
+                return 0
+            else:
+                return np.exp(y*np.log(f)-f-np.sum(np.log(range(1,y+1))))
+
+        g = lambda f: f if f >= 0 else 0
         pr = lambda x, mu, sigma: norm.pdf(x, loc=mu, scale=sigma)
-
-        def log_comb(n,k):
-            return np.sum(np.log(range(n-k+1,n+1)))-np.sum(np.log(range(1,k+1)))
-
-        def log_term_k(k,x, y,alpha, beta):
-            k2 = (k+1)/2
-            a = (-1)**k+np.sign(x-beta)**(k+1)*(1-gammaincc(k2,(x-beta)**2/alpha))
-            sign = np.sign(a)*(((2*y-k)%2 == 0)*2-1 if np.sign(beta)<0 else np.sign(beta))
-            if sign == 0.:
-                return 0,0
-            res = log_comb(2*y,k)+(2*y-k)*np.log(abs(beta))+k2*np.log(alpha)+loggamma(k2)+np.log(abs(a))
-            return res, sign
-
-        for y in [1,2,3,4,5,6,7]:
+        for y in [0,1,2,3,5,7]:
             for mu in np.linspace(-3,3,10):
-                for sigma in np.linspace(2,4,10):
+                for sigma in np.linspace(1,5,10):
+                    Z_quad = quad(lambda x: pr(x,mu,sigma)*like(g(x),y),-np.inf,np.inf)[0]
                     sigma2 = sigma*sigma
-                    h = mu*mu/(1+2*sigma2)
-                    alpha = 2*sigma2/(1+2*sigma2)
-                    beta = mu/(1+2*sigma2)
-                    z_F = -h / 2 / sigma2
-                    lA = -(y+0.5)*np.log(alpha)-loggamma(y+0.5)-np.log(hyp1f1(-y,0.5,z_F))
-                    lZ = (y+0.5)*np.log(alpha)-np.log(2*np.pi*sigma2)/2 - np.sum(np.log(range(1,y+1)))-h+loggamma(y+0.5)+np.log(hyp1f1(-y,0.5,z_F))
-                    # F = lambda x: np.exp(logsumexp([log_term_k(k,x,y,alpha,beta) for k in range(2*y+1)])+lA-np.log(2))
-                    # print(F(np.inf))
-                    res_dict = {1:[],-1:[]}
-                    x = 0
-                    for k in range(1+2*y):
-                        # print(y,mu,sigma,k,log_term_k(k,1,y,alpha,beta))
-                        value,sign = log_term_k(k, x, y, alpha, beta)
-                        if sign != 0:
-                            res_dict[sign] += [value]
-                    p = 0 if len(res_dict[1]) == 0 else np.exp(logsumexp(res_dict[1]))
-                    n = 0 if len(res_dict[-1]) == 0 else np.exp(logsumexp(res_dict[-1]))
-                    F_thm = (p-n)*np.exp(lA)/2
-                    F_quad = quad(lambda x:pr(x, mu, sigma) * like(g(x), y), -np.inf, x)[0] / np.exp(lZ)
-                    assert np.isclose(F_thm, F_quad), "y, mu, sigma, v_quad, v_thm: {}, {}, {}, {}, {}".format(y,mu,sigma,F_quad,F_thm)
+                    Z_thm = np.sqrt(np.pi/2)*sigma*mu*(erf(mu/np.sqrt(2)/sigma)+1)+sigma2*np.exp(-mu**2/2/sigma2)
+                    assert np.isclose(Z_quad,Z_thm), "y, mu, sigma, Z_quad, Z_thm: {}, {}, {}, {}, {}".format(y,mu,sigma,Z_quad, Z_thm)
+
+
+    # def test_heaviside_mean(self):
+    #     g = lambda f: f ** 2
+        #     like = lambda f,y: np.exp(y*np.log(f)-f-np.sum(np.log(range(1,y+1))))
+        #     pr = lambda x, mu, sigma: norm.pdf(x, loc=mu, scale=sigma)
+        #     for y in [0,1,2,5,6]:
+        #         for mu in np.linspace(-5,5,10):
+        #             for sigma in np.linspace(1,5,10):
+        #                 sigma2 = sigma*sigma
+        #                 alpha = 2*sigma2/(1+2*sigma2)
+        #                 h = mu*mu/(1+2*sigma2)
+        #                 # Z_thm = alpha**(y+0.5)/np.sqrt(2*np.pi*sigma2)/factorial(y)/np.exp(h)*gamma(y+0.5)*hyp1f1(-y,0.5,-h/2/sigma2)
+        #                 lZ = (y+0.5)*np.log(alpha)-np.log(2*np.pi*sigma2)/2 - np.sum(np.log(range(1,y+1)))-h+loggamma(y+0.5)+np.log(hyp1f1(-y,0.5,-h/2/sigma2))
+        #                 dlZ = y / sigma2 * hyp1f1(1 - y, 1.5, -h / 2 / sigma2) / hyp1f1(-y, 0.5, -h / 2 / sigma2) - 1
+        #                 dlZ *= 2*mu/(1+2*sigma2)
+        #                 mean_thm = dlZ * sigma2 + mu
+        #
+        #                 mean_quad = quad(lambda x: x*pr(x, mu, sigma) * like(g(x), y), -np.inf, np.inf)[0]/np.exp(lZ)
+        #                 assert np.isclose(mean_quad, mean_thm), "y, mu, sigma, mean_quad, mean_thm: {}, {}, {}, {}, {}".format(y,mu,sigma,mean_quad,mean_thm)
