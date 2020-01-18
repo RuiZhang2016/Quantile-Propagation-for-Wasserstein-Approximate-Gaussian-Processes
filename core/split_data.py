@@ -1,7 +1,7 @@
 from read_data import *
 import numpy as np
 import pickle, sys, os
-np.random.seed(0)
+
 
 if sys.platform == 'darwin':
     import matplotlib
@@ -14,6 +14,7 @@ sys.path.append(os.environ['proj'])
 
 def split_data(data,dataname):
     # data = read_ionosphere()
+    np.random.seed(500)
     np.random.shuffle(data)
     n = data.shape[0]
     nfolds = 10
@@ -42,10 +43,13 @@ if __name__ == '__main__':
     # split_data(read_ionosphere(),'ionosphere')
     # split_data(read_breast_cancer(),'breast_cancer')
     # split_data(read_crabs(),'crabs')
-    split_data(read_pima(),'pima')
+    # split_data(read_pima(),'pima')
     # split_data(read_sonar(),'sonar')
     # split_data(read_usps(),'usps28')
-    # split_data(read_iris(), 'iris23')
+    split_data(read_iris(), 'iris23')
     # split_data(read_adult(), 'adult')
-    # split_data(read_wine(), 'scaled_wine13')
-    # split_data(read_car(), 'scaled_car13')
+    # split_data(read_wine(1,3), 'scaled_wine13')
+    # split_data(read_wine(2, 3), 'scaled_wine23')
+    # split_data(read_wine(1,2), 'scaled_wine12')
+    # split_data(read_car(0,1), 'scaled_car01')
+    # split_data(read_car(1,3), 'scaled_car13')
