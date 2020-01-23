@@ -133,7 +133,7 @@ def read_pima():
 
 def read_iris():
     file = os.environ['proj'] + '/data/iris.data'
-    str2int = {'Iris-versicolor': 1, 'Iris-virginica': -1 }
+    str2int = {'Iris-versicolor': -1, 'Iris-virginica': 1 }
     with open(file, 'r') as rf:
         reader = csv.reader(rf)
         lines = list(reader)
@@ -166,7 +166,7 @@ def read_adult():
     lines[:,-1] = (lines[:,-1]>0)*2-1
     return lines
 
-def read_wine():
+def read_wine(l1,l2):
     file = os.environ['proj'] + '/data/wine.data'
     with open(file, 'r') as rf:
         reader = csv.reader(rf)
@@ -178,7 +178,7 @@ def read_wine():
         lines = lines[:,col_ids]
         print(collections.Counter(lines[:, -1]))
 
-        label1, label2 = 1,3
+        label1, label2 = l1,l2
         lines = np.array([l for l in lines if l[-1] == label1 or l[-1] == label2])
         lines[:, -1] -= (label1 + label2) / 2
         lines[:, -1] /= abs(label1 - label2) / 2
@@ -187,7 +187,7 @@ def read_wine():
         lines[:,:-1] = scaler.transform(lines[:,:-1])
         return lines
 
-def read_car():
+def read_car(l1,l2):
     file = os.environ['proj'] + '/data/car.data'
     with open(file, 'r') as rf:
         reader = csv.reader(rf)
@@ -202,7 +202,7 @@ def read_car():
         lines = np.array(lines, dtype=float)
         print(collections.Counter(lines[:, -1]))
 
-        label1, label2 = 1, 3
+        label1, label2 = l1,l2
         lines = np.array([l for l in lines if l[-1] == label1 or l[-1] == label2])
         lines[:, -1] -= (label1+label2)/2
         lines[:, -1] /= abs(label1-label2)/2

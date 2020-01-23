@@ -6,6 +6,7 @@ except:
 import numpy as np
 from scipy.stats import ttest_ind
 from joblib import Parallel,delayed
+import os
 
 def poisson_square_data():
     with open('../res/poisson_regression_output_2.txt','r') as f:
@@ -13,6 +14,47 @@ def poisson_square_data():
         lines2= np.array([lines[i].split() for i in range(120) if 'Wrong' not in lines[i]],dtype=np.float)
         print(ttest_ind(lines2[:,1],lines2[:,2]))
         print(np.mean(lines2,axis=0))
+
+
+def classification_data_err_ll():
+    datanames = {0: 'ionosphere', 1: 'breast_cancer', 2: 'crabs', 3: 'pima', 4: 'usps35', 5: 'usps47', 6: 'usps28',
+                 7: 'sonar', 8: 'iris12',
+                 9: 'iris13', 10: 'iris23', 11: 'adult', 12: 'scaled_wine12', 13: 'scaled_wine23', 14: 'scaled_wine13',
+                 15: 'scaled_car01', 16: 'scaled_car02', 17: 'scaled_car13'}
+
+    for i in range(18):
+        file = os.environ['proj'] + '/res/{}_vb_ep.npy'.format(datanames[i])
+        file2 = os.environ['proj'] + '/res/{}_vb_ep_qp_new_data.npy'.format(datanames[i])
+        file3 = os.environ['proj'] + '/res/{}_qp.npy'.format(datanames[i])
+        file4 = os.environ['proj'] + '/res/{}_qp_no_constraints.npy'.format(datanames[i])
+
+        if os.path.isfile(file) and os.path.isfile(file2)and os.path.isfile(file3) and os.path.isfile(file4):
+            res = np.load(file); res[res == -np.inf] = -1
+            res2 = np.load(file2); res2[res2 == -np.inf] = -1
+            res3 = np.load(file3); res3[res3 == -np.inf] = -1
+            res4 = np.load(file4); res4[res4 == -np.inf] = -1
+            print("---------- ", datanames[i], " ----------")
+            means = np.mean(~(np.exp(res) >= 0.5), axis=1)
+            means2 = np.mean(~(np.exp(res2) >= 0.5), axis=1)
+            means3 = np.mean(~(np.exp(res3) >= 0.5), axis=1)
+            means4 = np.mean(~(np.exp(res4) >= 0.5), axis=1)
+            means_err = np.hstack((means, means2, means3, means4))
+            # print('vb  ep  ep2  qp  qp2')
+            print('mean: ', np.nanmean(means_err, axis=0))
+            print('std: ', np.nanstd(means_err, axis=0))
+            # print(ttest_ind(means_err[:, 0], means_err[:, 1]))
+            print("-----")
+            means =np.mean(res, axis=1) # np.array(means)
+            means2= np.mean(res2,axis=1) # np.array(means2)
+            means3 = np.mean(res3, axis=1)
+            means4 = np.mean(res4, axis=1)
+            means_ll = np.hstack((means,means2,means3,means4))
+            print('mean: ', np.nanmean(means_ll,axis=0))
+            print('std: ', np.nanstd(means_ll,axis=0))
+            # print(ttest_ind(means_ll[:,0],means_ll[:,1]))
+        else:
+            print(file,' not exists!')
+
 
 if __name__ == '__main__':
     # GPy.examples.regression.toy_poisson_rbf_1d_laplace()
@@ -24,39 +66,11 @@ if __name__ == '__main__':
     #     GPy.examples.classification.toy_linear_1d_classification(i,plot=True)
 
 
-    # for i in range(200):
-    #     print(i)
-    #     GPy.examples.regression.coal_mining_poisson_ep(seed=i,plot=True)
-    #     plt.savefig('/home/rzhang/Documents/QP_Summary/figures/poisson_square_{}.pdf'.format(i))
-
-
-    datanames = {0: 'ionosphere', 1: 'breast_cancer', 2: 'crabs', 3: 'pima', 4: 'usps35', 5: 'usps47', 6: 'usps28',
-                 7: 'sonar', 8: 'iris12',
-                 9: 'iris13', 10: 'iris23', 11: 'adult', 12: 'scaled_wine12', 13: 'scaled_wine23', 14: 'scaled_wine13',
-                 15: 'scaled_car01', 16: 'scaled_car02', 17: 'scaled_car13'}
-    import os
-    for i in range(18):
-        file = os.environ['proj'] + '/res/{}_vb_ep.npy'.format(datanames[i])
-        file2 = os.environ['proj'] + '/res/{}_qp.npy'.format(datanames[i])
-        if os.path.isfile(file) and os.path.isfile(file2):
-            res = np.load(file)
-            res2 = np.load(file2)
-            assert len(res) == len(res2)
-            print(datanames[i], ' experiment#: ',len(res))
-            means = []
-            for e in res:
-                e = np.array([l for l in e if -np.inf not in l and np.nan not in l])
-                means += [np.mean(e,axis=0)]
-            means = np.array(means)
-            means = np.hstack((means,np.mean(res2,axis=0).reshape(())))
-            print('mean: ', np.mean(means,axis=0))
-            print('std: ', np.std(means,axis=0))
-            print(ttest_ind(means[:,0],means[:,1]))
-            print(ttest_ind(means[:, 1], means[:, 2]))
-            print(ttest_ind(means[:, 0], means[:, 2]))
-        else:
-            print(file,' not exists!')
-
+    for i in range(200):
+        print(i)
+        GPy.examples.regression.coal_mining_poisson_ep(seed=i,plot=False)
+        plt.savefig('/home/rzhang/Documents/QP_Summary/figures/poisson_square_{}.pdf'.format(i))
+    classification_data_err_ll()
 
 
     # def loop(i):
@@ -65,8 +79,8 @@ if __name__ == '__main__':
     #     except Exception as e:
     #         print(e)
 
-    # Parallel(n_jobs=8)(delayed(loop)(i) for i in range(18))
-
+    #
+    # Parallel(n_jobs=8)(delayed(loop)(i) for i in [9])
 
     # with open('../res/poisson_regression_output_2.txt','r') as f:
     #     lines = f.readlines()
@@ -76,6 +90,11 @@ if __name__ == '__main__':
     #     lines2 = f.readlines()
     #     lines2 = np.array([l.split() for l in lines2])
     #
+    with open('../res/poisson_regression_output_vb.txt','r') as f:
+        lines3 = f.readlines()
+        lines3 = np.array([l.split() for l in lines3])
+        lines3 = np.array([l for l in lines3 if 'Wrong' not in l], dtype=np.float)
+        print(np.mean(lines3[:120],axis=0),np.std(lines3[:120],axis=0))
     # # ind=np.argsort(lines[:,0])
     # # lines = lines[ind]
     # ind = np.argsort(lines2[:, 0])
