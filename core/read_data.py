@@ -133,7 +133,7 @@ def read_pima():
 
 def read_iris():
     file = os.environ['proj'] + '/data/iris.data'
-    str2int = {'Iris-versicolor': 1, 'Iris-virginica': -1 }
+    str2int = {'Iris-versicolor': -1, 'Iris-virginica': 1 }
     with open(file, 'r') as rf:
         reader = csv.reader(rf)
         lines = list(reader)

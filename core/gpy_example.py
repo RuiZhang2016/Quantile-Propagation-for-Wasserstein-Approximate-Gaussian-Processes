@@ -16,97 +16,45 @@ def poisson_square_data():
         print(np.mean(lines2,axis=0))
 
 
-def classification_data_log_like():
+def classification_data_err_ll():
     datanames = {0: 'ionosphere', 1: 'breast_cancer', 2: 'crabs', 3: 'pima', 4: 'usps35', 5: 'usps47', 6: 'usps28',
                  7: 'sonar', 8: 'iris12',
                  9: 'iris13', 10: 'iris23', 11: 'adult', 12: 'scaled_wine12', 13: 'scaled_wine23', 14: 'scaled_wine13',
                  15: 'scaled_car01', 16: 'scaled_car02', 17: 'scaled_car13'}
 
-    for i in range(8,18):
+    for i in range(18):
         file = os.environ['proj'] + '/res/{}_vb_ep.npy'.format(datanames[i])
         file2 = os.environ['proj'] + '/res/{}_vb_ep_qp_new_data.npy'.format(datanames[i])
         file3 = os.environ['proj'] + '/res/{}_qp.npy'.format(datanames[i])
         file4 = os.environ['proj'] + '/res/{}_qp_no_constraints.npy'.format(datanames[i])
 
         if os.path.isfile(file) and os.path.isfile(file2)and os.path.isfile(file3) and os.path.isfile(file4):
-            res = np.load(file)
-            res2 = np.load(file2)
-            res3 = np.load(file3)
-            res4 = np.load(file4)
-            print("-----", datanames[i], ' experiment#: ',len(res))
-            means = []
-            for e in res:
-                e = np.array([l for l in e if -np.inf not in l and np.nan not in l])
-                means += [np.nanmean(e,axis=0)]
-            means2 = []
-            for e in res2:
-                tmp_e = np.array([l for l in e if -np.inf not in l and np.nan not in l])
-                if len(tmp_e) == 0:
-                    means2 += [np.append(np.array([-0.01]),np.mean(e[:,1:3],axis=0))]
-                else:
-                    means2 += [np.nanmean(tmp_e,axis=0)]
-            # vb_res = res[:,:,0].flatten()
-            # print(vb_res,res)
-            # vb_res = [e for e in vb_res if e != -np.inf and e!= -np.nan]
-            # ep_res = res[:,:,1].flatten()
-            means = np.array(means)
-
-            means2= np.array(means2)# np.mean(res2,axis=1)
+            res = np.load(file); res[res == -np.inf] = -1
+            res2 = np.load(file2); res2[res2 == -np.inf] = -1
+            res3 = np.load(file3); res3[res3 == -np.inf] = -1
+            res4 = np.load(file4); res4[res4 == -np.inf] = -1
+            print("---------- ", datanames[i], " ----------")
+            means = np.mean(~(np.exp(res) >= 0.5), axis=1)
+            means2 = np.mean(~(np.exp(res2) >= 0.5), axis=1)
+            means3 = np.mean(~(np.exp(res3) >= 0.5), axis=1)
+            means4 = np.mean(~(np.exp(res4) >= 0.5), axis=1)
+            means_err = np.hstack((means, means2, means3, means4))
+            # print('vb  ep  ep2  qp  qp2')
+            print('mean: ', np.nanmean(means_err, axis=0))
+            print('std: ', np.nanstd(means_err, axis=0))
+            # print(ttest_ind(means_err[:, 0], means_err[:, 1]))
+            print("-----")
+            means =np.mean(res, axis=1) # np.array(means)
+            means2= np.mean(res2,axis=1) # np.array(means2)
             means3 = np.mean(res3, axis=1)
             means4 = np.mean(res4, axis=1)
-            means = np.hstack((means,means2,means3,means4))
-            print('vb  ep  ep2  qp  qp2')
-            print('mean: ', np.nanmean(means,axis=0))
-            print('std: ', np.nanstd(means,axis=0))
-            print(ttest_ind(means[:,0],means[:,1]))
+            means_ll = np.hstack((means,means2,means3,means4))
+            print('mean: ', np.nanmean(means_ll,axis=0))
+            print('std: ', np.nanstd(means_ll,axis=0))
+            # print(ttest_ind(means_ll[:,0],means_ll[:,1]))
         else:
             print(file,' not exists!')
 
-
-def classification_data_err():
-    datanames = {0: 'ionosphere', 1: 'breast_cancer', 2: 'crabs', 3: 'pima', 4: 'usps35', 5: 'usps47', 6: 'usps28',
-                 7: 'sonar', 8: 'iris12',
-                 9: 'iris13', 10: 'iris23', 11: 'adult', 12: 'scaled_wine12', 13: 'scaled_wine23', 14: 'scaled_wine13',
-                 15: 'scaled_car01', 16: 'scaled_car02', 17: 'scaled_car13'}
-
-    for i in range(8,18):
-        file = os.environ['proj'] + '/res/{}_vb_ep.npy'.format(datanames[i])
-        file2 = os.environ['proj'] + '/res/{}_vb_ep_qp_new_data.npy'.format(datanames[i])
-        file3 = os.environ['proj'] + '/res/{}_qp.npy'.format(datanames[i])
-        file4 = os.environ['proj'] + '/res/{}_qp_no_constraints.npy'.format(datanames[i])
-
-        if os.path.isfile(file) and os.path.isfile(file2)and os.path.isfile(file3) and os.path.isfile(file4):
-            res = np.load(file)
-            res2 = np.load(file2)
-            res3 = np.load(file3)
-            res4 = np.load(file4)
-            print("-----", datanames[i], ' experiment#: ',len(res))
-            means = []
-            for e in res:
-                e = np.array([l for l in e if -np.inf not in l and np.nan not in l])
-                err = ~(np.exp(e) >=0.5)
-                means += [np.nanmean(err,axis=0)]
-            means2 = []
-            # for e in res2:
-            #     e = np.array([l for l in e if -np.inf not in l and np.nan not in l])
-            #     err = ~(np.exp(e) >=0.5)
-            #     means2 += [np.nanmean(err,axis=0)]
-            # vb_res = res[:,:,0].flatten()
-            # print(vb_res,res)
-            # vb_res = [e for e in vb_res if e != -np.inf and e!= -np.nan]
-            # ep_res = res[:,:,1].flatten()
-            means = np.array(means)
-            # means2= np.array(means2).transpose()
-            means2 = np.mean(~(np.exp(res2)>=0.5), axis=1)
-            means3 = np.mean(~(np.exp(res3)>=0.5), axis=1)
-            means4 = np.mean(~(np.exp(res4)>=0.5), axis=1)
-            means = np.hstack((means,means2,means3,means4))
-            # print('vb  ep  ep2  qp  qp2')
-            print('mean: ', np.nanmean(means,axis=0))
-            print('std: ', np.nanstd(means,axis=0))
-            print(ttest_ind(means[:,0],means[:,1]))
-        else:
-            print(file,' not exists!')
 
 
 if __name__ == '__main__':
@@ -119,12 +67,11 @@ if __name__ == '__main__':
     #     GPy.examples.classification.toy_linear_1d_classification(i,plot=True)
 
 
-    # for i in range(200):
-    #     print(i)
-    #     GPy.examples.regression.coal_mining_poisson_ep(seed=i,plot=False)
-    #     plt.savefig('/home/rzhang/Documents/QP_Summary/figures/poisson_square_{}.pdf'.format(i))
-    classification_data_log_like()
-    classification_data_err()
+    for i in range(200):
+        print(i)
+        GPy.examples.regression.coal_mining_poisson_ep(seed=i,plot=False)
+        plt.savefig('/home/rzhang/Documents/QP_Summary/figures/poisson_square_{}.pdf'.format(i))
+    classification_data_err_ll()
 
     # def loop(i):
     #     try:

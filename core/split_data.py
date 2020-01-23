@@ -12,9 +12,9 @@ else:
 sys.path.append(os.environ['proj']+'/pyGPs')
 sys.path.append(os.environ['proj'])
 
-def split_data(data,dataname):
+def split_data(data,dataname,seed):
     # data = read_ionosphere()
-    np.random.seed(500)
+    np.random.seed(seed)
     np.random.shuffle(data)
     n = data.shape[0]
     nfolds = 10
@@ -33,20 +33,21 @@ def split_data(data,dataname):
     for i in range(nfolds):
         loop(i,data,l)
 
-def save_obj(obj, name ):
-    with open(os.environ['proj']+'/data/split_data/'+ name + '.pkl', 'wb') as f:
+
+def save_obj(obj, name):
+    with open(os.environ['proj']+'/data/split_data_paper/'+ name + '.pkl', 'wb') as f:
         pickle.dump(obj, f, pickle.HIGHEST_PROTOCOL)
 
 
-
 if __name__ == '__main__':
-    # split_data(read_ionosphere(),'ionosphere')
-    # split_data(read_breast_cancer(),'breast_cancer')
-    # split_data(read_crabs(),'crabs')
-    # split_data(read_pima(),'pima')
-    # split_data(read_sonar(),'sonar')
+    for seed in range(10):
+        split_data(read_ionosphere(),'ionosphere_{}'.format(seed),seed)
+        split_data(read_breast_cancer(),'breast_cancer_{}'.format(seed),seed)
+        split_data(read_crabs(),'crabs_{}'.format(seed),seed)
+        split_data(read_pima(),'pima_{}'.format(seed),seed)
+        split_data(read_sonar(),'sonar_{}'.format(seed),seed)
     # split_data(read_usps(),'usps28')
-    split_data(read_iris(), 'iris23')
+    # split_data(read_iris(), 'iris23')
     # split_data(read_adult(), 'adult')
     # split_data(read_wine(1,3), 'scaled_wine13')
     # split_data(read_wine(2, 3), 'scaled_wine23')
