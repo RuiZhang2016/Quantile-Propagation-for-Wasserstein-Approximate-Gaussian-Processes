@@ -7,6 +7,8 @@ import numpy as np
 from scipy.stats import ttest_ind
 from joblib import Parallel,delayed
 import os
+from __init__ import ROOT_PATH
+
 
 def poisson_square_data():
     with open('../res/poisson_regression_output_2.txt','r') as f:
@@ -55,8 +57,17 @@ def classification_data_err_ll():
         else:
             print(file,' not exists!')
 
+def copy_folder(target,source, is_folder=True):
+    os.system('scp {} {} {}'.format('-r' if is_folder else '', source,target))
+
+def copy_res_paper():
+    copy_folder(ROOT_PATH+'/res/paper','u5963436@dijkstra.cecs.anu.edu.au:/home/users/u5963436/Work/WGPC/res/paper/')
+
 
 if __name__ == '__main__':
+    # copy_res_paper()
+    print(np.load(ROOT_PATH + '/res/paper/ionosphere_0_0_vb_ep.npy'))
+    print(np.load(ROOT_PATH+'/res/paper/ionosphere_0_0_qp.npy'))
     # GPy.examples.regression.toy_poisson_rbf_1d_laplace()
     # plt.show()
     # m = GPy.examples.classification.toy_linear_1d_classification()
@@ -66,11 +77,12 @@ if __name__ == '__main__':
     #     GPy.examples.classification.toy_linear_1d_classification(i,plot=True)
 
 
-    for i in range(200):
-        print(i)
-        GPy.examples.regression.coal_mining_poisson_ep(seed=i,plot=False)
-        plt.savefig('/home/rzhang/Documents/QP_Summary/figures/poisson_square_{}.pdf'.format(i))
-    classification_data_err_ll()
+    # for i in range(200):
+    #     print(i)
+    #     GPy.examples.classification.other_data()
+    #     GPy.examples.regression.coal_mining_poisson_ep(seed=i,plot=False)
+    #     plt.savefig('/home/rzhang/Documents/QP_Summary/figures/poisson_square_{}.pdf'.format(i))
+    # classification_data_err_ll()
 
 
     # def loop(i):
@@ -90,11 +102,12 @@ if __name__ == '__main__':
     #     lines2 = f.readlines()
     #     lines2 = np.array([l.split() for l in lines2])
     #
-    with open('../res/poisson_regression_output_vb.txt','r') as f:
-        lines3 = f.readlines()
-        lines3 = np.array([l.split() for l in lines3])
-        lines3 = np.array([l for l in lines3 if 'Wrong' not in l], dtype=np.float)
-        print(np.mean(lines3[:120],axis=0),np.std(lines3[:120],axis=0))
+    # with open('../res/poisson_regression_output_vb.txt','r') as f:
+    #     lines3 = f.readlines()
+    #     lines3 = np.array([l.split() for l in lines3])
+    #     lines3 = np.array([l for l in lines3 if 'Wrong' not in l], dtype=np.float)
+    #     print(np.mean(lines3[:120],axis=0),np.std(lines3[:120],axis=0))
+
     # # ind=np.argsort(lines[:,0])
     # # lines = lines[ind]
     # ind = np.argsort(lines2[:, 0])
@@ -109,6 +122,10 @@ if __name__ == '__main__':
     #     comparison = [ 1 if l[0]<l[1] else 0 for l in tmp]
     #     print(np.mean(comparison))
     #     print(ttest_ind(tmp[:,0],tmp[:,1]))
+
+
+    # os.environ['proj']+ '/data/split_data/{}_{}.pkl'.format(dataname, id)
+    # os.environ['proj']+'/res/{}_vb_ep.npy'.format(dataname)
 
 
 
