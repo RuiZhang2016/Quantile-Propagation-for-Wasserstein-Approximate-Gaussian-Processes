@@ -3,23 +3,16 @@ from matplotlib import pyplot as plt
 import numpy as np
 from scipy.stats import ttest_ind
 from joblib import Parallel,delayed
-<<<<<<< HEAD
-from __init__ import ROOT_PATH
-
-=======
-import os
+import os,sys
 from __init__ import ROOT_PATH
 
 
->>>>>>> 3c6262757a53f08c9e43031098e38c53726a104d
 def poisson_square_data():
     with open('../res/poisson_regression_output_2.txt','r') as f:
         lines = f.readlines()
         lines2= np.array([lines[i].split() for i in range(120) if 'Wrong' not in lines[i]],dtype=np.float)
         print(ttest_ind(lines2[:,1],lines2[:,2]))
         print(np.mean(lines2,axis=0))
-<<<<<<< HEAD
-=======
 
 
 def classification_data_err_ll():
@@ -67,7 +60,6 @@ def copy_folder(target,source, is_folder=True):
 def copy_res_paper():
     copy_folder(ROOT_PATH+'/res/paper','u5963436@dijkstra.cecs.anu.edu.au:/home/users/u5963436/Work/WGPC/res/paper/')
 
->>>>>>> 3c6262757a53f08c9e43031098e38c53726a104d
 
 if __name__ == '__main__':
     # copy_res_paper()
