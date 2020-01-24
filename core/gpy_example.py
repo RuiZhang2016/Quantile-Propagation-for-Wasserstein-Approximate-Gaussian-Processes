@@ -1,8 +1,5 @@
 import GPy
-try:
-    from matplotlib import pyplot as plt
-except:
-    pass
+from matplotlib import pyplot as plt
 import numpy as np
 from scipy.stats import ttest_ind
 from joblib import Parallel,delayed
@@ -66,8 +63,8 @@ def copy_res_paper():
 
 if __name__ == '__main__':
     # copy_res_paper()
-    print(np.load(ROOT_PATH + '/res/paper/ionosphere_0_0_vb_ep.npy'))
-    print(np.load(ROOT_PATH+'/res/paper/ionosphere_0_0_qp.npy'))
+    args = sys.argv[1:]
+
     # GPy.examples.regression.toy_poisson_rbf_1d_laplace()
     # plt.show()
     # m = GPy.examples.classification.toy_linear_1d_classification()
