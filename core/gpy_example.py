@@ -131,15 +131,12 @@ if __name__ == '__main__':
     #     lines2 = f.readlines()
     #     lines2 = np.array([l.split() for l in lines2])
     #
-<<<<<<< HEAD
-=======
     # with open('../res/poisson_regression_output_vb.txt','r') as f:
     #     lines3 = f.readlines()
     #     lines3 = np.array([l.split() for l in lines3])
     #     lines3 = np.array([l for l in lines3 if 'Wrong' not in l], dtype=np.float)
     #     print(np.mean(lines3[:120],axis=0),np.std(lines3[:120],axis=0))
 
->>>>>>> 3c6262757a53f08c9e43031098e38c53726a104d
     # # ind=np.argsort(lines[:,0])
     # # lines = lines[ind]
     # ind = np.argsort(lines2[:, 0])
