@@ -153,11 +153,3 @@ if __name__ == '__main__':
     #     print(ttest_ind(tmp[:,0],tmp[:,1]))
 
 
-<<<<<<< HEAD
-=======
-    # os.environ['proj']+ '/data/split_data/{}_{}.pkl'.format(dataname, id)
-    # os.environ['proj']+'/res/{}_vb_ep.npy'.format(dataname)
-
-
->>>>>>> 3c6262757a53f08c9e43031098e38c53726a104d
-
