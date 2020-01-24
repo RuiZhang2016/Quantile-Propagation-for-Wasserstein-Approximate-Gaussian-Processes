@@ -4,73 +4,91 @@ try:
 except:
     pass
 import numpy as np
+from scipy.stats import ttest_ind
 from joblib import Parallel,delayed
+from __init__ import ROOT_PATH
+
+def poisson_square_data():
+    with open('../res/poisson_regression_output_2.txt','r') as f:
+        lines = f.readlines()
+        lines2= np.array([lines[i].split() for i in range(120) if 'Wrong' not in lines[i]],dtype=np.float)
+        print(ttest_ind(lines2[:,1],lines2[:,2]))
+        print(np.mean(lines2,axis=0))
 
 if __name__ == '__main__':
     # GPy.examples.regression.toy_poisson_rbf_1d_laplace()
     # plt.show()
     # m = GPy.examples.classification.toy_linear_1d_classification()
 
-    Parallel(n_jobs=8)(delayed(GPy.examples.regression.toy_poisson_rbf_1d_laplace)(seed=i) for i in range(100))
+    # Parallel(n_jobs=8)(delayed(GPy.examples.classification.toy_linear_1d_classification)(seed=i,plot=False) for i in range(100))
+    # for i in range(10):
+    #     GPy.examples.classification.toy_linear_1d_classification(i,plot=True)
 
 
-    # optimizer = 'scg'
-    # plot = True
-    # # x_len = 100
-    # # X = np.linspace(0, 10, x_len)[:, None]
-    # # f_true = np.random.multivariate_normal(np.zeros(x_len), GPy.kern.RBF(1).K(X))
-    # # Y = np.array([np.random.poisson(np.exp(f)) for f in f_true])[:, None]
-    # X = np.array([1851+i for i in range(112)])[:, None]
-    # Y = np.array([4, 5, 4, 1, 0, 4, 3, 4,0, 6, 3, 3, 4, 0, 2, 6, 3, 3, 5, 4, 5, 3, 1, 4, 4, 1, 5, 5, 3, 4, 2, 5, 2, 2, 3, 4,
-    #           2, 1, 3, 2, 2, 1, 1, 1, 1, 3, 0, 0, 1, 0, 1, 1, 0, 0, 3, 1, 0, 3, 2, 2, 0, 1, 1, 1, 0, 1, 0, 1, 0, 0, 0,
-    #           2, 1, 0, 0, 0, 1, 1, 0, 2, 3, 3, 1, 1, 2, 1, 1, 1, 1, 2, 4, 2, 0, 0, 0, 1, 4, 0, 0, 0, 1, 0, 0, 0, 0, 0,
-    #          1, 0, 0, 1, 0, 1])[:, None]
-    #
-    # kern = GPy.kern.RBF(1)
-    # poisson_lik = GPy.likelihoods.Poisson(gp_link=GPy.likelihoods.link_functions.Log_ex_1())
-    # laplace_inf = GPy.inference.latent_function_inference.EP()
-    #
-    # # create simple GP Model
-    # m = GPy.core.GP(X, Y, kernel=kern, likelihood=poisson_lik, inference_method=laplace_inf)
-    # optimize = True
-    # if optimize:
-    #     m.optimize(optimizer)
-    # if plot:
-    #     m.plot()
-    #     # plot the real underlying rate function
-    #     # plt.plot(X, np.exp(f_true), '--k', linewidth=2)
-    # plt.show()
+    # for i in range(200):
+    #     print(i)
+    #     GPy.examples.regression.coal_mining_poisson_ep(seed=i,plot=True)
+    #     plt.savefig('/home/rzhang/Documents/QP_Summary/figures/poisson_square_{}.pdf'.format(i))
 
-    # def oil(num_inducing=50, max_iters=100, kernel=None, optimize=True, plot=True):
-    #     """
-    #     Run a Gaussian process classification on the three phase oil data. The demonstration calls the basic GP classification model and uses EP to approximate the likelihood.
-    #     """
-    #     try:
-    #         import pods
-    #     except ImportError:
-    #         raise ImportWarning('Need pods for example datasets. See https://github.com/sods/ods, or pip install pods.')
-    #     data = pods.datasets.oil()
-    #     X = data['X']
-    #     Xtest = data['Xtest']
-    #     Y = data['Y'][:, 0:1]
-    #     Ytest = data['Ytest'][:, 0:1]
-    #     Y[Y.flatten() == -1] = 0
-    #     Ytest[Ytest.flatten() == -1] = 0
+
+    datanames = {0: 'ionosphere', 1: 'breast_cancer', 2: 'crabs', 3: 'pima', 4: 'usps35', 5: 'usps47', 6: 'usps28',
+                 7: 'sonar', 8: 'iris12',
+                 9: 'iris13', 10: 'iris23', 11: 'adult', 12: 'scaled_wine12', 13: 'scaled_wine23', 14: 'scaled_wine13',
+                 15: 'scaled_car01', 16: 'scaled_car02', 17: 'scaled_car13'}
+    # import os
+    # for i in range(18):
+    #     file = os.environ['proj'] + '/res/{}_vb_ep.npy'.format(datanames[i])
+    #     if os.path.isfile(file):
+    #         res = np.load(file)
+    #         print(datanames[i], ' experiment#: ',len(res))
+    #         means = []
+    #         for e in res:
+    #             e = np.array([l for l in e if -np.inf not in l and np.nan not in l])
+    #             means += [np.mean(e,axis=0)]
+    #         means = np.array(means)
+    #         print('mean: ', np.mean(means,axis=0))
+    #         print('std: ', np.std(means,axis=0))
+    #         print(ttest_ind(means[:,0],means[:,1]))
+    #     else:
+    #         print(file,' not exists!')
+
+
+    def loop(name_i,set_i,split_i):
+        try:
+            input_fn =ROOT_PATH+'/data/split_data_paper/{}_{}_{}.pkl'.format(datanames[name_i],set_i,split_i)
+            output_fn =ROOT_PATH+'/res/paper/{}_{}_{}_vb_ep.npy'.format(datanames[name_i],set_i,split_i)
+            GPy.examples.classification.other_data(input_fn,output_fn,qp=False)
+            output_fn =ROOT_PATH+'/res/paper/{}_{}_{}_qp.npy'.format(datanames[name_i],set_i,split_i)
+            GPy.examples.classification.other_data(input_fn,output_fn,qp=True)
+        except Exception as e:
+            print(e)
+    
+    loop(0,0,0)
+    # Parallel(n_jobs=18)(delayed(loop)(i) for i in [0])
+
+
+    # with open('../res/poisson_regression_output_2.txt','r') as f:
+    #     lines = f.readlines()
+    #     lines = np.array([l.split() for l in lines])
     #
-    #     # Create GP model
-    #     m = GPy.models.SparseGPClassification(X, Y, kernel=kernel, num_inducing=num_inducing)
-    #     m.Ytest = Ytest
+    # with open('../res/poisson_regression_output_lbfgs.txt','r') as f:
+    #     lines2 = f.readlines()
+    #     lines2 = np.array([l.split() for l in lines2])
     #
-    #     # Contrain all parameters to be positive
-    #     # m.tie_params('.*len')
-    #     m['.*len'] = 10.
-    #
-    #     # Optimize
-    #     if optimize:
-    #         m.optimize(messages=1)
-    #     print(m)
-    #
-    #     # Test
-    #     probs = m.predict(Xtest)[0]
-    #     GPy.util.classification.conf_matrix(probs, Ytest)
-    #     return m
+    # # ind=np.argsort(lines[:,0])
+    # # lines = lines[ind]
+    # ind = np.argsort(lines2[:, 0])
+    # lines2 = lines2[ind]
+    # # lines3 = np.hstack((lines,lines2))
+    # # lines = np.array([lines3[:,i] for i in [1,2,4]]).transpose()
+    # lines2 = np.array([l for l in lines2 if 'Wrong' not in l],dtype=np.float)
+    # for i in range(len(lines2)):
+    #     ra = range(i+1)
+    #     tmp = np.array([lines2[j,1:3] for j in ra])
+    #     print(i,np.mean(tmp,axis=0),np.std(tmp,axis=0))
+    #     comparison = [ 1 if l[0]<l[1] else 0 for l in tmp]
+    #     print(np.mean(comparison))
+    #     print(ttest_ind(tmp[:,0],tmp[:,1]))
+
+
+
