@@ -1,13 +1,10 @@
 import GPy
-try:
-    from matplotlib import pyplot as plt
-except:
-    pass
+from matplotlib import pyplot as plt
 import numpy as np
 import pickle
 from scipy.stats import ttest_ind
 from joblib import Parallel,delayed
-import os
+import os,sys
 from __init__ import ROOT_PATH
 from tabulate import tabulate
 
@@ -163,8 +160,6 @@ def copy_data_to_gadi():
 
 if __name__ == '__main__':
     # copy_res_paper()
-    #print(np.load(ROOT_PATH + '/res/paper/ionosphere_0_0_vb_ep.npy'))
-    #print(np.load(ROOT_PATH+'/res/paper/ionosphere_0_0_qp.npy'))
     # GPy.examples.regression.toy_poisson_rbf_1d_laplace()
     # plt.show()
     # m = GPy.examples.classification.toy_linear_1d_classification()
@@ -175,22 +170,48 @@ if __name__ == '__main__':
 
     # for i in range(200):
     #     print(i)
-    #     GPy.examples.classification.other_data()
-    #     GPy.examples.regression.coal_mining_poisson_ep(seed=i,plot=False)
+    #     GPy.examples.regression.coal_mining_poisson_ep(seed=i,plot=True)
     #     plt.savefig('/home/rzhang/Documents/QP_Summary/figures/poisson_square_{}.pdf'.format(i))
     # classification_data_err_ll()
     # reliability_diagram()
     # copy_res_from_gadi()
     copy_data_to_gadi()
 
-    # def loop(i):
-    #     try:
-    #         GPy.examples.classification.other_data(datanames[i])
-    #     except Exception as e:
-    #         print(e)
 
-    #
-    # Parallel(n_jobs=8)(delayed(loop)(i) for i in [9])
+    datanames = {0: 'ionosphere', 1: 'breast_cancer', 2: 'crabs', 3: 'pima', 4: 'usps35', 5: 'usps47', 6: 'usps28',
+                 7: 'sonar', 8: 'iris12',
+                 9: 'iris13', 10: 'iris23', 11: 'adult', 12: 'scaled_wine12', 13: 'scaled_wine23', 14: 'scaled_wine13',
+                 15: 'scaled_car01', 16: 'scaled_car02', 17: 'scaled_car13'}
+    # import os
+    # for i in range(18):
+    #     file = os.environ['proj'] + '/res/{}_vb_ep.npy'.format(datanames[i])
+    #     if os.path.isfile(file):
+    #         res = np.load(file)
+    #         print(datanames[i], ' experiment#: ',len(res))
+    #         means = []
+    #         for e in res:
+    #             e = np.array([l for l in e if -np.inf not in l and np.nan not in l])
+    #             means += [np.mean(e,axis=0)]
+    #         means = np.array(means)
+    #         print('mean: ', np.mean(means,axis=0))
+    #         print('std: ', np.std(means,axis=0))
+    #         print(ttest_ind(means[:,0],means[:,1]))
+    #     else:
+    #         print(file,' not exists!')
+
+
+    def loop(name_i,set_i,split_i):
+        try:
+            input_fn =ROOT_PATH+'/data/split_data_paper/{}_{}_{}.pkl'.format(datanames[name_i],set_i,split_i)
+            output_fn =ROOT_PATH+'/res/paper/{}_{}_{}_vb_ep.npy'.format(datanames[name_i],set_i,split_i)
+            GPy.examples.classification.other_data(input_fn,output_fn,qp=False)
+            output_fn =ROOT_PATH+'/res/paper/{}_{}_{}_qp.npy'.format(datanames[name_i],set_i,split_i)
+            GPy.examples.classification.other_data(input_fn,output_fn,qp=True)
+        except Exception as e:
+            print(e)
+    
+    loop(0,0,0)
+    # Parallel(n_jobs=18)(delayed(loop)(i) for i in [0])
 
     # with open('../res/poisson_regression_output_2.txt','r') as f:
     #     lines = f.readlines()
@@ -220,18 +241,4 @@ if __name__ == '__main__':
     #     comparison = [ 1 if l[0]<l[1] else 0 for l in tmp]
     #     print(np.mean(comparison))
     #     print(ttest_ind(tmp[:,0],tmp[:,1]))
-
-
-    # os.environ['proj']+ '/data/split_data/{}_{}.pkl'.format(dataname, id)
-    # os.environ['proj']+'/res/{}_vb_ep.npy'.format(dataname)
-
-
-    # tmp
-    # for i in [12,13,14]:
-    #     for j in range(10):
-    #         for k in range(10):
-    #             fn = '../data/split_data_paper/{}_{}_{}.pkl'.format(datanames[i],j,k)
-    #             os.system('scp {} rz6339@gadi.nci.org.au:/home/887/rz6339/Work/WGPC/data/split_data_paper/'.format(fn))
-    #             print(fn)
-
 
