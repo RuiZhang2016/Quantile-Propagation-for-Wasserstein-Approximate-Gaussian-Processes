@@ -131,9 +131,10 @@ def read_pima():
     print("#data: ", n)
     return z
 
-def read_iris():
+def read_iris(l1,l2):
     file = os.environ['proj'] + '/data/iris.data'
-    str2int = {'Iris-versicolor': -1, 'Iris-virginica': 1 }
+    label2name = {1:'Iris-setosa',2:'Iris-versicolor',3:'Iris-virginica'}
+    str2int = {label2name[l1]: -1, label2name[l2]: 1 }
     with open(file, 'r') as rf:
         reader = csv.reader(rf)
         lines = list(reader)
@@ -182,9 +183,9 @@ def read_wine(l1,l2):
         lines = np.array([l for l in lines if l[-1] == label1 or l[-1] == label2])
         lines[:, -1] -= (label1 + label2) / 2
         lines[:, -1] /= abs(label1 - label2) / 2
-        scaler = StandardScaler()
-        scaler.fit(lines[:,:-1])
-        lines[:,:-1] = scaler.transform(lines[:,:-1])
+        # scaler = StandardScaler()
+        # scaler.fit(lines[:,:-1])
+        # lines[:,:-1] = scaler.transform(lines[:,:-1])
         return lines
 
 def read_car(l1,l2):
