@@ -5,12 +5,12 @@ This repo contains a demo for the NeurIPS-2020 publication "[Quantile Propagatio
 1. Install virtual environment: conda create -n QP python=3.6
 2. Activate environment: conda activate QP
 3. Install requirements: pip install -r requirements.txt
-4. Download lookup tables from [google drive](https://drive.google.com/drive/folders/1Ieon8Xo5nM8TQeNivZJx_TOhLfVIrS5F?usp=sharing) to [the repo path]/data
-4. Enter the experiment dir: cd [the repo path]/experiments
+4. Download lookup tables from [google drive](https://drive.google.com/drive/folders/1Ieon8Xo5nM8TQeNivZJx_TOhLfVIrS5F?usp=sharing) to [the repo path]/data/
+4. Enter the experiment dir: cd [the repo path]/experiments/
 5. run experiments: python classification.py
 
 # Citation
-If you find Variational Inference for Sparse Gaussian Process Modulated Hawkes Process useful in your research, please consider citing:
+If you find Quantile Propagation for Wasserstein-Approximate Gaussian Processes useful in your research, please consider citing:
 
     @article{zhang2020wassapproxgp,
     	title={Quantile Propagation for Wasserstein-Approximate Gaussian Processes},
