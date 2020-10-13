@@ -1,5 +1,5 @@
 # [Quantile-Propagation-for-Wasserstein-Approximate-Gaussian-Processes](https://arxiv.org/abs/1912.10200)
-This repo contains a demo for the NeurIPS-2020 publication "[Quantile Propagation for Wasserstein-Approximate Gaussian Processes](https://arxiv.org/abs/1912.10200)".
+This repo contains a demo for the NeurIPS-2020 publication "[Quantile Propagation for Wasserstein-Approximate Gaussian Processes](https://arxiv.org/abs/1912.10200)". To get the results reported in the paper, please run the code in the branch "no-lookup-table", which uses no lookup table but exact computation.
 
 # Steps to run the code
 1. Install virtual environment: conda create -n QP python=3.6
